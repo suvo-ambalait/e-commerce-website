@@ -1,0 +1,19 @@
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
+import '@/index.css'
+import { ensureSchema } from '@/shared/lib/storage'
+import { AppProviders } from './providers'
+import { App } from './App'
+
+ensureSchema()
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <BrowserRouter>
+      <AppProviders>
+        <App />
+      </AppProviders>
+    </BrowserRouter>
+  </StrictMode>,
+)

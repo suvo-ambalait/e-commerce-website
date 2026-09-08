@@ -1,0 +1,319 @@
+@import "tailwindcss";
+
+/* Dark mode driven by a `.dark` class on <html> (see useTheme). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ------------------------------------------------------------------ *
+ * Design tokens — editorial minimal
+ * Palette: warm "paper" grounds, near-black ink, one clay accent.
+ * Semantic names only; components never reference raw scales.
+ * ------------------------------------------------------------------ */
+:root {
+  /* raw ramp — warm neutrals */
+  --paper-0: #ffffff;
+  --paper-50: #fbfaf7;
+  --paper-100: #f4f2ec;
+  --paper-200: #e9e5db;
+  --paper-300: #d8d2c4;
+  --clay-400: #c07a5f;
+  --clay-500: #9e4a3b;
+  --clay-600: #85392d;
+  --ink-700: #4a463c;
+  --ink-800: #2b2820;
+  --ink-900: #17150f;
+
+  /* semantic — light theme */
+  --bg: var(--paper-50);
+  --surface: var(--paper-0);
+  --surface-sunken: var(--paper-100);
+  --border: #e6e1d5;
+  --border-strong: #cbc3b1;
+  --ink: var(--ink-900);
+  --ink-soft: var(--ink-700);
+  --ink-mute: #8a8474;
+  --accent: var(--clay-500);
+  --accent-hover: var(--clay-600);
+  --accent-soft: #f3e6e0;
+  --on-accent: #fdf6f2;
+  --success: #4f7355;
+  --success-soft: #e6efe6;
+  --warning: #a9762f;
+  --warning-soft: #f6ecd9;
+  --danger: #a23c33;
+  --danger-soft: #f5e2df;
+  --sale: var(--clay-500);
+  /* keyboard-focus ring — warm, on-palette, never the browser blue */
+  --focus: #9a8f78;
+  --field-ring: color-mix(in srgb, var(--ink-900) 12%, transparent);
+
+  --shadow-sm: 0 1px 2px rgb(23 21 15 / 0.04), 0 1px 3px rgb(23 21 15 / 0.06);
+  --shadow-md: 0 4px 12px rgb(23 21 15 / 0.06), 0 2px 4px rgb(23 21 15 / 0.04);
+  --shadow-lg: 0 12px 32px rgb(23 21 15 / 0.10), 0 4px 8px rgb(23 21 15 / 0.05);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-1: 160ms;
+  --dur-2: 240ms;
+  --dur-3: 360ms;
+}
+
+.dark {
+  --bg: #14130f;
+  --surface: #1c1a15;
+  --surface-sunken: #211f18;
+  --border: #322e25;
+  --border-strong: #423d31;
+  --ink: #f3f0e7;
+  --ink-soft: #cfc9ba;
+  --ink-mute: #9a9384;
+  --accent: #c98a72;
+  --accent-hover: #d8a08b;
+  --accent-soft: #33231d;
+  --on-accent: #1a120e;
+  --success: #8fb596;
+  --success-soft: #22301f;
+  --warning: #d9ab6a;
+  --warning-soft: #322718;
+  --danger: #d98b81;
+  --danger-soft: #341f1c;
+  --sale: #d8a08b;
+  --focus: #b8a98c;
+  --field-ring: color-mix(in srgb, #f3f0e7 16%, transparent);
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-md: 0 6px 16px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 16px 40px rgb(0 0 0 / 0.55);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-mute: var(--ink-mute);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-sale: var(--sale);
+  --color-focus: var(--focus);
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
+
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 16px;
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+
+  --ease-editorial: var(--ease-out);
+
+  /* fluid type scale */
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.4;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.55;
+  --text-base: 1rem;
+  --text-base--line-height: 1.65;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.55;
+  --text-xl: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --text-xl--line-height: 1.3;
+  --text-2xl: clamp(1.6rem, 1.35rem + 1.1vw, 2.15rem);
+  --text-2xl--line-height: 1.2;
+  --text-3xl: clamp(2rem, 1.6rem + 1.9vw, 3rem);
+  --text-3xl--line-height: 1.12;
+  --text-display: clamp(2.6rem, 1.9rem + 3.4vw, 4.5rem);
+  --text-display--line-height: 1.04;
+}
+
+/* ------------------------------------------------------------------ *
+ * Base
+ * ------------------------------------------------------------------ */
+* {
+  border-color: var(--border);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-synthesis-weight: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip; /* never scroll the page sideways; wide content clips to its own container */
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-serif);
+  font-weight: 460;
+  letter-spacing: -0.015em;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+/* interactive elements get a pointer — <button> defaults to `default` otherwise */
+button:not(:disabled),
+[role='button']:not([aria-disabled='true']),
+[role='tab'],
+[role='switch'],
+[role='option'],
+label:has(> input[type='checkbox']),
+label:has(> input[type='radio']),
+label:has(input[type='checkbox']),
+label:has(input[type='radio']),
+summary {
+  cursor: pointer;
+}
+
+button:disabled,
+[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+/* ------------------------------------------------------------------ *
+ * Focus system — one consistent, on-palette treatment
+ * ------------------------------------------------------------------ */
+
+/* kill every browser default field chrome (blue ring, square corners, etc.)
+   — but NOT checkboxes / radios, which need their native rendering */
+:where(input:not([type='checkbox']):not([type='radio']):not([type='range']), textarea, select) {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* ------------------------------------------------------------------ *
+ * Range slider — editorial: hairline track, clay thumb
+ * ------------------------------------------------------------------ */
+input[type='range'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 1.25rem;
+  background: transparent;
+  cursor: pointer;
+}
+input[type='range']::-webkit-slider-runnable-track {
+  height: 2px;
+  border-radius: 999px;
+  /* filled portion comes from the element's own background (set inline as a
+     gradient); fall back to a hairline when no gradient is provided */
+  background: transparent;
+}
+input[type='range']::-moz-range-track {
+  height: 2px;
+  border-radius: 999px;
+  background: var(--border-strong);
+}
+input[type='range']::-moz-range-progress {
+  height: 2px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+input[type='range']::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  margin-top: -7px;
+  height: 16px;
+  width: 16px;
+  border-radius: 999px;
+  background: var(--accent);
+  border: 2px solid var(--surface);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur-1) var(--ease-out);
+}
+input[type='range']::-moz-range-thumb {
+  height: 16px;
+  width: 16px;
+  border-radius: 999px;
+  background: var(--accent);
+  border: 2px solid var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+input[type='range']:hover::-webkit-slider-thumb {
+  transform: scale(1.12);
+}
+input[type='range']:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px var(--field-ring);
+}
+input[type='range']:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 4px var(--field-ring);
+}
+:where(input[type='search'])::-webkit-search-cancel-button,
+:where(input[type='search'])::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+:where(input, textarea, select):focus {
+  outline: none;
+}
+
+/* keyboard focus on buttons, links, tabs, cards, chips — warm hairline outline */
+:focus-visible:not(input):not(textarea):not(select) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* the soft ring is opt-in, only on real form fields (see shared/ui/Field) */
+.field-focus:focus {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px var(--field-ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* thin, unobtrusive scrollbars */
+@supports (scrollbar-width: thin) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+}
+
+/* gentle mount reveal — plays once, never gates visibility */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@utility rise {
+  animation: rise 0.5s var(--ease-out) both;
+}
+
+/* utility: editorial page gutter */
+@utility container-page {
+  margin-inline: auto;
+  max-width: 80rem;
+  padding-inline: 1.25rem;
+  @media (min-width: 768px) {
+    padding-inline: 2rem;
+  }
+}
