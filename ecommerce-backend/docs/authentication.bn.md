@@ -1,157 +1,270 @@
-# প্রোডাকশন-গ্রেড API Authentication (Laravel 12 + Sanctum + spatie/laravel-permission)
+# API Authentication — একদম শুরু থেকে (Laravel 12 + Sanctum)
 
-এই e-commerce API-এর জন্য token-based authentication বানানোর ধাপে ধাপে গাইড।
-কোড আপনি নিজে টাইপ করবেন; প্রতিটি ধাপে বলা আছে **কী** বানাচ্ছেন এবং **কেন**, সাথে
-কীভাবে যাচাই করবেন।
+এই গাইডটা ধরে নিয়েছে তুমি **beginner**। তাই আমরা HTTP কী, token কী — এসব
+একদম গোড়া থেকে শুরু করব, তারপর ধাপে ধাপে এই e-commerce API-তে একটা
+production-মানের login system বানাব।
 
-**যে stack আগে থেকেই ইনস্টল করা আছে:** Laravel 12.69, `laravel/sanctum ^4.3`,
-`spatie/laravel-permission ^6.25`, Pest 3। `personal_access_tokens` আর spatie
-permission table-গুলোর migration আগেই run হয়ে গেছে।
+কোড তুমি নিজে টাইপ করবে। প্রতিটা কোড ব্লকের **আগে** বলা আছে "এটা কী করবে",
+আর **পরে** লাইন ধরে ধরে বোঝানো আছে।
 
-**আমরা যা বানাবো:**
+> এটি [`authentication.md`](authentication.md) (ইংরেজি, সংক্ষিপ্ত) এর
+> beginner-বান্ধব বাংলা সংস্করণ।
 
-| এলাকা | Endpoints |
+---
+
+## অংশ ০ — যেসব জিনিস আগে বুঝতে হবে
+
+### ০.১ ওয়েব কীভাবে কথা বলে: request আর response
+
+তুমি ব্রাউজারে কিছু করলে ব্রাউজার সার্ভারকে একটা **request** (অনুরোধ) পাঠায়,
+সার্ভার একটা **response** (উত্তর) ফেরত দেয়। ব্যাস, এইটুকুই।
+
+একটা request-এ থাকে:
+
+- **Method** — কী ধরনের কাজ। প্রধান ৪টা:
+  - `GET` — শুধু তথ্য চাওয়া ("আমার প্রোফাইল দেখাও")
+  - `POST` — নতুন কিছু বানানো ("নতুন account খোলো")
+  - `PUT` / `PATCH` — কিছু পরিবর্তন করা ("password বদলাও")
+  - `DELETE` — মুছে ফেলা ("এই address মুছে দাও")
+- **URL** — কোথায় পাঠাচ্ছ। যেমন `https://api.myshop.com/login`
+- **Header** — request সম্পর্কে বাড়তি তথ্য। Header হলো "খামের উপরে লেখা"
+  ছোট ছোট তথ্য। যেমন `Accept: application/json` মানে "আমাকে JSON ফরম্যাটে
+  উত্তর দিও"।
+- **Body** — আসল data। যেমন login-এ email আর password।
+
+একটা response-এ থাকে:
+
+- **Status code** — একটা সংখ্যা যেটা এক নজরে বলে কী হলো (নিচে বিস্তারিত)
+- **Header**
+- **Body** — ফেরত পাঠানো data
+
+### ০.২ Status code — সংখ্যা দেখেই বোঝা যায় কী হয়েছে
+
+| Code | মানে | কখন |
+| --- | --- | --- |
+| `200 OK` | ঠিকঠাক হয়েছে | সফল login, প্রোফাইল fetch |
+| `201 Created` | নতুন কিছু তৈরি হয়েছে | নতুন account রেজিস্টার |
+| `401 Unauthorized` | **তুমি কে সেটাই জানি না** | token নেই বা ভুল token |
+| `403 Forbidden` | তুমি কে জানি, কিন্তু **এই কাজের অনুমতি নেই** | customer admin-এর route-এ ঢুকতে চাইছে |
+| `422 Unprocessable` | তোমার পাঠানো data-তে ভুল আছে | password ৮ অক্ষরের কম |
+| `429 Too Many Requests` | **অনেক বেশি চেষ্টা করেছ, একটু থামো** | ১ মিনিটে ১০ বার ভুল password |
+| `500` | সার্ভারে bug | তোমার কোডে সমস্যা |
+
+`401` আর `403`-এর পার্থক্যটা মনে রাখো — এটা বারবার লাগবে:
+> **401 = পরিচয় নেই। 403 = পরিচয় আছে, কিন্তু অনুমতি নেই।**
+
+### ০.৩ JSON — data লেখার একটা সহজ ফরম্যাট
+
+API-রা HTML পাঠায় না (HTML মানুষের চোখের জন্য)। তারা **JSON** পাঠায় — যেটা
+মেশিন সহজে পড়তে পারে। দেখতে এমন:
+
+```json
+{
+  "user": {
+    "id": 1,
+    "name": "Jane",
+    "email": "jane@example.com"
+  },
+  "token": "12|AbCdEf123456"
+}
+```
+
+`{ }` মানে object (key-value জোড়া), `[ ]` মানে list। Laravel নিজে থেকেই
+তোমার PHP array-কে JSON-এ বদলে দেয়।
+
+### ০.৪ API endpoint মানে কী
+
+একটা **endpoint** = একটা URL + একটা method যেটা একটা নির্দিষ্ট কাজ করে।
+যেমন:
+
+- `POST /api/register` → নতুন account
+- `POST /api/login` → login
+- `GET /api/me` → নিজের তথ্য দেখা
+
+আমরা এই গাইডে এরকম কয়েকটা endpoint বানাব।
+
+### ০.৫ Authentication vs Authorization — দুটো আলাদা জিনিস
+
+- **Authentication** ("auth") = "**তুমি কে?**" — তুমি সত্যিই Jane কিনা যাচাই
+  করা। Login এটাই করে।
+- **Authorization** = "**তোমার কি এটা করার অনুমতি আছে?**" — Jane customer,
+  সে কি অন্য দোকানের product মুছতে পারবে? না।
+
+দুটোই লাগবে। প্রথমে জানতে হবে তুমি কে, তারপর দেখতে হবে তুমি কী করতে পারো।
+
+### ০.৬ Session বনাম Token — আমরা token কেন ব্যবহার করছি
+
+**পুরনো নিয়ম (session):** তুমি login করলে সার্ভার তোমার জন্য একটা "session"
+বানায় এবং ব্রাউজারকে একটা cookie দেয়। প্রতি request-এ ব্রাউজার cookie-টা
+আপনাআপনি পাঠায়। এটা ওয়েবসাইটের জন্য ভালো, কিন্তু mobile app বা অন্য domain-এর
+জন্য ঝামেলা।
+
+**নতুন নিয়ম (token):** তুমি login করলে সার্ভার তোমাকে একটা লম্বা গোপন string
+দেয় — সেটাই **token** (বা "API token", "access token", "bearer token" — সব
+একই জিনিস)। এরপর তুমি প্রতি request-এর header-এ এই token পাঠাও:
+
+```
+Authorization: Bearer 12|AbCdEf123456
+```
+
+সার্ভার token দেখে বুঝে যায় "আরে, এটা তো Jane"।
+
+**Analogy:** কোনো ইভেন্টে ঢোকার সময় হাতে সিল মেরে দেয়। ভেতরে যেকোনো স্টলে
+গেলে শুধু হাতটা দেখালেই হয় — আবার টিকিট দেখাতে হয় না। Token হলো সেই হাতের সিল।
+
+Mobile app, React/Next.js frontend, অন্য কোনো সার্ভার — সবাই একইভাবে token
+পাঠাতে পারে। তাই আমরা token ব্যবহার করছি।
+
+### ০.৭ Hashing — গোপন জিনিস "একমুখী তালা" দিয়ে রাখা
+
+Password বা token কখনো সরাসরি database-এ রাখা হয় না। রাখা হয় তার **hash**।
+
+Hash = এমন একটা গাণিতিক ফাংশন যা:
+
+- একই input দিলে সবসময় একই output দেয়
+- কিন্তু output থেকে input **ফিরে পাওয়া যায় না** (একমুখী)
+
+তাই database চুরি হলেও চোর আসল password/token পায় না। Login-এর সময় সার্ভার
+তোমার দেওয়া password আবার hash করে, আর সংরক্ষিত hash-এর সাথে মেলায়।
+Laravel এটা নিজে থেকেই করে — তোমাকে শুধু ঠিকভাবে ব্যবহার করতে হবে।
+
+---
+
+## অংশ ১ — আমরা আসলে কী বানাচ্ছি (বড় ছবি)
+
+### ১.১ এই দোকানে ৩ ধরনের মানুষ
+
+| কে | কী করে |
 | --- | --- |
-| Session | `POST /api/register`, `POST /api/login`, `POST /api/logout`, `POST /api/logout-all`, `GET /api/me` |
-| Email verification | `GET /api/verify-email/{id}/{hash}`, `POST /api/email/verification-notification` |
-| Password | `POST /api/forgot-password`, `POST /api/reset-password`, `PUT /api/password` |
-| Roles | spatie দিয়ে `customer` / `vendor` / `admin`, `role:` middleware দিয়ে gate করা |
+| **customer** | কেনাকাটা করে |
+| **vendor** | নিজের দোকান আর product সামলায় |
+| **admin** | সব কিছু নিয়ন্ত্রণ করে, vendor approve করে |
 
-> এটি [`authentication.md`](authentication.md) (ইংরেজি) এর বাংলা সংস্করণ। কোড
-> ব্লকগুলো ইংরেজিতেই রাখা হয়েছে; ব্যাখ্যা বাংলায়।
+তিনজনই একই `users` টেবিলে থাকে। শুধু তাদের **role** আলাদা। এটা সামলাবে
+`spatie/laravel-permission` প্যাকেজ।
 
----
+> কেন আলাদা `Admin`, `Vendor` টেবিল বানাচ্ছি না? কারণ তিনজনই একইভাবে login
+> করে (email + password)। শুধু "পদবি" আলাদা। একটা টেবিল + role — অনেক সহজ।
+> `Vendor` মডেলটা আসলে শুধু দোকানদারের বাড়তি তথ্য (NID, ব্যাংক অ্যাকাউন্ট) —
+> সেটা দিয়ে login হয় না।
 
-## সূচিপত্র
+### ১.২ পুরো গল্পটা এক নজরে
 
-1. [পুরো জিনিসটা কীভাবে একসাথে কাজ করে](#১-পুরো-জিনিসটা-কীভাবে-একসাথে-কাজ-করে)
-2. [Configuration ও bootstrap](#২-configuration-ও-bootstrap)
-3. [Roles ও permissions](#৩-roles-ও-permissions)
-4. [User model](#৪-user-model)
-5. [Form Requests](#৫-form-requests)
-6. [Controllers](#৬-controllers)
-7. [UserResource](#৭-userresource)
-8. [Routes](#৮-routes)
-9. [Rate limiting ও hardening](#৯-rate-limiting-ও-hardening)
-10. [Email verification ও password reset-এর plumbing](#১০-email-verification-ও-password-reset-এর-plumbing)
-11. [Tests](#১১-tests)
-12. [End-to-end যাচাই](#১২-end-to-end-যাচাই)
-13. [Production checklist](#১৩-production-checklist)
-14. [পরের ধাপ (এই গাইডের বাইরে)](#১৪-পরের-ধাপ-এই-গাইডের-বাইরে)
+```
+১. Jane  →  POST /api/register  →  সার্ভার account বানায়, "customer" role দেয়,
+                                    verification email পাঠায়, একটা TOKEN ফেরত দেয়
 
----
+২. Jane  →  GET /api/me   (header: Authorization: Bearer <token>)
+         ←  সার্ভার token দেখে বলে "তুমি Jane" আর প্রোফাইল ফেরত দেয়
 
-## ১. পুরো জিনিসটা কীভাবে একসাথে কাজ করে
+৩. Jane  →  POST /api/logout  (header এ token)
+         →  সার্ভার সেই token database থেকে মুছে দেয় → token আর কাজ করবে না
+```
 
-### ১.১ Sanctum token আসলে কী
+### ১.৩ কোন টুকরোগুলো বানাব আর কে কী করে
 
-`POST /api/login` এর ভেতরে `$user->createToken('mobile')` কল হয়। Sanctum তখন:
+| টুকরো | Laravel-এ কী | কাজ |
+| --- | --- | --- |
+| **Route** | `routes/api.php` | কোন URL এলে কোন কোড চলবে ঠিক করে |
+| **Controller** | `app/Http/Controllers/...` | আসল কাজটা করে (account বানানো, token দেওয়া) |
+| **Form Request** | `app/Http/Requests/...` | আসা data ঠিক আছে কিনা যাচাই করে (controller-এ ঢোকার আগে) |
+| **Middleware** | (Laravel দেয়) | request-কে controller-এ পৌঁছানোর আগে "চেকপোস্ট"। যেমন `auth:sanctum` চেক করে token আছে কিনা |
+| **Resource** | `app/Http/Resources/...` | সার্ভার থেকে বাইরে কী তথ্য যাবে সেটা ঠিক করে (password যেন কখনো না যায়) |
+| **Model** | `app/Models/User.php` | database টেবিলের সাথে কথা বলে |
+| **Seeder** | `database/seeders/...` | শুরুতে দরকারি data ঢোকায় (role গুলো, admin account) |
 
-1. একটা random ৪০-অক্ষরের string তৈরি করে।
-2. সেটার **SHA-256 hash** `personal_access_tokens` table-এ রাখে, সাথে থাকে
-   `tokenable_type` / `tokenable_id` morph (user-কে point করে), একটা `name`,
-   একটা `abilities` JSON array, আর optional `expires_at`।
-3. `NewAccessToken` return করে, যার `plainTextToken` দেখতে হয় `12|AbCdEf...`।
-   **এই plaintext আপনি জীবনে একবারই দেখবেন** — client সেটা store করে রাখে।
+> **Middleware** = দরজার দারোয়ান। Request ভেতরে যাওয়ার আগে দারোয়ান চেক করে।
+> `auth:sanctum` দারোয়ান বলে: "token দেখাও, নাহলে 401"। `role:admin` দারোয়ান
+> বলে: "তুমি admin? না হলে 403"।
 
-পরের request-গুলোতে client পাঠায় `Authorization: Bearer 12|AbCdEf...`।
-`auth:sanctum` guard তখন ID অংশটা (`12`) আলাদা করে, সেই row খুঁজে বের করে,
-বাকি string-এর hash করে, আর stored hash-এর সাথে `hash_equals()` দিয়ে মেলায়।
-মিলে গেলে → `$request->user()` হলো ওই tokenable model, আর `last_used_at`
-আপডেট হয়।
+### ১.৪ যেসব প্যাকেজ আগে থেকেই বসানো আছে
 
-যেহেতু secret শুধু hash আকারে রাখা, database leak হলেও ব্যবহারযোগ্য token বেরিয়ে
-যায় না। যেহেতু প্রতিটা token একটা করে row, আপনি একটা device-এর token বাতিল করতে
-পারেন বাকিগুলোতে হাত না দিয়ে (`$token->delete()`), অথবা সব একসাথে মুছে ফেলতে
-পারেন (`$user->tokens()->delete()`)।
+এই প্রজেক্টে এগুলো ইনস্টল করা আছে, তোমাকে করতে হবে না:
 
-### ১.২ এই API-এর জন্য কেন token auth (SPA cookie auth নয়)
-
-Sanctum-এর দুটো mode আছে:
-
-- **SPA / cookie mode** — আপনার নিজের domain-এ চলা first-party JavaScript app।
-  Browser একটা `httpOnly` session cookie + একটা `XSRF-TOKEN` cookie রাখে; প্রতিটা
-  mutating request-এ CSRF token echo করতে হয়। JS-এ কোনো token থাকে না।
-  `SANCTUM_STATEFUL_DOMAINS` আর `->withMiddleware(fn ($m) => $m->statefulApi())`
-  দিয়ে configure হয়।
-- **Token mode** — client স্পষ্টভাবে `Authorization: Bearer` পাঠায়। যেকোনো origin,
-  যেকোনো platform (mobile, server-to-server, অন্য domain-এ থাকা web SPA) থেকে
-  কাজ করে, কোনো CSRF handshake লাগে না।
-
-একটা e-commerce backend সাধারণত storefront **এবং** vendor dashboard **এবং**
-পরে একটা mobile app — সবাইকেই serve করে। Token mode একটা flow দিয়ে সবগুলো
-কভার করে, তাই এই গাইডে সেটাই ব্যবহার করা হয়েছে। পরে যদি নিজের domain-এ একটা
-first-party Next.js storefront যোগ করেন আর `httpOnly` cookie চান, তখন token
-mode-এর *পাশাপাশি* SPA mode চালু করতে পারবেন — দুটো একসাথে চলে।
-
-### ১.৩ একটা User model, তিনটা role
-
-`Vendor` হলো একটা **profile** যেটা একটা `User`-এর সাথে যুক্ত (`vendors.user_id`)
-এবং এর একটা approval workflow আছে — এটা এমন কিছু নয় যেটা দিয়ে আপনি login করেন।
-তাই আমরা আলাদা `Admin` / `Customer` / `Vendor` authenticatable model আর guard
-বানাবো **না**। বরং:
-
-- সবাই একটা `User` এবং একই endpoint দিয়ে login করে।
-- `spatie/laravel-permission` প্রতিটা user-কে `customer` / `vendor` / `admin`
-  এর একটা (বা একাধিক) role দেয়।
-- Route group-গুলো `role:admin`, `role:vendor` ইত্যাদি দিয়ে access gate করে।
-- Per-record check ("এই vendor কি *এই* product edit করতে পারবে?") থাকে
-  **Policy**-তে।
-- Token **abilities** দিয়ে একটা নির্দিষ্ট token কী কী করতে পারবে সেটা scope করা
-  হয় (যেমন একটা read-only token)।
-
-### ১.৪ Guards
-
-`config/auth.php`-তে default `web` guard (session driver, `users` provider)
-থাকবে। `auth:sanctum`-এর জন্য আলাদা guard entry **লাগে না** — Sanctum-এর
-`guard()` implementation token-এর পেছনের user load করতে `web` provider-ই
-পুনরায় ব্যবহার করে। তবুও আমরা একটা explicit `api` guard entry যোগ করবো, কারণ
-এতে `auth:api` আর IDE tooling সঠিকভাবে আচরণ করে এবং intent স্পষ্ট থাকে।
+- **`laravel/sanctum`** — token বানানো, যাচাই করা, মুছে ফেলা সব এটা করে।
+  একটা `personal_access_tokens` টেবিল বানায় যেখানে token-এর hash থাকে।
+- **`spatie/laravel-permission`** — role আর permission সামলায়। কয়েকটা টেবিল
+  বানায় (`roles`, `permissions`, ইত্যাদি)।
+- **`pestphp/pest`** — test লেখার টুল।
 
 ---
 
-## ২. Configuration ও bootstrap
+## অংশ ২ — Sanctum আসলে ভেতরে কী করে
 
-### ২.১ Environment variables
+এই অংশটা না বুঝলেও চলবে, কিন্তু বুঝলে বাকিটা সহজ লাগবে।
 
-**`.env`** আর **`.env.example`** এ যোগ করুন (`.env.example` value-মুক্ত / নিরাপদ
-রাখুন):
+তুমি যখন লিখবে `$user->createToken('mobile')`, Sanctum তিনটা কাজ করে:
+
+1. একটা লম্বা random string বানায়, যেমন `AbCdEf123456...` (৪০ অক্ষর)।
+2. এই string-এর **hash** `personal_access_tokens` টেবিলে একটা নতুন row হিসেবে
+   রাখে। ওই row-তে আরও থাকে: কোন user-এর token (`tokenable_id`), token-এর
+   একটা নাম, আর কী কী করার অনুমতি (`abilities`)।
+3. তোমাকে ফেরত দেয় `12|AbCdEf123456...` — যেখানে `12` হলো row-এর id আর বাকিটা
+   আসল string। **এই পুরো জিনিসটা তুমি জীবনে একবারই দেখবে।** এটাই client
+   (mobile app / frontend) সেভ করে রাখে।
+
+পরের request-এ client পাঠায় `Authorization: Bearer 12|AbCdEf123456...`।
+Sanctum তখন:
+
+- `12` দিয়ে database-এ row খুঁজে বের করে
+- বাকি string আবার hash করে সংরক্ষিত hash-এর সাথে মেলায়
+- মিলে গেলে → ওই row যে user-এর, `$request->user()` এখন সেই user
+
+প্রতিটা token আলাদা row বলে:
+
+- এক device logout করলে শুধু সেই row মুছে যায়, বাকি device চলতে থাকে
+- "সব জায়গা থেকে logout" মানে ওই user-এর সব row মুছে ফেলা
+
+---
+
+## অংশ ৩ — Configuration (সেটিং ঠিক করা)
+
+কোড লেখার আগে কয়েকটা সেটিং ঠিক করে নিতে হবে।
+
+### ৩.১ `.env` ফাইলে কিছু value যোগ করা
+
+`.env` হলো তোমার প্রজেক্টের গোপন সেটিং ফাইল (এটা git-এ যায় না)।
+`.env` আর `.env.example` — দুটোতেই এগুলো যোগ করো:
 
 ```dotenv
-# --- Auth ---
-AUTH_GUARD=web
+# লিঙ্ক কোথায় যাবে (তোমার frontend-এর ঠিকানা)
 FRONTEND_URL=http://localhost:3000
 
 # Sanctum
 SANCTUM_TOKEN_PREFIX=ecom_
-SANCTUM_STATEFUL_DOMAINS=localhost,localhost:3000,127.0.0.1,127.0.0.1:8000
 
-# Seeded admin (DatabaseSeeder এ ব্যবহৃত হয়)
+# শুরুতে একটা admin account বানানোর জন্য
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=password
 ```
 
-- **`SANCTUM_TOKEN_PREFIX`** — প্রতিটা issued token এই string দিয়ে শুরু হবে।
-  তখন GitHub/GitLab-এর secret scanner commit-এ leak হওয়া token ধরতে পারে।
-  আপনার app-এর জন্য কিছুটা unique একটা মান দিন।
-- **`FRONTEND_URL`** — verification / password-reset link কোথায় point করবে
-  (API HTML render করে না; SPA করে)।
+**ব্যাখ্যা:**
 
-### ২.২ Token expiration
+- `FRONTEND_URL` — verification আর password-reset email-এ যে link যাবে সেটা
+  তোমার React/Next app-এর দিকে নির্দেশ করবে, API-র দিকে নয়।
+- `SANCTUM_TOKEN_PREFIX=ecom_` — প্রতিটা token `ecom_` দিয়ে শুরু হবে। কেউ ভুল
+  করে GitHub-এ token push করে ফেললে GitHub-এর স্ক্যানার এটা ধরে ফেলতে পারে।
+- `ADMIN_EMAIL` / `ADMIN_PASSWORD` — seeder এগুলো দিয়ে প্রথম admin বানাবে।
+  (`.env.example`-এ আসল password লিখো না, শুধু `password` রাখো।)
 
-`config/sanctum.php`:
+### ৩.২ Token কতদিন টিকবে
+
+খোলো `config/sanctum.php`, খুঁজে বের করো `'expiration' => null,` এবং বদলাও:
 
 ```php
-'expiration' => 60 * 24 * 7, // মিনিট → ৭ দিন
+'expiration' => 60 * 24 * 7, // মিনিটের হিসাব → ৭ দিন
 ```
 
-`null` (বর্তমান মান) মানে token কখনো expire হয় না। একটা নির্দিষ্ট lifetime
-token leak হলে ক্ষতির সময়সীমা কমিয়ে দেয়। Expired row নিজে থেকে মোছে না —
-prune schedule করুন ([§৯.৫](#৯৫-token-pruning-schedule-করুন))।
+**কেন:** `null` মানে token কোনোদিন মেয়াদ শেষ হয় না — token চুরি হলে চিরকাল
+বিপদ। ৭ দিন পর token নিজে থেকেই অকেজো হয়ে যাবে, user-কে আবার login করতে হবে।
+(সংখ্যাটা তোমার ইচ্ছেমতো — mobile app হলে ৩০ দিনও রাখতে পারো।)
 
-### ২.৩ `api` guard
+### ৩.৩ `config/auth.php` — একটা `api` guard যোগ করা
 
-`config/auth.php` → `guards` array:
+**Guard** = "user-কে কীভাবে চিনব" তার নিয়ম। Default `web` guard cookie/session
+দেখে। আমরা token দেখার জন্য একটা `api` guard যোগ করব।
+
+`config/auth.php`-এ `guards` অংশটা এমন করো:
 
 ```php
 'guards' => [
@@ -167,23 +280,23 @@ prune schedule করুন ([§৯.৫](#৯৫-token-pruning-schedule-কর�
 ],
 ```
 
-আর এই ফাঁকে password broker-ও একটু কড়া করুন (`passwords.users`):
+আর ঠিক নিচে `passwords` অংশে reset link-এর মেয়াদ কমাও:
 
 ```php
 'passwords' => [
     'users' => [
         'provider' => 'users',
         'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
-        'expire' => 15,   // reset link ১৫ মিনিট valid
-        'throttle' => 60, // per user প্রতি মিনিটে একটা reset request
+        'expire' => 15,   // reset link ১৫ মিনিট কাজ করবে
+        'throttle' => 60, // পরপর দুটো reset request-এর মাঝে ৬০ সেকেন্ড বিরতি
     ],
 ],
 ```
 
-### ২.৪ Middleware alias + JSON error — `bootstrap/app.php`
+### ৩.৪ `bootstrap/app.php` — দারোয়ানদের নাম দেওয়া আর error-কে JSON বানানো
 
-Laravel 12-তে `Kernel.php` নেই; middleware আর exception rendering
-`bootstrap/app.php`-এ configure হয়। দুটো ফাঁকা closure বদলে দিন:
+Laravel 12-তে middleware আর error-handling-এর সেটিং থাকে এই এক ফাইলে।
+বর্তমানে সেখানে দুটো খালি closure আছে (`//` লেখা)। পুরো ফাইলটা এটা দিয়ে বদলাও:
 
 ```php
 <?php
@@ -195,7 +308,6 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Exceptions\UnauthorizedException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\ThrottleRequestsException;
@@ -208,6 +320,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // spatie-র দারোয়ানদের ছোট নাম দিলাম, যাতে route-এ 'role:admin' লিখতে পারি
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
@@ -215,7 +328,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // API route-এ সবসময় JSON দাও, কখনো HTML error page বা redirect নয়।
+        // /api/... এ কোনো ভুল হলে সবসময় JSON দাও — কখনো HTML পেজ বা redirect নয়
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request, Throwable $e) => $request->is('api/*') || $request->expectsJson()
         );
@@ -249,27 +362,33 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json(['message' => 'Too many requests. Please slow down.'], 429);
             }
         });
-        // ValidationException এমনিতেই API route-এ 422 JSON হিসেবে render হয় — handler লাগে না।
     })->create();
 ```
 
-কেন: একটা API-এর consumer কখনোই `/login`-এ 302 redirect বা HTML stack trace
-পাওয়ার কথা না। `shouldRenderJsonWhen` একটা predictable envelope নিশ্চিত করে।
+**ব্যাখ্যা:**
 
-> **spatie middleware নোট:** Laravel 11+ এ `laravel/permission` v6-এর সাথে
-> `role` / `permission` alias **auto-register হয় না** — উপরের block-টা
-> বাধ্যতামূলক, নাহলে `->middleware('role:admin')` "Target class [role] does not
-> exist" throw করবে।
+- `$middleware->alias([...])` — spatie-র middleware ক্লাসগুলোর নাম অনেক লম্বা।
+  এখানে ছোট নাম (`role`, `permission`) দিয়ে দিলাম। এটা **অবশ্যই** করতে হবে,
+  নাহলে route-এ `role:admin` লিখলে "Target class [role] does not exist" error
+  আসবে।
+- `shouldRenderJsonWhen(...)` — সাধারণত Laravel login না থাকলে HTML দিয়ে
+  `/login` পেজে redirect করে। কিন্তু API-র client (mobile app) HTML বোঝে না।
+  এই লাইন বলে দেয়: `/api/` দিয়ে শুরু হওয়া সব কিছুতে JSON দাও।
+- প্রতিটা `$exceptions->render(...)` একটা নির্দিষ্ট ভুলকে ধরে একটা পরিষ্কার
+  JSON উত্তর বানায় — যেমন token না থাকলে `{"message": "Unauthenticated."}` +
+  status `401`।
 
-### ২.৫ CORS
+### ৩.৫ CORS — অন্য ঠিকানার frontend-কে ঢুকতে দেওয়া
 
-Config publish করুন আর origin lock করুন:
+তোমার API যদি `api.myshop.com`-এ থাকে আর frontend `myshop.com`-এ, তাহলে
+browser নিরাপত্তার কারণে ডিফল্টভাবে request আটকে দেয়। CORS সেটিং দিয়ে বলে
+দিতে হয় কোন ঠিকানা থেকে request নেবে।
 
 ```bash
 php artisan config:publish cors
 ```
 
-`config/cors.php`:
+এবার `config/cors.php`:
 
 ```php
 return [
@@ -280,24 +399,27 @@ return [
     'allowed_headers' => ['*'],
     'exposed_headers' => [],
     'max_age' => 0,
-    'supports_credentials' => false, // true শুধু তখন যদি SPA cookie mode-ও ব্যবহার করেন
+    'supports_credentials' => false,
 ];
 ```
 
-Pure token auth cookie ব্যবহার করে না, তাই `supports_credentials` `false` থাকবে।
-Authenticated API-এর জন্য কখনো `allowed_origins => ['*']` ship করবেন না।
+**ব্যাখ্যা:** `allowed_origins` = কোন ঠিকানা থেকে request নেব। এখানে শুধু
+তোমার `FRONTEND_URL`। **কখনো `['*']` (সবাই) লিখো না** authenticated API-তে —
+এটা নিরাপত্তার গর্ত।
 
 ---
 
-## ৩. Roles ও permissions
+## অংশ ৪ — Role আর Permission তৈরি করা
 
-### ৩.১ Seeder
+### ৪.১ Role গুলো database-এ ঢোকানোর জন্য একটা Seeder
+
+**Seeder** = একটা ছোট script যেটা database-এ শুরুর data ঢোকায়।
 
 ```bash
 php artisan make:seeder RolesAndPermissionsSeeder
 ```
 
-`database/seeders/RolesAndPermissionsSeeder.php`:
+এবার `database/seeders/RolesAndPermissionsSeeder.php`:
 
 ```php
 <?php
@@ -313,9 +435,11 @@ class RolesAndPermissionsSeeder extends Seeder
 {
     public function run(): void
     {
+        // spatie role/permission 24 ঘণ্টা cache করে রাখে।
+        // নতুন role বানানোর আগে সেই cache পরিষ্কার করে নিই।
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        // Permissions (app বড় হলে বাড়াবেন)।
+        // permission = ছোট ছোট নির্দিষ্ট কাজের অনুমতি
         $permissions = [
             'manage own shop',
             'manage own products',
@@ -326,6 +450,7 @@ class RolesAndPermissionsSeeder extends Seeder
         ];
 
         foreach ($permissions as $name) {
+            // firstOrCreate = থাকলে কিছু করো না, না থাকলে বানাও
             Permission::firstOrCreate(['name' => $name, 'guard_name' => 'web']);
         }
 
@@ -333,61 +458,67 @@ class RolesAndPermissionsSeeder extends Seeder
         $vendor   = Role::firstOrCreate(['name' => 'vendor', 'guard_name' => 'web']);
         $admin    = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
 
+        // vendor কে কিছু নির্দিষ্ট permission দিলাম
         $vendor->syncPermissions([
             'manage own shop',
             'manage own products',
             'view own orders',
         ]);
 
+        // admin কে সব permission দিলাম
         $admin->syncPermissions(Permission::all());
 
-        // 'customer' এর কোনো explicit permission লাগে না — customer-facing route
-        // gate হয় authentication + ownership policy দিয়ে, permission দিয়ে নয়।
+        // customer-এর আলাদা permission লাগছে না — তার route গুলো শুধু
+        // "login করেছ কিনা" + "এটা কি তোমার জিনিস" দিয়ে পাহারা দেওয়া হবে।
     }
 }
 ```
 
-- **`guard_name` অবশ্যই `web` হতে হবে** — যে guard শেষমেশ user load করে সেটার
-  সাথে মিলতে হবে। Sanctum user resolve করে `web` provider দিয়ে, আর
-  `$user->hasRole('admin')` model-এর `getDefaultGuardName()` এর সাথে তুলনা করে,
-  যেটা এখানে `web`। `guard_name => 'sanctum'` দিয়ে বানানো role চুপচাপ কখনো
-  match করবে না।
-- **`forgetCachedPermissions()`** — spatie পুরো permission table ২৪ ঘণ্টা cache
-  করে রাখে। Seed করার সময় সবসময় এটা flush করুন, নাহলে নতুন বানানো role cache
-  expire না হওয়া পর্যন্ত দেখা যাবে না।
+**খুব গুরুত্বপূর্ণ — `guard_name` সবসময় `'web'` রাখো।** কারণ:
+`$user->hasRole('admin')` চেক করার সময় spatie দেখে user-এর "default guard"
+কী — এই প্রজেক্টে সেটা `web`। যদি role বানাও `'sanctum'` guard দিয়ে, তাহলে
+`hasRole('admin')` **চুপচাপ কখনোই `true` দেবে না** এবং তুমি ঘণ্টার পর ঘণ্টা
+মাথা চুলকাবে।
 
-### ৩.২ `DatabaseSeeder` এ যুক্ত করুন
+### ৪.২ এই seeder-কে চালু করা + প্রথম admin বানানো
+
+`database/seeders/DatabaseSeeder.php`-এর `run()` মেথড:
 
 ```php
 public function run(): void
 {
+    // আগে role গুলো বানাও
     $this->call(RolesAndPermissionsSeeder::class);
 
+    // তারপর একটা admin user বানাও
     $admin = User::factory()->create([
         'name' => 'Admin',
         'email' => env('ADMIN_EMAIL', 'admin@example.com'),
         'password' => bcrypt(env('ADMIN_PASSWORD', 'password')),
         'email_verified_at' => now(),
     ]);
-    $admin->assignRole('admin');
+    $admin->assignRole('admin'); // তাকে admin role দাও
 }
 ```
 
-### ৩.৩ কেউ কখন `vendor` হয়
+### ৪.৩ কেউ কখন vendor হয়?
 
-Registration-এ সবাই `customer` পায় ([§৬.১](#৬১-register) দেখুন)। একজন user
-`vendor` হয় যখন একজন admin তার `Vendor` record **approve** করে। আপনার
-বিদ্যমান vendor-approval কোডে এটা যোগ করুন (এই গাইডে বানানো হয়নি):
+Register করলে সবাই `customer` পায়। কেউ **vendor** হয় যখন admin তার আবেদন
+(`Vendor` record) approve করে। তোমার বিদ্যমান approval কোডে শুধু এই লাইনটা
+যোগ করো:
 
 ```php
-$vendor->user->syncRoles(['vendor']); // অথবা assignRole যদি 'customer'-ও রাখতে চান
+$vendor->user->syncRoles(['vendor']);
 ```
 
 ---
 
-## ৪. User model
+## অংশ ৫ — User model ঠিক করা
 
-`app/Models/User.php`:
+**Model** = একটা PHP ক্লাস যা একটা database টেবিলকে represent করে।
+`User` model = `users` টেবিল।
+
+`app/Models/User.php` পুরোটা এটা দিয়ে বদলাও:
 
 ```php
 <?php
@@ -407,12 +538,14 @@ class User extends Authenticatable implements MustVerifyEmail
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, HasApiTokens, HasRoles;
 
+    // যে কলামগুলোতে বাইরের data দিয়ে ভরা যাবে
     protected $fillable = [
         'name',
         'email',
         'password',
     ];
 
+    // যে কলামগুলো কখনো JSON-এ বেরোবে না
     protected $hidden = [
         'password',
         'remember_token',
@@ -422,7 +555,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password' => 'hashed', // password সেট করলেই আপনাআপনি hash হবে
         ];
     }
 
@@ -431,30 +564,43 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Vendor::class);
     }
 
-    /**
-     * user-এর role অনুযায়ী token-কে যে abilities দেওয়া হবে।
-     * '*' = সব ability। read-only বা partner token-এর জন্য ছোট করুন।
-     */
+    // user-এর role অনুযায়ী তার token কী কী করতে পারবে
     public function tokenAbilities(): array
     {
         return match (true) {
-            $this->hasRole('admin') => ['*'],
+            $this->hasRole('admin') => ['*'], // সব কিছু
             $this->hasRole('vendor') => ['shop:manage', 'products:manage', 'orders:view'],
-            default => ['orders:view', 'cart:manage', 'profile:manage'],
+            default => ['orders:view', 'cart:manage', 'profile:manage'], // customer
         };
     }
 }
 ```
 
-- **`implements MustVerifyEmail`** `verified` middleware চালু করে এবং
-  `event(new Registered($user))` কে verification email পাঠাতে বাধ্য করে।
-- **`password => 'hashed'` cast** মানে `User::create(['password' => 'plain'])`
-  নিজে থেকেই hash করে — register flow-এ কখনো নিজে `bcrypt()` কল করবেন না।
-- `HasApiTokens` আগে থেকেই ছিল; `HasRoles` নতুন trait।
+**ব্যাখ্যা:**
+
+- **`use HasApiTokens`** — এই এক লাইন `User`-কে `$user->createToken(...)`
+  করার ক্ষমতা দেয়। (আগে থেকেই ছিল।)
+- **`use HasRoles`** — এটা `$user->assignRole(...)`, `$user->hasRole(...)`
+  দেয়। এটা নতুন যোগ করলাম।
+- **`implements MustVerifyEmail`** — এটা লিখলে Laravel বুঝে যায় "এই user-দের
+  email verify করাতে হবে" এবং register-এর সময় verification email পাঠায়।
+- **`'password' => 'hashed'`** — এটার জন্য `User::create(['password' => 'abc'])`
+  লিখলে `abc` আপনাআপনি hash হয়ে database-এ যায়। তুমি কখনো নিজে hash করবে না।
+- **`$hidden`** — নিরাপত্তার দ্বিতীয় স্তর। ভুল করেও যদি কোথাও পুরো user object
+  JSON-এ পাঠাও, `password` তবু বেরোবে না।
 
 ---
 
-## ৫. Form Requests
+## অংশ ৬ — Form Request (data যাচাই করার আলাদা ক্লাস)
+
+**Form Request** = একটা ক্লাস যার একমাত্র কাজ: "আসা data ঠিক আছে কিনা যাচাই
+করা"। এটা controller-এ ঢোকার **আগেই** চলে। ভুল data হলে controller-এর কোড
+কখনো চলবেই না — Laravel নিজে থেকে `422` JSON ফেরত দেবে।
+
+**কেন controller-এ না লিখে আলাদা ক্লাসে?** — controller তখন শুধু আসল কাজে
+মন দিতে পারে, আর একই যাচাই বহু জায়গায় ব্যবহার করা যায়।
+
+এগুলো বানাও:
 
 ```bash
 php artisan make:request Auth/RegisterRequest
@@ -464,12 +610,7 @@ php artisan make:request Auth/ResetPasswordRequest
 php artisan make:request Auth/ChangePasswordRequest
 ```
 
-Form Request validation-কে controller-এর বাইরে রাখে, প্রতিটা rule set-কে
-reusable আর আলাদাভাবে testable করে, এবং controller-এর **আগে** run হয় — একটা
-invalid payload কখনো আপনার logic-এ পৌঁছায় না। Public গুলোতে `authorize()`
-`true` return করে কারণ যে কেউ register বা login চেষ্টা করতে পারে।
-
-**`app/Http/Requests/Auth/RegisterRequest.php`:**
+### `RegisterRequest.php`
 
 ```php
 <?php
@@ -481,11 +622,13 @@ use Illuminate\Validation\Rules\Password;
 
 class RegisterRequest extends FormRequest
 {
+    // এই কাজটা করার জন্য login লাগে কি? না — যে কেউ register করতে পারে।
     public function authorize(): bool
     {
         return true;
     }
 
+    // যাচাইয়ের নিয়ম
     public function rules(): array
     {
         return [
@@ -498,8 +641,16 @@ class RegisterRequest extends FormRequest
 }
 ```
 
-**`LoginRequest.php`** — throttling-ও এটার দায়িত্ব, যাতে lock-out হওয়া attacker
-কখনো database-এ না পৌঁছায়:
+**নিয়মগুলো পড়ার নিয়ম:** প্রতিটা field-এর জন্য একটা list।
+
+- `required` — দিতেই হবে
+- `email:rfc,dns` — সত্যিকারের email ফরম্যাট, এবং domain-টা আসল কিনা
+- `unique:users,email` — `users` টেবিলে এই email আগে থেকে থাকলে চলবে না
+- `confirmed` — একটা `password_confirmation` field-ও পাঠাতে হবে এবং দুটো মিলতে হবে
+- `Password::defaults()` — আমাদের ঠিক করা password নিয়ম (নিচে অংশ ৬-এর শেষে)
+- `sometimes` — field-টা থাকলে যাচাই করো, না থাকলে বাদ
+
+### `LoginRequest.php` — এটাতে "বেশি চেষ্টা করলে থামাও" লজিকও আছে
 
 ```php
 <?php
@@ -528,18 +679,20 @@ class LoginRequest extends FormRequest
         ];
     }
 
+    // "কার চেষ্টা গুনছি" তার চাবি: email + IP মিলিয়ে
     public function throttleKey(): string
     {
         return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
     }
 
+    // এই চাবিতে ১ মিনিটে ৫ বারের বেশি চেষ্টা হয়ে গেলে থামিয়ে দাও
     public function ensureIsNotRateLimited(): void
     {
         if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
-            return;
+            return; // এখনো সীমা পার হয়নি, চালিয়ে যাও
         }
 
-        event(new Lockout($this));
+        event(new Lockout($this)); // চাইলে log/alert করার জন্য একটা event
 
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
@@ -550,7 +703,16 @@ class LoginRequest extends FormRequest
 }
 ```
 
-**`ForgotPasswordRequest.php`:**
+**কেন email+IP একসাথে?**
+- শুধু IP দিয়ে গুনলে — একই অফিসের সব লোক একই IP-তে থাকে, একজন ভুল করলে
+  সবাই আটকে যায়।
+- শুধু email দিয়ে গুনলে — একজন শত্রু ইচ্ছে করে বারবার ভুল password দিয়ে
+  তোমার account লক করে দিতে পারে।
+- দুটো মিলিয়ে — মাঝামাঝি নিরাপদ সমাধান।
+
+### `ForgotPasswordRequest.php`
+
+`rules()` মেথডের ভেতরে:
 
 ```php
 public function rules(): array
@@ -561,7 +723,7 @@ public function rules(): array
 }
 ```
 
-**`ResetPasswordRequest.php`:**
+### `ResetPasswordRequest.php`
 
 ```php
 use Illuminate\Validation\Rules\Password;
@@ -576,8 +738,7 @@ public function rules(): array
 }
 ```
 
-**`ChangePasswordRequest.php`** (authenticated — route যেহেতু `auth:sanctum`-এর
-পেছনে, `authorize()` `true` থাকতে পারে):
+### `ChangePasswordRequest.php`
 
 ```php
 use Illuminate\Validation\Rules\Password;
@@ -591,26 +752,34 @@ public function rules(): array
 }
 ```
 
-`current_password` একটা built-in rule যেটা value-টা logged-in user-এর hash-এর
-সাথে মেলায়।
+`current_password` — Laravel-এর তৈরি নিয়ম, যা চেক করে দেওয়া মানটা এখন
+login করা user-এর আসল password কিনা। `different:current_password` — নতুন
+password পুরনোটার মতো হলে চলবে না।
 
-**Global password policy সেট করুন** `app/Providers/AppServiceProvider.php`
-এর `boot()` এ:
+### Password-এর নিয়ম একজায়গায় ঠিক করা
+
+`app/Providers/AppServiceProvider.php`-এর `boot()` মেথডে:
 
 ```php
 use Illuminate\Validation\Rules\Password;
 
 Password::defaults(fn () => Password::min(8)
-    ->letters()
-    ->mixedCase()
-    ->numbers()
-    ->uncompromised() // পরিচিত breach-এ পাওয়া password reject করে (k-anonymity API)
+    ->letters()      // অন্তত একটা অক্ষর
+    ->mixedCase()    // বড় আর ছোট হাতের দুটোই
+    ->numbers()      // অন্তত একটা সংখ্যা
+    ->uncompromised() // আগে কোনো ডেটা-লিকে ফাঁস হওয়া password হলে বাতিল
 );
 ```
 
+`uncompromised()` — Laravel একটা পাবলিক সার্ভিসে (নিরাপদভাবে, পুরো password
+না পাঠিয়ে) চেক করে password-টা আগে কখনো hack হওয়া list-এ আছে কিনা।
+
 ---
 
-## ৬. Controllers
+## অংশ ৭ — Controller (আসল কাজ)
+
+**Controller** = যে ক্লাস আসল কাজটা করে। একটা request এলে route ঠিক করে
+কোন controller-এর কোন মেথড চলবে।
 
 ```bash
 php artisan make:controller Api/Auth/RegisteredUserController
@@ -622,7 +791,7 @@ php artisan make:controller Api/Auth/PasswordController
 php artisan make:controller Api/Auth/ProfileController
 ```
 
-### ৬.১ Register
+### ৭.১ Register — নতুন account
 
 `app/Http/Controllers/Api/Auth/RegisteredUserController.php`:
 
@@ -640,18 +809,23 @@ use Illuminate\Http\JsonResponse;
 
 class RegisteredUserController extends Controller
 {
+    // RegisterRequest টাইপ লেখার কারণেই যাচাই আপনাআপনি হয়ে যায়
     public function store(RegisterRequest $request): JsonResponse
     {
+        // যাচাই-করা data থেকে শুধু এই ৩টা field নিয়ে user বানাও
         $user = User::create($request->safe()->only('name', 'email', 'password'));
-        $user->assignRole('customer');
 
-        event(new Registered($user)); // verification email queue করে
+        $user->assignRole('customer'); // নতুন সবাই customer
 
+        event(new Registered($user)); // → verification email পাঠায়
+
+        // token বানাও, তার নাম আর ক্ষমতা সেট করো
         $token = $user->createToken(
             $request->string('device_name', 'api')->value(),
             $user->tokenAbilities(),
         )->plainTextToken;
 
+        // 201 = নতুন কিছু তৈরি হয়েছে
         return response()->json([
             'user' => new UserResource($user),
             'token' => $token,
@@ -660,11 +834,11 @@ class RegisteredUserController extends Controller
 }
 ```
 
-কেন `$request->safe()->only(...)`: Form Request input validate করলেও, আপনি
-model-কে একটা explicit allow-list দেন — validation মানে authorization নয়,
-mass-assignment protection-ও নয়।
+**`$request->safe()->only(...)` কেন?** — যাচাই পাস করলেও তুমি নিজে ঠিক করে
+দাও ঠিক কোন কোন field দিয়ে user বানাবে। কেউ যদি request-এ লুকিয়ে
+`"role": "admin"` পাঠায়, এতে সেটা উপেক্ষা হয়। (যাচাই মানেই নিরাপত্তা নয়।)
 
-### ৬.২ Login / logout
+### ৭.২ Login আর Logout
 
 `AuthenticatedSessionController.php`:
 
@@ -687,20 +861,21 @@ class AuthenticatedSessionController extends Controller
 {
     public function store(LoginRequest $request): JsonResponse
     {
-        $request->ensureIsNotRateLimited();
+        $request->ensureIsNotRateLimited(); // বেশি চেষ্টা হলে এখানেই থেমে যাবে
 
         $user = User::where('email', $request->string('email'))->first();
 
+        // user নেই, অথবা password মেলেনি
         if (! $user || ! Hash::check($request->string('password'), $user->password)) {
-            RateLimiter::hit($request->throttleKey());
+            RateLimiter::hit($request->throttleKey()); // ব্যর্থ চেষ্টা গোনো
 
-            // Generic message — email আছে কিনা সেটা জানাবেন না।
+            // ইচ্ছাকৃতভাবে অস্পষ্ট বার্তা — "email নেই" বলা যাবে না
             throw ValidationException::withMessages([
                 'email' => 'These credentials do not match our records.',
             ]);
         }
 
-        RateLimiter::clear($request->throttleKey());
+        RateLimiter::clear($request->throttleKey()); // সফল → গোনা রিসেট
 
         $token = $user->createToken(
             $request->string('device_name', 'api')->value(),
@@ -713,24 +888,32 @@ class AuthenticatedSessionController extends Controller
         ]);
     }
 
+    // এই device থেকে logout — শুধু এখনকার token মুছে দাও
     public function destroy(Request $request): JsonResponse
     {
-        // শুধু এই request-এ ব্যবহৃত token বাতিল → এই device logout।
         $request->user()->currentAccessToken()->delete();
 
         return response()->json(['message' => 'Logged out.']);
     }
 
+    // সব device থেকে logout — user-এর সব token মুছে দাও
     public function destroyAll(Request $request): JsonResponse
     {
-        $request->user()->tokens()->delete(); // প্রতিটা device
+        $request->user()->tokens()->delete();
 
         return response()->json(['message' => 'Logged out from all devices.']);
     }
 }
 ```
 
-### ৬.৩ Email verification
+**"email নেই" কেন বলা যাবে না?** — শত্রু তখন একটা একটা করে email দিয়ে বুঝে
+ফেলবে কোন কোন email-এ account আছে। তাই password ভুল হোক বা email-ই না থাকুক —
+বার্তা একই: "These credentials do not match our records."
+
+**`Hash::check($input, $stored)`** — তোমার দেওয়া password hash করে সংরক্ষিত
+hash-এর সাথে মেলায়। মিললে `true`।
+
+### ৭.৩ Email verification
 
 `EmailVerificationController.php`:
 
@@ -747,15 +930,12 @@ use Illuminate\Http\Request;
 
 class EmailVerificationController extends Controller
 {
-    /**
-     * user ইমেইলের signed link-এ ক্লিক করার পর SPA এটা হিট করে।
-     * Route 'signed' middleware দিয়ে protected, তাই tampering হলে আমাদের কোড
-     * চলার আগেই fail করে।
-     */
+    // user ইমেইলের link-এ ক্লিক করলে frontend এই endpoint-এ আসে
     public function verify(Request $request, string $id, string $hash): JsonResponse
     {
         $user = User::findOrFail($id);
 
+        // link-এর hash আর user-এর email-এর hash মেলে কিনা
         if (! hash_equals($hash, sha1($user->getEmailForVerification()))) {
             return response()->json(['message' => 'Invalid verification link.'], 403);
         }
@@ -764,15 +944,13 @@ class EmailVerificationController extends Controller
             return response()->json(['message' => 'Email already verified.']);
         }
 
-        $user->markEmailAsVerified();
+        $user->markEmailAsVerified(); // database-এ email_verified_at বসাও
         event(new Verified($user));
 
         return response()->json(['message' => 'Email verified.']);
     }
 
-    /**
-     * Authenticated user নতুন verification email চায়।
-     */
+    // "verification email আবার পাঠাও" — login করা user-এর জন্য
     public function resend(Request $request): JsonResponse
     {
         if ($request->user()->hasVerifiedEmail()) {
@@ -786,9 +964,12 @@ class EmailVerificationController extends Controller
 }
 ```
 
-### ৬.৪ Password reset
+এই route-টা `signed` middleware দিয়ে পাহারা দেওয়া হবে (অংশ ৯ দেখো), তাই কেউ
+link-এর কোনো অংশ পাল্টালে আমাদের কোড চলার আগেই request বাতিল হয়।
 
-`PasswordResetLinkController.php`:
+### ৭.৪ Password ভুলে গেছে / reset
+
+`PasswordResetLinkController.php` (link পাঠায়):
 
 ```php
 <?php
@@ -804,10 +985,10 @@ class PasswordResetLinkController extends Controller
 {
     public function store(ForgotPasswordRequest $request): JsonResponse
     {
-        // Password::sendResetLink per user throttle করে (config/auth.php)।
+        // Laravel নিজে reset link বানিয়ে email করে দেয়
         Password::sendResetLink($request->only('email'));
 
-        // email আছে কি নেই — সবসময় একই response।
+        // email থাকুক বা না থাকুক — উত্তর একই (enumeration ঠেকাতে)
         return response()->json([
             'message' => 'If that email is registered, a reset link has been sent.',
         ]);
@@ -815,7 +996,7 @@ class PasswordResetLinkController extends Controller
 }
 ```
 
-`NewPasswordController.php`:
+`NewPasswordController.php` (নতুন password সেট করে):
 
 ```php
 <?php
@@ -842,17 +1023,16 @@ class NewPasswordController extends Controller
                     'remember_token' => Str::random(60),
                 ])->save();
 
-                // Security: password change প্রতিটা বিদ্যমান token invalidate করে।
+                // নিরাপত্তা: password বদলালে পুরনো সব token বাতিল
                 $user->tokens()->delete();
 
                 event(new PasswordReset($user));
             }
         );
 
+        // status ঠিক না হলে (token ভুল/মেয়াদ শেষ) error দাও
         if ($status !== Password::PASSWORD_RESET) {
-            throw ValidationException::withMessages([
-                'email' => [__($status)],
-            ]);
+            throw ValidationException::withMessages(['email' => [__($status)]]);
         }
 
         return response()->json(['message' => 'Password reset successful.']);
@@ -860,7 +1040,7 @@ class NewPasswordController extends Controller
 }
 ```
 
-### ৬.৫ Change password (authenticated)
+### ৭.৫ Login করা অবস্থায় password বদলানো
 
 `PasswordController.php`:
 
@@ -881,7 +1061,7 @@ class PasswordController extends Controller
 
         $user->update(['password' => $request->string('password')]);
 
-        // বর্তমান device logged in থাকুক; বাকি সব device বের করে দাও।
+        // এখনকার device চালু থাকুক, বাকি সব device বের করে দাও
         $user->tokens()
             ->where('id', '!=', $user->currentAccessToken()->id)
             ->delete();
@@ -891,7 +1071,7 @@ class PasswordController extends Controller
 }
 ```
 
-### ৬.৬ Me
+### ৭.৬ নিজের তথ্য দেখা — `/me`
 
 `ProfileController.php`:
 
@@ -909,6 +1089,7 @@ class ProfileController extends Controller
 {
     public function show(Request $request): JsonResource
     {
+        // $request->user() = token দেখে চিনে নেওয়া user
         return new UserResource($request->user()->load('roles'));
     }
 }
@@ -916,7 +1097,10 @@ class ProfileController extends Controller
 
 ---
 
-## ৭. UserResource
+## অংশ ৮ — UserResource (বাইরে কী তথ্য যাবে)
+
+**Resource** = রিসেপশনিস্টের মতো। User object-এ অনেক তথ্য (password hash সহ)।
+Resource ঠিক করে দেয় বাইরের JSON-এ ঠিক কোনগুলো যাবে।
 
 ```bash
 php artisan make:resource UserResource
@@ -943,7 +1127,7 @@ class UserResource extends JsonResource
             'email_verified' => $this->email_verified_at !== null,
             'roles' => $this->whenLoaded('roles', fn () => $this->getRoleNames()),
             'permissions' => $this->when(
-                $request->user()?->is($this->resource),
+                $request->user()?->is($this->resource), // শুধু নিজের তথ্য দেখলে
                 fn () => $this->getAllPermissions()->pluck('name'),
             ),
             'created_at' => $this->created_at,
@@ -952,15 +1136,18 @@ class UserResource extends JsonResource
 }
 ```
 
-Resource হলো একমাত্র জায়গা যেটা ঠিক করে আপনার API থেকে কী বের হবে। এটা কখনো
-`password` বা `remember_token` leak করে না (`$hidden`-ও আছে, তবে defense in
-depth), এবং table বদলালেও response-এর shape স্থির রাখে।
+এখানে `password` বা `remember_token` লিখিনি — তাই কখনো বেরোবে না।
+`whenLoaded('roles', ...)` — role গুলো আগে থেকে load করা থাকলেই তবে দেখাও
+(বাড়তি database query এড়াতে)।
 
 ---
 
-## ৮. Routes
+## অংশ ৯ — Routes (কোন URL → কোন কোড)
 
-`routes/api.php`:
+**Route** = URL আর কোডের মধ্যে সংযোগ। `routes/api.php`-এ লেখা প্রতিটা route
+আপনাআপনি `/api/` দিয়ে শুরু হয়।
+
+`routes/api.php` পুরোটা এটা দিয়ে বদলাও:
 
 ```php
 <?php
@@ -974,11 +1161,8 @@ use App\Http\Controllers\Api\Auth\ProfileController;
 use App\Http\Controllers\Api\Auth\RegisteredUserController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Public auth routes
-|--------------------------------------------------------------------------
-*/
+// ---------- যে route-এ login লাগে না ----------
+
 Route::post('/register', [RegisteredUserController::class, 'store'])
     ->middleware('throttle:register')
     ->name('register');
@@ -999,12 +1183,10 @@ Route::get('/verify-email/{id}/{hash}', [EmailVerificationController::class, 've
     ->middleware(['signed', 'throttle:verification'])
     ->name('verification.verify');
 
-/*
-|--------------------------------------------------------------------------
-| Authenticated routes
-|--------------------------------------------------------------------------
-*/
+// ---------- যে route-এ login (token) লাগে ----------
+
 Route::middleware('auth:sanctum')->group(function () {
+
     Route::get('/me', [ProfileController::class, 'show'])->name('me');
 
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
@@ -1016,45 +1198,43 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('throttle:verification')
         ->name('verification.send');
 
-    /*
-    | যে route-গুলোতে verified email দরকার।
-    */
+    // login + email verified — দুটোই লাগবে এমন route
     Route::middleware('verified')->group(function () {
-        // উদাহরণ: শুধু verified user checkout করতে পারবে।
         // Route::post('/checkout', CheckoutController::class);
     });
 
-    /*
-    | Role-gated এলাকা।
-    */
+    // শুধু vendor
     Route::middleware('role:vendor')->prefix('vendor')->group(function () {
         // Route::apiResource('products', VendorProductController::class);
     });
 
+    // শুধু admin
     Route::middleware('role:admin')->prefix('admin')->group(function () {
-        // Route::apiResource('users', AdminUserController::class);
         // Route::post('vendors/{vendor}/approve', [VendorApprovalController::class, 'store']);
     });
 });
 ```
 
-নোট:
+**middleware চেইনটা এভাবে পড়ো** (দারোয়ানরা একের পর এক):
 
-- Verification link route `signed` ব্যবহার করে — Laravel-এর built-in middleware
-  যেটা এমন যেকোনো URL reject করে যার signature মেলে না (tampered `id`, `hash`,
-  বা `expires`)। কোনো auth লাগে না: signature-ই প্রমাণ।
-- `role:vendor` / `role:admin` আসে
-  [§২.৪](#২৪-middleware-alias--json-error--bootstrapappphp)-এ register করা alias
-  থেকে।
-- Skeleton-এর সাথে আসা default `/user` আর `/test` route মুছে দিন।
+- `throttle:login` → "১ মিনিটে বেশিবার এসো না"
+- `auth:sanctum` → "token দেখাও, নাহলে 401"
+- `verified` → "email verify করেছ? না হলে আটকাও"
+- `role:admin` → "তুমি admin? না হলে 403"
+
+`signed` → link-এ ডিজিটাল স্বাক্ষর আছে, কেউ পাল্টালে ধরা পড়ে। তাই
+verification link-এ আলাদা করে login লাগে না — স্বাক্ষরই প্রমাণ।
+
+Skeleton-এ থাকা পুরনো `/user` আর `/test` route মুছে দাও।
 
 ---
 
-## ৯. Rate limiting ও hardening
+## অংশ ১০ — Rate limiting (বেশি চেষ্টা থামানো)
 
-### ৯.১ Named limiters
+**Rate limiting** = "একটা নির্দিষ্ট সময়ে এতবারের বেশি করা যাবে না"।
+Brute-force (হাজার হাজার password চেষ্টা) ঠেকায়।
 
-`app/Providers/AppServiceProvider.php` এর `boot()`:
+`app/Providers/AppServiceProvider.php`-এর `boot()`-এ:
 
 ```php
 use Illuminate\Cache\RateLimiting\Limit;
@@ -1062,61 +1242,33 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 
+// login: প্রতি (email+IP) জোড়ায় মিনিটে ৫ বার
 RateLimiter::for('login', fn (Request $r) => Limit::perMinute(5)->by(
     Str::transliterate(Str::lower($r->input('email')).'|'.$r->ip())
 ));
 
+// register: প্রতি IP-তে মিনিটে ৩ বার
 RateLimiter::for('register', fn (Request $r) => Limit::perMinute(3)->by($r->ip()));
 
+// password reset email: দুই স্তরে সীমা — দুটোই মানতে হবে
 RateLimiter::for('password-email', fn (Request $r) => [
     Limit::perMinute(2)->by(Str::lower($r->input('email')).'|'.$r->ip()),
     Limit::perMinute(5)->by($r->ip()),
 ]);
 
+// verification email আবার পাঠানো
 RateLimiter::for('verification', fn (Request $r) => Limit::perMinute(6)->by(
     optional($r->user())->id ?: $r->ip()
 ));
 ```
 
-Key বাছাই গুরুত্বপূর্ণ: login শুধু IP দিয়ে key করলে corporate NAT-এর পেছনের
-সবাই শাস্তি পায়; শুধু email দিয়ে করলে attacker একজন ভুক্তভোগীকে lock করে
-দিতে পারে। Composite `email|ip` স্বাভাবিক আপস। `password-email` একটা **stacked**
-limit ব্যবহার করে — per-account আর per-IP দুটো limit-ই pass করতে হবে।
+route-এ `->middleware('throttle:login')` লিখলে Laravel এই `'login'` নিয়মটা
+প্রয়োগ করে। সীমা ছাড়ালে user পায় `429` + একটা "কতক্ষণ পর আবার চেষ্টা করবে"
+তথ্য।
 
-### ৯.২ Token abilities বাস্তবে
+### Token pruning schedule করা
 
-Scoped token issue করুন (`tokenAbilities()` দিয়ে আগেই wired), তারপর route
-বা কোডে enforce করুন:
-
-```php
-// Route level:
-Route::post('/vendor/products', [VendorProductController::class, 'store'])
-    ->middleware(['auth:sanctum', 'ability:products:manage']);
-
-// অথবা controller / policy তে:
-if (! $request->user()->tokenCan('products:manage')) {
-    abort(403);
-}
-```
-
-`ability` / `abilities` middleware Sanctum-এর সাথেই আসে — alias লাগে না।
-
-### ৯.৩ User enumeration নয়
-
-Login, forgot-password, আর resend-verification — সবই **একই** response দেয়,
-address আছে কি নেই তা নির্বিশেষে। Registration-ই একমাত্র জায়গা যেখানে attacker
-এখনো probe করতে পারে (`unique:users` → 422); সেটা মেনে নিন, আর `register`
-throttle-এর উপর নির্ভর করুন।
-
-### ৯.৪ যেখানে দরকার সেখানে verified email বাধ্যতামূলক করুন
-
-*login*-এ unverified email block করবেন না (link resend করতে user-কে login
-করতে হয়)। যেসব action-এ trust দরকার — checkout, vendor হওয়া, review দেওয়া —
-সেগুলো `verified` middleware দিয়ে block করুন।
-
-### ৯.৫ Token pruning schedule করুন
-
-`routes/console.php`:
+মেয়াদোত্তীর্ণ token নিজে থেকে মোছে না। `routes/console.php`-এ:
 
 ```php
 use Illuminate\Support\Facades\Schedule;
@@ -1124,18 +1276,15 @@ use Illuminate\Support\Facades\Schedule;
 Schedule::command('sanctum:prune-expired --hours=24')->daily();
 ```
 
-২৪ ঘণ্টার বেশি আগে expire হওয়া `personal_access_tokens` row মুছে দেয়। একটা
-চলমান scheduler লাগে (dev-এ `php artisan schedule:work`, prod-এ একটা cron
-entry)।
+এটা রোজ একবার চলে পুরনো token পরিষ্কার করে। এর জন্য সার্ভারে scheduler চালু
+থাকতে হয় (dev-এ `php artisan schedule:work`, প্রোডাকশনে একটা cron)।
 
 ---
 
-## ১০. Email verification ও password reset-এর plumbing
+## অংশ ১১ — Email verification আর reset link-কে frontend-এ পাঠানো
 
-### ১০.১ Notification link SPA-তে point করান
-
-API-এর কোনো `/verify-email` web page নেই — SPA-এর আছে। URL override করুন
-`AppServiceProvider::boot()` এ:
+API-র নিজের কোনো "verify" পেজ নেই — ওটা তোমার React/Next app-এর। তাই email-এর
+link যেন frontend-এ যায়, সেটা `AppServiceProvider::boot()`-এ ঠিক করে দাও:
 
 ```php
 use Illuminate\Auth\Notifications\ResetPassword;
@@ -1143,16 +1292,13 @@ use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\URL;
 
 VerifyEmail::createUrlUsing(function ($notifiable) {
-    $signed = URL::temporarySignedRoute(
-        'verification.verify',
-        now()->addMinutes(60),
-        [
-            'id' => $notifiable->getKey(),
-            'hash' => sha1($notifiable->getEmailForVerification()),
-        ],
-    );
+    // API-র signed URL বানাও (৬০ মিনিট বৈধ)
+    $signed = URL::temporarySignedRoute('verification.verify', now()->addMinutes(60), [
+        'id' => $notifiable->getKey(),
+        'hash' => sha1($notifiable->getEmailForVerification()),
+    ]);
 
-    // SPA-কে call করার জন্য signed API URL দাও।
+    // frontend-এর পেজে পাঠাও, signed URL-টা query হিসেবে জুড়ে দাও
     return config('app.frontend_url').'/verify-email?url='.urlencode($signed);
 });
 
@@ -1161,37 +1307,35 @@ ResetPassword::createUrlUsing(fn ($notifiable, string $token) =>
 );
 ```
 
-`config/app.php` এ যোগ করুন:
+`config/app.php`-এ যোগ করো:
 
 ```php
 'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
 ```
 
-Flow: user SPA link-এ ক্লিক করে → SPA query string থেকে `url` / `token` পড়ে
-→ SPA API call করে (signed URL `GET` করে, বা `POST /api/reset-password`) →
-API JSON response দেয় → SPA success দেখায়।
+**পুরো flow:** user email-এর link-এ ক্লিক করে → frontend-এর পেজ খোলে →
+frontend query থেকে `url`/`token` নেয় → frontend API-কে call করে → API JSON
+দেয় → frontend "সফল" দেখায়।
 
-### ১০.২ Email queue করুন
+### Local-এ email কোথায় যায়
 
-`config/queue.php` এর default আগেই `database`। Notification-গুলো async
-করুন যাতে registration/login response সাথে সাথে আসে। শুধু দরকার হলেই custom
-notification class বানান (`php artisan make:notification`), অথবা সহজভাবে একটা
-worker চালান — `composer dev` এমনিতেই একটা `queue:listen` চালু করে। আলাদা
-চালাতে: `php artisan queue:work`।
+`.env`-এ `MAIL_MAILER=log` — তাই email আসলে পাঠায় না, `storage/logs/laravel.log`
+ফাইলে লিখে রাখে। টেস্ট করার সময় সেখান থেকে link কপি করো। (অথবা Mailpit
+ব্যবহার করো — একটা লোকাল inbox।)
 
-### ১০.৩ Local dev-এ mail
-
-`.env` এ `MAIL_MAILER=log` আছে — verification/reset email
-`storage/logs/laravel.log` এ পড়বে। Manually test করতে সেখান থেকে signed URL
-copy করুন, অথবা Mailpit/Mailtrap-এ switch করুন।
+Email দ্রুত পাঠাতে queue ব্যবহার হয় — `php artisan queue:work` চালু রাখো,
+নাহলে register response দেরি করবে। (`composer dev` কমান্ড এটা এমনিতেই চালায়।)
 
 ---
 
-## ১১. Tests
+## অংশ ১২ — Test লেখা
 
-### ১১.১ Database refresh চালু করুন
+Test = ছোট ছোট কোড যা নিজে থেকে তোমার API চালিয়ে দেখে সব ঠিক আছে কিনা।
+একবার লিখে রাখলে পরে কিছু ভাঙলে সাথে সাথে ধরা পড়ে।
 
-`tests/Pest.php`:
+### ১২.১ Test-এ database রিফ্রেশ চালু করা
+
+`tests/Pest.php`-এ `pest()->extend(...)` লাইনটা এমন করো:
 
 ```php
 pest()->extend(Tests\TestCase::class)
@@ -1199,7 +1343,10 @@ pest()->extend(Tests\TestCase::class)
     ->in('Feature');
 ```
 
-প্রতিটা feature test-এর জন্য role seed করুন। `tests/Pest.php` এ যোগ করুন:
+`RefreshDatabase` — প্রতিটা test-এর আগে database খালি করে দেয়, যাতে test-রা
+একে অন্যকে প্রভাবিত না করে।
+
+আর একটা helper যোগ করো `tests/Pest.php`-এ:
 
 ```php
 function seedRoles(): void
@@ -1210,11 +1357,7 @@ function seedRoles(): void
 }
 ```
 
-…এবং `tests/Feature/Auth/` এর file-গুলোতে `beforeEach()` এ `seedRoles()` কল
-করুন, অথবা `pest()->beforeEach(fn () => seedRoles())->in('Feature/Auth')`
-register করুন।
-
-### ১১.২ Registration — `tests/Feature/Auth/RegistrationTest.php`
+### ১২.২ Registration test — `tests/Feature/Auth/RegistrationTest.php`
 
 ```php
 <?php
@@ -1226,7 +1369,7 @@ use Illuminate\Support\Facades\Event;
 beforeEach(fn () => seedRoles());
 
 it('registers a user, assigns customer role, returns a token', function () {
-    Event::fake();
+    Event::fake(); // সত্যিকারের email পাঠাতে দিও না
 
     $response = $this->postJson('/api/register', [
         'name' => 'Jane',
@@ -1235,7 +1378,7 @@ it('registers a user, assigns customer role, returns a token', function () {
         'password_confirmation' => 'Password1!',
     ]);
 
-    $response->assertCreated()
+    $response->assertCreated() // 201?
         ->assertJsonStructure(['user' => ['id', 'email', 'roles'], 'token']);
 
     $user = User::firstWhere('email', 'jane@example.com');
@@ -1251,20 +1394,9 @@ it('rejects an empty payload', function () {
         ->assertStatus(422)
         ->assertJsonValidationErrors(['name', 'email', 'password']);
 });
-
-it('rejects a duplicate email', function () {
-    User::factory()->create(['email' => 'taken@example.com']);
-
-    $this->postJson('/api/register', [
-        'name' => 'X',
-        'email' => 'taken@example.com',
-        'password' => 'Password1!',
-        'password_confirmation' => 'Password1!',
-    ])->assertJsonValidationErrors('email');
-});
 ```
 
-### ১১.৩ Login — `tests/Feature/Auth/LoginTest.php`
+### ১২.৩ Login test — `tests/Feature/Auth/LoginTest.php`
 
 ```php
 <?php
@@ -1290,7 +1422,7 @@ it('returns a generic error for a wrong password', function () {
 });
 
 it('does not reveal whether an unknown email exists', function () {
-    $this->postJson('/api/login', ['email' => 'ghost@example.com', 'password' => 'whatever'])
+    $this->postJson('/api/login', ['email' => 'ghost@example.com', 'password' => 'x'])
         ->assertStatus(422)
         ->assertJsonPath('errors.email.0', 'These credentials do not match our records.');
 });
@@ -1307,7 +1439,7 @@ it('locks out after 5 failed attempts', function () {
 });
 ```
 
-### ১১.৪ Session lifecycle — `tests/Feature/Auth/SessionTest.php`
+### ১২.৪ Session test — `tests/Feature/Auth/SessionTest.php`
 
 ```php
 <?php
@@ -1318,12 +1450,12 @@ use Laravel\Sanctum\Sanctum;
 beforeEach(fn () => seedRoles());
 
 it('requires a token for /me', function () {
-    $this->getJson('/api/me')->assertUnauthorized(); // 401, redirect নয়
+    $this->getJson('/api/me')->assertUnauthorized(); // 401
 });
 
 it('returns the current user for a valid token', function () {
     $user = User::factory()->create();
-    Sanctum::actingAs($user);
+    Sanctum::actingAs($user); // "ধরে নাও এই user login করা"
 
     $this->getJson('/api/me')->assertOk()->assertJsonPath('data.id', $user->id);
 });
@@ -1335,7 +1467,7 @@ it('logout revokes only the current token', function () {
 
     $this->withToken($a)->postJson('/api/logout')->assertOk();
 
-    expect($user->fresh()->tokens()->count())->toBe(1); // 'b' টিকে থাকে
+    expect($user->fresh()->tokens()->count())->toBe(1); // 'b' টিকে থাকল
 });
 
 it('logout-all revokes every token', function () {
@@ -1349,20 +1481,17 @@ it('logout-all revokes every token', function () {
 });
 ```
 
-### ১১.৫ Email verification — `tests/Feature/Auth/EmailVerificationTest.php`
+### ১২.৫ Email verification test — `tests/Feature/Auth/EmailVerificationTest.php`
 
 ```php
 <?php
 
 use App\Models\User;
-use Illuminate\Auth\Events\Verified;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 
 beforeEach(fn () => seedRoles());
 
-it('verifies the email from a valid signed link', function () {
-    Event::fake();
+it('verifies from a valid signed link', function () {
     $user = User::factory()->unverified()->create();
 
     $url = URL::temporarySignedRoute('verification.verify', now()->addHour(), [
@@ -1371,9 +1500,7 @@ it('verifies the email from a valid signed link', function () {
     ]);
 
     $this->getJson($url)->assertOk();
-
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
-    Event::assertDispatched(Verified::class);
 });
 
 it('rejects a tampered link', function () {
@@ -1384,13 +1511,12 @@ it('rejects a tampered link', function () {
         'hash' => sha1('wrong@example.com'),
     ]);
 
-    // Signature নিজে valid, কিন্তু controller-এর hash check fail করে।
     $this->getJson($url)->assertStatus(403);
     expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
 });
 ```
 
-### ১১.৬ Password reset — `tests/Feature/Auth/PasswordResetTest.php`
+### ১২.৬ Password reset test — `tests/Feature/Auth/PasswordResetTest.php`
 
 ```php
 <?php
@@ -1411,16 +1537,6 @@ it('sends a reset link', function () {
     Notification::assertSentTo($user, ResetPassword::class);
 });
 
-it('gives the same response for an unknown email', function () {
-    Notification::fake();
-
-    $this->postJson('/api/forgot-password', ['email' => 'ghost@example.com'])
-        ->assertOk()
-        ->assertJsonPath('message', 'If that email is registered, a reset link has been sent.');
-
-    Notification::assertNothingSent();
-});
-
 it('resets the password and revokes existing tokens', function () {
     $user = User::factory()->create();
     $user->createToken('old');
@@ -1434,13 +1550,10 @@ it('resets the password and revokes existing tokens', function () {
     ])->assertOk();
 
     expect($user->fresh()->tokens()->count())->toBe(0);
-
-    $this->postJson('/api/login', ['email' => $user->email, 'password' => 'NewPassword1!'])
-        ->assertOk();
 });
 ```
 
-### ১১.৭ Authorization matrix — `tests/Feature/Auth/RoleAccessTest.php`
+### ১২.৭ Role access test — `tests/Feature/Auth/RoleAccessTest.php`
 
 ```php
 <?php
@@ -1452,7 +1565,7 @@ use Laravel\Sanctum\Sanctum;
 beforeEach(function () {
     seedRoles();
 
-    // শুধু এই test file-এর জন্য একটা minimal route:
+    // শুধু এই test-এর জন্য একটা ছোট admin-only route
     Route::middleware(['auth:sanctum', 'role:admin'])
         ->get('/api/_test/admin-only', fn () => response()->json(['ok' => true]));
 });
@@ -1478,13 +1591,7 @@ it('blocks an unauthenticated request', function () {
 });
 ```
 
-> আসল ownership check ("vendor *নিজের* product edit করে") এর জন্য একটা
-> **Policy** লিখুন আর policy-টা সরাসরি test করুন পুরো matrix-এর জন্য, সাথে
-> **একটা** HTTP test যেটা প্রমাণ করে endpoint `authorize()` কল করে। অন্য
-> vendor-এর record-এর জন্য `403` এর বদলে `404` return করুন যাতে record-টা
-> আছে কিনা সেটা confirm না হয়।
-
-Run:
+চালাও:
 
 ```bash
 php artisan test --filter=Auth
@@ -1492,80 +1599,101 @@ php artisan test --filter=Auth
 
 ---
 
-## ১২. End-to-end যাচাই
+## অংশ ১৩ — নিজের হাতে চালিয়ে দেখা (end-to-end)
 
 ```bash
-php artisan migrate:fresh --seed
-php artisan serve        # terminal 1
-php artisan queue:work   # terminal 2 (email পাঠায়)
+php artisan migrate:fresh --seed   # database নতুন করে বানাও + seed করো
+php artisan serve                  # টার্মিনাল ১: সার্ভার চালাও
+php artisan queue:work             # টার্মিনাল ২: email পাঠায়
 ```
+
+আরেকটা টার্মিনালে (curl = কমান্ড লাইন থেকে request পাঠানোর টুল):
 
 ```bash
 BASE=http://127.0.0.1:8000/api
 
-# 1. Register
+# ১. Register
 curl -sS -X POST $BASE/register -H 'Accept: application/json' \
   -d 'name=Jane' -d 'email=jane@example.com' \
-  -d 'password=Password1!' -d 'password_confirmation=Password1!' | tee /tmp/reg.json
+  -d 'password=Password1!' -d 'password_confirmation=Password1!'
+# → উত্তরে "token" দেখতে পাবে, সেটা কপি করো
 
-TOKEN=$(php -r 'echo json_decode(file_get_contents("/tmp/reg.json"))->token;')
+TOKEN=<এখানে token বসাও>
 
-# 2. Me
+# ২. নিজের তথ্য দেখা
 curl -sS $BASE/me -H "Authorization: Bearer $TOKEN" -H 'Accept: application/json'
 
-# 3. Verification email → storage/logs/laravel.log দেখুন, signed URL copy করুন, তারপর:
-curl -sS "<paste-signed-url>" -H 'Accept: application/json'
-
-# 4. Login (নতুন token)
+# ৩. Login (নতুন token)
 curl -sS -X POST $BASE/login -H 'Accept: application/json' \
   -d 'email=jane@example.com' -d 'password=Password1!'
 
-# 5. Change password
-curl -sS -X PUT $BASE/password -H "Authorization: Bearer $TOKEN" -H 'Accept: application/json' \
-  -d 'current_password=Password1!' -d 'password=Password2!' -d 'password_confirmation=Password2!'
-
-# 6. Forgot password
-curl -sS -X POST $BASE/forgot-password -H 'Accept: application/json' -d 'email=jane@example.com'
-
-# 7. Logout
+# ৪. Logout
 curl -sS -X POST $BASE/logout -H "Authorization: Bearer $TOKEN" -H 'Accept: application/json'
+
+# ৫. Logout করার পর আবার /me → এবার 401 আসবে
+curl -sS $BASE/me -H "Authorization: Bearer $TOKEN" -H 'Accept: application/json'
 ```
 
 তারপর:
 
 ```bash
-php artisan test
-./vendor/bin/pint --dirty   # শুধু আপনার বদলানো file format করে
+php artisan test          # সব test পাস করছে?
+./vendor/bin/pint --dirty # কোড ফরম্যাট ঠিক করে
 ```
 
 ---
 
-## ১৩. Production checklist
+## অংশ ১৪ — Production-এ যাওয়ার আগে চেকলিস্ট
 
-- [ ] `APP_DEBUG=false`, `APP_ENV=production`
-- [ ] HTTPS বাধ্যতামূলক (proxy-এর পেছনে `URL::forceScheme('https')`, বা web-server level)
-- [ ] `BCRYPT_ROUNDS=12` (`.env.example` এর default-ই)
-- [ ] `SANCTUM_TOKEN_PREFIX` একটা স্বতন্ত্র মানে সেট করা
-- [ ] `config/sanctum.php` এর `expiration` নির্দিষ্ট + `sanctum:prune-expired` scheduled
-- [ ] `config/cors.php` এর `allowed_origins` = আপনার আসল frontend domain, কখনো `*` নয়
-- [ ] প্রতিটা auth route-এ named rate limiter (`throttle:login` ইত্যাদি)
-- [ ] `Password::defaults()` এ `->uncompromised()` আছে
-- [ ] Trust-sensitive action-এ email verification বাধ্যতামূলক (`verified` middleware)
-- [ ] Mail-এর জন্য একটা queue worker (Horizon বা Supervisor দিয়ে `queue:work`) চলছে
-- [ ] Failed login log হচ্ছে (`Illuminate\Auth\Events\Failed` / `Lockout` listen করুন)
-- [ ] CI-তে `composer audit`
-- [ ] Deploy pipeline-এ `php artisan config:cache route:cache`
-- [ ] Secret শুধু `.env` / secret manager-এ — কখনো commit নয়
+- [ ] `.env`-এ `APP_DEBUG=false`
+- [ ] সাইট HTTPS-এ চলছে (http নয়)
+- [ ] `config/sanctum.php`-এ `expiration` সেট করা + `sanctum:prune-expired` schedule করা
+- [ ] `config/cors.php`-এ `allowed_origins` তোমার আসল frontend ঠিকানা, কখনো `*` নয়
+- [ ] প্রতিটা auth route-এ `throttle:...` middleware আছে
+- [ ] `Password::defaults()`-এ `->uncompromised()` আছে
+- [ ] Checkout, review — এসব জায়গায় `verified` middleware বসানো
+- [ ] Email পাঠানোর জন্য একটা queue worker সবসময় চলছে
+- [ ] `.env` কখনো git-এ push হয়নি
 
 ---
 
-## ১৪. পরের ধাপ (এই গাইডের বাইরে)
+## অংশ ১৫ — শব্দকোষ (এক নজরে সব term)
 
-| যা চান | যা ব্যবহার করবেন |
+| শব্দ | সহজ মানে |
 | --- | --- |
-| TOTP / SMS two-factor | `laravel/fortify` (এটা 2FA endpoint দেয় যেগুলো API থেকে call করা যায়) |
-| "Login with Google/Facebook" | `laravel/socialite` → provider token exchange করে তারপর `createToken()` |
-| পূর্ণ OAuth2 authorization server (আপনি *third-party* app-কে token দেন) | Sanctum-এর বদলে `laravel/passport` |
-| Refresh-token rotation / short access + long refresh | custom: ভিন্ন ability আর expiry দিয়ে দুটো token issue করুন, একটা `/refresh` route যোগ করুন |
-| Per-user device/session management UI | `personal_access_tokens` (name, `last_used_at`) একটা `/tokens` resource দিয়ে expose + delete |
-| Impersonation ("admin customer হিসেবে login করে") | একটা signed, audited, time-boxed impersonation token ভিন্ন ability সহ |
+| **Request** | client → সার্ভার-এ পাঠানো অনুরোধ |
+| **Response** | সার্ভার → client উত্তর |
+| **Header** | request/response-এর সাথের ছোট বাড়তি তথ্য |
+| **Status code** | উত্তরের সাথের সংখ্যা (200, 401, 403...) |
+| **JSON** | মেশিনের পড়ার উপযোগী data ফরম্যাট |
+| **Endpoint** | একটা URL + method যা একটা কাজ করে |
+| **Token** | login-এর পর পাওয়া গোপন string, প্রতি request-এ পাঠাতে হয় |
+| **Bearer** | header-এ token পাঠানোর স্ট্যান্ডার্ড ধরন (`Authorization: Bearer ...`) |
+| **Hash** | একমুখী রূপান্তর — output থেকে input ফেরত পাওয়া যায় না |
+| **Authentication** | "তুমি কে?" যাচাই |
+| **Authorization** | "তোমার অনুমতি আছে?" যাচাই |
+| **Guard** | user-কে কীভাবে চিনব তার নিয়ম (`web` = cookie, `sanctum` = token) |
+| **Middleware** | request-কে controller-এ পৌঁছানোর আগে পাহারাদার |
+| **Controller** | আসল কাজ করা ক্লাস |
+| **Form Request** | data যাচাইয়ের আলাদা ক্লাস |
+| **Resource** | বাইরে কোন তথ্য যাবে তা ঠিক করা ক্লাস |
+| **Model** | database টেবিলের প্রতিনিধি PHP ক্লাস |
+| **Migration** | database টেবিলের গঠন কোড দিয়ে বানানো |
+| **Seeder** | শুরুর data ঢোকানোর script |
+| **Role** | পদবি (customer / vendor / admin) |
+| **Permission** | নির্দিষ্ট ছোট কাজের অনুমতি |
+| **Rate limiting** | নির্দিষ্ট সময়ে সর্বোচ্চ কতবার করা যাবে তার সীমা |
+| **CORS** | কোন ঠিকানার frontend API-তে request করতে পারবে |
+| **Sanctum** | Laravel-এর token package |
+| **spatie/laravel-permission** | role ও permission-এর package |
+
+---
+
+## অংশ ১৬ — এই গাইডের বাইরে (পরে দরকার হলে)
+
+| যা চাও | যা ব্যবহার করবে |
+| --- | --- |
+| SMS/App দিয়ে two-factor (2FA) | `laravel/fortify` |
+| "Google দিয়ে login" | `laravel/socialite` |
+| সম্পূর্ণ OAuth2 সার্ভার (তুমি অন্য কোম্পানিকে token দাও) | `laravel/passport` |
+| user-এর সব device দেখা/সরানোর পেজ | `personal_access_tokens` টেবিল থেকে list বানাও |
