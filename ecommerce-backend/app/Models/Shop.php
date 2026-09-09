@@ -24,4 +24,9 @@ class Shop extends Model
     {
         return $this->belongsTo(Vendor::class);
     }
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 }
