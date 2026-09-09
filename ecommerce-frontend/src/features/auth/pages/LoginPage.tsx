@@ -85,6 +85,14 @@ export function LoginPage() {
               )}
             </Field>
 
+            {mode === 'signin' && (
+              <div className="text-right">
+                <Link to="/forgot-password" className="text-caption text-accent hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
+            )}
+
             <Button type="submit" size="lg" fullWidth>
               {mode === 'signin' ? 'Sign in' : 'Create account'}
             </Button>

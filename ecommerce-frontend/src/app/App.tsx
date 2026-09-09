@@ -23,6 +23,9 @@ import { OrderConfirmationPage } from '@/features/checkout/pages/OrderConfirmati
 import { AccountPage } from '@/features/account/pages/AccountPage'
 import { WishlistPage } from '@/features/account/pages/WishlistPage'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
+import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage'
+import { VerifyOtpPage } from '@/features/auth/pages/VerifyOtpPage'
+import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage'
 
 import { VendorDashboardLayout } from '@/features/vendor/dashboard/VendorDashboardLayout'
 import { VendorOverview } from '@/features/vendor/dashboard/pages/VendorOverview'
@@ -74,6 +77,9 @@ export function App() {
         <Route path="/account" element={<AccountPage />} />
         <Route path="/wishlist" element={<WishlistPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/verify-otp" element={<VerifyOtpPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
