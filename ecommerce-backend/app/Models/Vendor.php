@@ -36,4 +36,9 @@ class Vendor extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function shop()
+    {
+        return $this->hasMany(Shop::class);
+    }
 }
