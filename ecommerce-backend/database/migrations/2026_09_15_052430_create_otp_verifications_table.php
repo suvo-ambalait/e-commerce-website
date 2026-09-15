@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('otp_verifications', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('otp_code');
+            $table->string('otp_code')->default(0);
             $table->timestamp('expires_at');
             $table->string('type')->default('registration'); // Type of OTP (e.g., registration, password reset)
             $table->boolean('is_verified')->default(false);

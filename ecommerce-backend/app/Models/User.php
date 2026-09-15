@@ -23,6 +23,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'status',
+        'email_verified_at',
     ];
 
     /**
@@ -51,5 +53,10 @@ class User extends Authenticatable
     public function vendors()
     {
         return $this->hasMany(Vendor::class);
+    }
+
+    public function otpVerifications()
+    {
+        return $this->hasMany(OtpVerification::class);
     }
 }

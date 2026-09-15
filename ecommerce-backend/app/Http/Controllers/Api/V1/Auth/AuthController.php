@@ -55,7 +55,7 @@ class AuthController extends Controller
 
         OtpVerification::create([
             'user_id' => $user->id,
-            'otp' => $otp,
+            'otp_code' => $otp,
             'expires_at' => now()->addMinutes(10), // Set OTP expiration time
             'type' => 'registration'
         ]);
