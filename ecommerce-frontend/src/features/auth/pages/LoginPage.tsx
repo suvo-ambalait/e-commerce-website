@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
 import { Button, Container, Field, Input, Section } from '@/shared/ui'
 import { cn } from '@/shared/lib/cn'
-import { useAuth, ADMIN_EMAIL } from '../context/AuthContext'
+import { useAuth } from '../context/AuthContext'
 
 type Mode = 'signin' | 'signup'
 
@@ -98,13 +98,6 @@ export function LoginPage() {
             </Button>
           </motion.form>
         </AnimatePresence>
-
-        <div className="mt-6 rounded-lg border border-border bg-surface-sunken/60 p-4 text-caption text-ink-soft">
-          <p className="font-medium text-ink">Demo accounts</p>
-          <p className="mt-1">Shopper — any email · Password anything</p>
-          <p>Vendor — <button type="button" className="text-accent hover:underline" onClick={() => { setEmail('studio@lumen.example'); setMode('signin') }}>studio@lumen.example</button></p>
-          <p>Admin — <button type="button" className="text-accent hover:underline" onClick={() => { setEmail(ADMIN_EMAIL); setMode('signin') }}>{ADMIN_EMAIL}</button></p>
-        </div>
 
         <p className="mt-6 text-center text-caption text-ink-mute">
           Want to sell?{' '}
