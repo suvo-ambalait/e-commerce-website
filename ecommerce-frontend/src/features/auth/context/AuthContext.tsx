@@ -2,20 +2,6 @@ import { createContext, useCallback, useContext, useMemo, type ReactNode } from 
 import { usePersistedState } from '@/shared/hooks/usePersistedState'
 import { storageKeys } from '@/shared/lib/storage'
 import type { AuthUser, Role } from '@/shared/types'
-import { seedVendors } from '@/features/vendor/data/vendors'
-
-export const ADMIN_EMAIL = 'admin@morerdokan.example'
-
-/** Demo accounts that always work, regardless of what's in storage. */
-const knownAccounts: AuthUser[] = [
-  { name: 'Platform Admin', email: ADMIN_EMAIL, role: 'admin' },
-  ...seedVendors.map<AuthUser>((v) => ({
-    name: `${v.name} Studio`,
-    email: v.ownerEmail,
-    role: 'vendor',
-    vendorId: v.id,
-  })),
-]
 
 interface AuthContextValue {
   user: AuthUser | null
@@ -48,7 +34,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     (email: string): AuthUser => {
       const normalized = email.trim().toLowerCase()
       return (
-        knownAccounts.find((a) => a.email === normalized) ??
         users.find((u) => u.email === normalized) ?? {
           name: normalized.split('@')[0] || 'Guest',
           email: normalized,
