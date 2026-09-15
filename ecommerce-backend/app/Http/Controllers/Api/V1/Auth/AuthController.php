@@ -49,6 +49,8 @@ class AuthController extends Controller
             'password' => bcrypt($request->password),
         ]);
 
+        $otp = rand(100000, 999999); // Generate a random 6-digit OTP
+        
         $token = $user->createToken('auth_token')->plainTextToken;
         return response()->json([
             'message' => 'User registered successfully!',
