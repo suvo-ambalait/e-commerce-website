@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\RegisterRequest;
+use App\Models\OtpVerification;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -47,16 +48,23 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => bcrypt($request->password),
+            'status' => 'inactive', // Set the status to pending initially
         ]);
 
-        $otp = rand(100000, 999999); // Generate a random 6-digit OTP
-        
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $otp = random_int(100000, 999999); // Generate a random 6-digit OTP
+
+        OtpVerification::create([
+            'user_id' => $user->id,
+            'otp' => $otp,
+            'expires_at' => now()->addMinutes(10), // Set OTP expiration time
+            'type' => 'registration'
+        ]);
+
+       
         return response()->json([
-            'message' => 'User registered successfully!',
-            'user' => $user, 
-            'token' => $token
-            ]);
+            'message' => 'User registered successfully! OTP sent to email.',
+            'OTP' => $otp,
+        ]);
     }
 
     #[OA\Post(
