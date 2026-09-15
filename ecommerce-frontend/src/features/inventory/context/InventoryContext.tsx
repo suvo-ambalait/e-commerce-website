@@ -5,7 +5,6 @@ import type { Order, Product, StockMovement, StockMovementReason } from '@/share
 import { useCatalog } from '@/features/catalog/context/CatalogContext'
 import { useOrders } from '@/features/orders/context/OrdersContext'
 import { useSettings } from '@/features/admin/context/SettingsContext'
-import { useAuth } from '@/features/auth/context/AuthContext'
 import { stockStatus, type StockStatus } from '../lib/status'
 import { parseCsv } from '../lib/csv'
 import { seedMovements } from '../data/seedMovements'
@@ -44,9 +43,8 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
   const { products, getProduct, patchProduct } = useCatalog()
   const { orders } = useOrders()
   const { settings } = useSettings()
-  const { user } = useAuth()
 
-  const actor = user?.email ?? 'system'
+  const actor = 'system'
 
   /** backfill an opening-stock movement for any product that has none (e.g. just created) */
   useEffect(() => {

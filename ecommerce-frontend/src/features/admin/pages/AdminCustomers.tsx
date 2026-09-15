@@ -4,7 +4,6 @@ import { PageHeader, DataTable, type Column } from '../components/primitives'
 import { Avatar, Badge } from '@/shared/ui'
 import { formatPrice } from '@/shared/lib/format'
 import { useOrders } from '@/features/orders/context/OrdersContext'
-import { useAuth } from '@/features/auth/context/AuthContext'
 
 interface Row {
   email: string
@@ -16,13 +15,9 @@ interface Row {
 
 export function AdminCustomers() {
   const { orders } = useOrders()
-  const { users } = useAuth()
 
   const rows = useMemo<Row[]>(() => {
     const map = new Map<string, Row>()
-    for (const user of users) {
-      map.set(user.email, { email: user.email, name: user.name, role: user.role, orders: 0, spent: 0 })
-    }
     for (const order of orders) {
       const existing = map.get(order.email) ?? {
         email: order.email,
@@ -36,7 +31,7 @@ export function AdminCustomers() {
       map.set(order.email, existing)
     }
     return [...map.values()].sort((a, b) => b.spent - a.spent)
-  }, [orders, users])
+  }, [orders])
 
   const columns: Column<Row>[] = [
     {

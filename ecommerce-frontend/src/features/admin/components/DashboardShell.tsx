@@ -6,9 +6,8 @@ import { easeEditorial } from '@/shared/lib/motion'
 import { usePersistedState } from '@/shared/hooks/usePersistedState'
 import { ScrollToTop } from '@/shared/layout/ScrollToTop'
 import { Logo } from '@/shared/layout/Logo'
-import { Avatar, Drawer, Menu, MenuButton, MenuLink } from '@/shared/ui'
-import { ChevronRightIcon, MenuIcon, StoreIcon, LogOutIcon } from '@/shared/ui/icons'
-import { useAuth } from '@/features/auth/context/AuthContext'
+import { Avatar, Drawer, Menu, MenuLink } from '@/shared/ui'
+import { ChevronRightIcon, MenuIcon, StoreIcon } from '@/shared/ui/icons'
 import { NotificationsMenu } from './NotificationsMenu'
 
 export interface NavItem {
@@ -37,7 +36,6 @@ export function DashboardShell({
   accent?: ReactNode
   basePath: string
 }) {
-  const { user, logout, isAdmin } = useAuth()
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [collapsed, setCollapsed] = usePersistedState(`${storageKey}:rail`, false)
@@ -148,17 +146,6 @@ export function DashboardShell({
               <StoreIcon className="h-4.5 w-4.5" />
               {!collapsed && 'Back to store'}
             </Link>
-            <button
-              type="button"
-              onClick={logout}
-              className={cn(
-                'flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm text-ink-soft hover:bg-surface-sunken hover:text-ink',
-                collapsed && 'justify-center px-0',
-              )}
-            >
-              <LogOutIcon className="h-4.5 w-4.5" />
-              {!collapsed && 'Sign out'}
-            </button>
           </div>
           <button
             type="button"
@@ -196,43 +183,23 @@ export function DashboardShell({
             <Menu
               trigger={({ toggle }) => (
                 <button type="button" onClick={toggle} aria-label="Account menu" className="ml-1 flex items-center gap-2 rounded-full">
-                  <Avatar name={user?.name ?? '?'} size={30} />
+                  <Avatar name="?" size={30} />
                   <ChevronRightIcon className="hidden h-3.5 w-3.5 rotate-90 text-ink-mute sm:block" />
                 </button>
               )}
             >
               {(close) => (
-                <>
-                  <div className="border-b border-border px-3 pb-2 pt-1">
-                    <p className="truncate text-sm font-medium text-ink">{user?.name}</p>
-                    <p className="truncate text-caption text-ink-mute">{user?.email}</p>
-                  </div>
-                  <div className="pt-1">
-                    <MenuLink to={`${basePath}/account`} onClick={close}>
-                      Your profile
-                    </MenuLink>
-                    {isAdmin ? (
-                      <MenuLink to="/admin/settings" onClick={close}>
-                        Store settings
-                      </MenuLink>
-                    ) : (
-                      <MenuLink to="/vendor/dashboard/profile" onClick={close}>
-                        Storefront settings
-                      </MenuLink>
-                    )}
-                    <MenuLink to="/" onClick={close}>
-                      Switch to storefront
-                    </MenuLink>
-                    <MenuButton
-                      onClick={() => {
-                        logout()
-                        close()
-                      }}
-                    >
-                      Sign out
-                    </MenuButton>
-                  </div>
-                </>
+                <div className="pt-1">
+                  <MenuLink to={`${basePath}/account`} onClick={close}>
+                    Your profile
+                  </MenuLink>
+                  <MenuLink to="/vendor/dashboard/profile" onClick={close}>
+                    Storefront settings
+                  </MenuLink>
+                  <MenuLink to="/" onClick={close}>
+                    Switch to storefront
+                  </MenuLink>
+                </div>
               )}
             </Menu>
           </div>

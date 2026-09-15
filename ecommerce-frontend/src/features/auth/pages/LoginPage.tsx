@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
 import { Button, Container, Field, Input, Section } from '@/shared/ui'
 import { cn } from '@/shared/lib/cn'
-import { useAuth } from '../context/AuthContext'
 
 type Mode = 'signin' | 'signup'
 
@@ -12,7 +11,6 @@ export function LoginPage() {
   useDocumentTitle('Sign in · MorerDokan')
   const navigate = useNavigate()
   const location = useLocation()
-  const { login, signup } = useAuth()
   const [mode, setMode] = useState<Mode>('signin')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -22,11 +20,7 @@ export function LoginPage() {
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
-    const nextUser = mode === 'signin' ? login(email, password) : signup(name, email, password)
-    navigate(
-      nextUser.role === 'admin' ? '/admin' : nextUser.role === 'vendor' ? '/vendor/dashboard' : dest,
-      { replace: true },
-    )
+    navigate(dest, { replace: true })
   }
 
   return (

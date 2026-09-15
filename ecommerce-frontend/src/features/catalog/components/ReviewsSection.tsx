@@ -3,12 +3,10 @@ import { LuStar } from 'react-icons/lu'
 import { Button, Container, Field, Input, Rating, Section, Textarea } from '@/shared/ui'
 import { formatDateLong } from '@/shared/lib/format'
 import { useCatalog } from '../context/CatalogContext'
-import { useAuth } from '@/features/auth/context/AuthContext'
 import { useToast } from '@/shared/ui/Toast'
 
 export function ReviewsSection({ productId }: { productId: string }) {
   const { reviewsFor, addReview } = useCatalog()
-  const { user } = useAuth()
   const { notify } = useToast()
   const reviews = reviewsFor(productId)
   const [open, setOpen] = useState(false)
@@ -24,7 +22,7 @@ export function ReviewsSection({ productId }: { productId: string }) {
     e.preventDefault()
     addReview({
       productId,
-      author: user?.name ?? 'Anonymous',
+      author: 'Anonymous',
       rating,
       title: title.trim() || 'Review',
       comment: comment.trim(),

@@ -1,8 +1,7 @@
 import { DashboardShell, type NavGroup } from '@/features/admin/components/DashboardShell'
 import { GridIcon, BoxIcon, ReceiptIcon, WalletIcon, StorefrontIcon, StarIcon, AlertIcon } from '@/features/admin/components/icons'
 import { Badge } from '@/shared/ui'
-import { useAuth } from '@/features/auth/context/AuthContext'
-import { useVendors } from '../context/VendorContext'
+import { useCurrentVendor } from '../lib/useCurrentVendor'
 
 const groups: NavGroup[] = [
   { items: [{ label: 'Overview', to: '/vendor/dashboard', end: true, icon: GridIcon }] },
@@ -28,9 +27,7 @@ const groups: NavGroup[] = [
 ]
 
 export function VendorDashboardLayout() {
-  const { user } = useAuth()
-  const { getVendor } = useVendors()
-  const vendor = user?.vendorId ? getVendor(user.vendorId) : undefined
+  const vendor = useCurrentVendor()
 
   return (
     <DashboardShell

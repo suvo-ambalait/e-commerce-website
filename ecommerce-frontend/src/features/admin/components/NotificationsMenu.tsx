@@ -3,7 +3,6 @@ import { Menu } from '@/shared/ui'
 import { BellIcon } from '@/shared/ui/icons'
 import { cn } from '@/shared/lib/cn'
 import { formatPrice } from '@/shared/lib/format'
-import { useAuth } from '@/features/auth/context/AuthContext'
 import { useVendors } from '@/features/vendor/context/VendorContext'
 import { useCatalog } from '@/features/catalog/context/CatalogContext'
 import { useOrders } from '@/features/orders/context/OrdersContext'
@@ -20,7 +19,6 @@ interface Note {
 }
 
 function useNotifications(): Note[] {
-  const { user } = useAuth()
   const { vendors } = useVendors()
   const { products } = useCatalog()
   const { orders } = useOrders()
@@ -28,8 +26,8 @@ function useNotifications(): Note[] {
   const { settings } = useSettings()
 
   const notes: Note[] = []
-  const isVendor = user?.role === 'vendor'
-  const scopeId = isVendor ? user?.vendorId : undefined
+  const isVendor = false
+  const scopeId: string | undefined = undefined
 
   const scopedProducts = scopeId ? products.filter((p) => p.vendorId === scopeId) : products
   const low = scopedProducts.filter((p) => statusFor(p) === 'low')

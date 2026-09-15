@@ -3,14 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
 import { Button, Container, Field, Input, Section, Textarea } from '@/shared/ui'
 import { useVendors } from '../context/VendorContext'
-import { useAuth } from '@/features/auth/context/AuthContext'
 import { useToast } from '@/shared/ui/Toast'
 
 export function VendorSignupPage() {
   useDocumentTitle('Sell on MorerDokan')
   const navigate = useNavigate()
   const { registerVendor } = useVendors()
-  const { signup } = useAuth()
   const { notify } = useToast()
 
   const [form, setForm] = useState({
@@ -27,14 +25,13 @@ export function VendorSignupPage() {
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
-    const vendor = registerVendor({
+    registerVendor({
       name: form.name,
       tagline: form.tagline,
       bio: form.bio,
       location: form.location,
       ownerEmail: form.ownerEmail,
     })
-    signup(form.ownerName, form.ownerEmail, 'demo', 'vendor', vendor.id)
     notify('Application received — you can set up your storefront now', 'success')
     navigate('/vendor/dashboard')
   }

@@ -3,21 +3,18 @@ import { PageHeader, StatCard } from '../components/primitives'
 import { Avatar, Badge, ButtonLink } from '@/shared/ui'
 import { formatDateLong, formatPrice } from '@/shared/lib/format'
 import { useOrders } from '@/features/orders/context/OrdersContext'
-import { useAuth } from '@/features/auth/context/AuthContext'
 import { OrderStatusBadge } from '@/features/orders/components/OrderStatusBadge'
 
 export function AdminCustomerDetail() {
   const { email = '' } = useParams()
   const decoded = decodeURIComponent(email)
   const { orders } = useOrders()
-  const { users } = useAuth()
 
-  const account = users.find((u) => u.email === decoded)
   const theirOrders = orders.filter((o) => o.email === decoded)
-  const name = account?.name ?? theirOrders[0]?.shippingInfo.fullName ?? decoded.split('@')[0]
+  const name = theirOrders[0]?.shippingInfo.fullName ?? decoded.split('@')[0]
   const spent = theirOrders.reduce((s, o) => s + o.grandTotal, 0)
 
-  if (!account && theirOrders.length === 0) {
+  if (theirOrders.length === 0) {
     return (
       <div>
         <p className="text-sm text-ink-mute">Customer not found.</p>
@@ -38,8 +35,8 @@ export function AdminCustomerDetail() {
         <Avatar name={name} size={52} />
         <div>
           <PageHeader title={name} description={decoded} />
-          <Badge tone={account?.role === 'admin' ? 'inverse' : account?.role === 'vendor' ? 'accent' : 'neutral'} className="mt-1">
-            {account?.role ?? 'customer'}
+          <Badge tone="neutral" className="mt-1">
+            customer
           </Badge>
         </div>
       </div>

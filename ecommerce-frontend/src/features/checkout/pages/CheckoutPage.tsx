@@ -7,7 +7,6 @@ import type { Order, PaymentInfo, Shipment, ShippingInfo } from '@/shared/types'
 import { useCart } from '@/features/cart/context/CartContext'
 import { useCartPricing } from '@/features/cart/lib/useCartPricing'
 import { OrderSummary } from '@/features/cart/components/OrderSummary'
-import { useAuth } from '@/features/auth/context/AuthContext'
 import { useOrders } from '@/features/orders/context/OrdersContext'
 import { useInventory } from '@/features/inventory/context/InventoryContext'
 import { CheckoutSteps, type CheckoutStep } from '../components/CheckoutSteps'
@@ -19,7 +18,6 @@ export function CheckoutPage() {
   const navigate = useNavigate()
   const { items, groups, clearCart } = useCart()
   const pricing = useCartPricing()
-  const { user, signup } = useAuth()
   const { addOrder } = useOrders()
   const { applyOrderSale } = useInventory()
 
@@ -59,8 +57,7 @@ export function CheckoutPage() {
       }
     })
 
-    const email = (user?.email ?? shipping.fullName.split(' ')[0] + '@guest.example').toLowerCase()
-    if (!user) signup(shipping.fullName || 'Guest', email, 'demo')
+    const email = (shipping.fullName.split(' ')[0] + '@guest.example').toLowerCase()
 
     const order: Order = {
       orderNumber,

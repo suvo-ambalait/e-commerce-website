@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { ThemeProvider } from '@/shared/hooks/useTheme'
 import { ToastProvider } from '@/shared/ui/Toast'
-import { AuthProvider } from '@/features/auth/context/AuthContext'
 import { VendorProvider } from '@/features/vendor/context/VendorContext'
 import { CatalogProvider } from '@/features/catalog/context/CatalogContext'
 import { SettingsProvider } from '@/features/admin/context/SettingsContext'
@@ -17,7 +16,6 @@ export function AppProviders({ children }: { children: ReactNode }) {
     ThemeProvider,
     ToastProvider,
     SettingsProvider,
-    AuthProvider,
     VendorProvider,
     CatalogProvider,
     DiscountsProvider,

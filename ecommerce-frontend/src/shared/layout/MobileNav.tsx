@@ -2,7 +2,6 @@ import { Link, NavLink } from 'react-router-dom'
 import { cn } from '@/shared/lib/cn'
 import { Drawer } from '@/shared/ui'
 import { ThemeToggle } from '@/features/account/components/ThemeToggle'
-import { useAuth } from '@/features/auth/context/AuthContext'
 import type { Category } from '@/shared/types'
 import { primaryNav } from './nav'
 import { ChevronRightIcon, SearchIcon } from '@/shared/ui/icons'
@@ -18,8 +17,6 @@ export function MobileNav({
   onSearch: () => void
   categories: Category[]
 }) {
-  const { user, logout, isVendor, isAdmin } = useAuth()
-
   return (
     <Drawer open={open} onClose={onClose} side="left" title="Menu" widthClass="w-full max-w-xs">
       <nav className="flex flex-col px-2 py-3">
@@ -74,42 +71,12 @@ export function MobileNav({
             <Link to="/wishlist" onClick={onClose} className="py-2 text-sm text-ink-soft">
               Saved items
             </Link>
-            {user ? (
-              <>
-                <Link to="/account" onClick={onClose} className="py-2 text-sm text-ink-soft">
-                  Orders &amp; profile
-                </Link>
-                {isVendor && (
-                  <Link to="/vendor/dashboard" onClick={onClose} className="py-2 text-sm text-ink-soft">
-                    Vendor dashboard
-                  </Link>
-                )}
-                {isAdmin && (
-                  <Link to="/admin" onClick={onClose} className="py-2 text-sm text-ink-soft">
-                    Platform admin
-                  </Link>
-                )}
-                <button
-                  type="button"
-                  onClick={() => {
-                    logout()
-                    onClose()
-                  }}
-                  className="py-2 text-left text-sm text-ink-soft"
-                >
-                  Sign out
-                </button>
-              </>
-            ) : (
-              <>
-                <Link to="/login" onClick={onClose} className="py-2 text-sm text-ink-soft">
-                  Sign in
-                </Link>
-                <Link to="/vendor/signup" onClick={onClose} className="py-2 text-sm text-accent">
-                  Sell on MorerDokan
-                </Link>
-              </>
-            )}
+            <Link to="/login" onClick={onClose} className="py-2 text-sm text-ink-soft">
+              Sign in
+            </Link>
+            <Link to="/vendor/signup" onClick={onClose} className="py-2 text-sm text-accent">
+              Sell on MorerDokan
+            </Link>
           </div>
         </div>
       </nav>
