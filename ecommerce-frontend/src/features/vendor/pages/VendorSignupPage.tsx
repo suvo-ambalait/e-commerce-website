@@ -19,9 +19,8 @@ export function VendorSignupPage() {
 
   const [form, setForm] = useState({
     name: '',
-    ownerName: '',
-    ownerEmail: '',
-    ownerPhone: '',
+    shopEmail: '',
+    shopPhone: '',
     location: '',
     tagline: '',
     bio: '',
@@ -37,8 +36,8 @@ export function VendorSignupPage() {
       tagline: form.tagline,
       bio: form.bio,
       location: form.location,
-      ownerEmail: form.ownerEmail,
-      ownerPhone: form.ownerPhone,
+      ownerEmail: form.shopEmail,
+      ownerPhone: form.shopPhone,
     })
     notify('Application received — you can set up your storefront now', 'success')
     navigate('/vendor/dashboard')
@@ -81,17 +80,25 @@ export function VendorSignupPage() {
                   label="Email"
                   icon={<LuStore className="h-4 w-4" />}
                   required
-                  value={form.ownerEmail}
-                  onChange={set('ownerEmail')}
+                  value={form.shopEmail}
+                  onChange={set('shopEmail')}
                   placeholder="e.g. halden@woodworks.com"
                 />
                 <BoxInput
                   label="Phone number"
                   icon={<LuStore className="h-4 w-4" />}
                   required
-                  value={form.ownerPhone}
-                  onChange={set('ownerPhone')}
+                  value={form.shopPhone}
+                  onChange={set('shopPhone')}
                   placeholder="e.g. +47 987 65 432"
+                />
+                <BoxInput
+                  label="Tagline"
+                  icon={<LuStore className="h-4 w-4" />}
+                  required
+                  value={form.tagline}
+                  onChange={set('tagline')}
+                  placeholder="e.g. Handcrafted wooden furniture"
                 />
                 <BoxInput
                   label="Shop name"

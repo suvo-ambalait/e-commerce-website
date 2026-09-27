@@ -26,7 +26,7 @@ class VendorRegisterRequest extends FormRequest
 
             'shop_name' => 'required|string|max:255',
             'shop_email' => 'required|string|email|max:100|unique:users',
-            'owner_phone' => 'required|string|max:20',
+            'shop_phone' => 'required|string|max:20',
             'location' => 'required|string|max:255',
             'tagline' => 'required|string|max:255',
             'about' => 'required|string|max:1000',
