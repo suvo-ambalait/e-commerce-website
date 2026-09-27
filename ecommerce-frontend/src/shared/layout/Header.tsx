@@ -76,7 +76,7 @@ export function Header() {
                 to={item.to}
                 className={({ isActive }) =>
                   cn(
-                    'flex h-8 items-center gap-1.5 rounded-full px-3.5 text-sm font-medium transition-colors',
+                    'flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-sm font-medium transition-colors',
                     isActive ? 'bg-surface text-ink shadow-sm' : 'text-ink-soft hover:text-ink',
                     item.highlight && 'text-accent hover:text-accent',
                   )
@@ -93,7 +93,7 @@ export function Header() {
             <button
               type="button"
               onClick={openSearch}
-              className="mr-1 hidden h-10 w-52 items-center gap-2.5 rounded-full border border-border-strong bg-surface px-4 text-sm text-ink-mute transition-colors hover:border-accent md:flex xl:w-64"
+              className="mr-1 hidden h-10 w-52 items-center gap-2.5 rounded-full border border-border-strong bg-surface px-4 text-sm text-ink-mute transition-colors hover:border-accent md:flex lg:hidden xl:flex xl:w-64"
             >
               <SearchIcon className="h-4 w-4 shrink-0" />
               <span className="truncate">Search products or makers</span>
@@ -102,7 +102,7 @@ export function Header() {
               type="button"
               aria-label="Search"
               onClick={openSearch}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-ink-soft hover:text-ink md:hidden"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-ink-soft hover:text-ink md:hidden lg:inline-flex xl:hidden"
             >
               <SearchIcon className="h-5 w-5" />
             </button>
