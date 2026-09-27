@@ -16,7 +16,8 @@ interface VendorContextValue {
     tagline: string
     bio: string
     location: string
-    ownerEmail: string
+    ownerEmail: string,
+    ownerPhone: string
   }) => Vendor
   updateVendor: (id: string, patch: Partial<Vendor>) => void
   setStatus: (id: string, status: VendorStatus) => void

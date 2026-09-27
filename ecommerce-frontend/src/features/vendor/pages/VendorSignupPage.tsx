@@ -21,6 +21,7 @@ export function VendorSignupPage() {
     name: '',
     ownerName: '',
     ownerEmail: '',
+    ownerPhone: '',
     location: '',
     tagline: '',
     bio: '',
@@ -37,6 +38,7 @@ export function VendorSignupPage() {
       bio: form.bio,
       location: form.location,
       ownerEmail: form.ownerEmail,
+      ownerPhone: form.ownerPhone,
     })
     notify('Application received — you can set up your storefront now', 'success')
     navigate('/vendor/dashboard')
@@ -65,10 +67,10 @@ export function VendorSignupPage() {
         <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[1.5fr_1fr] lg:items-start">
           {/* form */}
           <form onSubmit={submit} className="space-y-5">
-            <Panel icon={<LuStore className="h-4 w-4" />} title="Your studio">
+            <Panel icon={<LuStore className="h-4 w-4" />} title="Your Shop Details">
               <div className="grid gap-4">
                 <BoxInput
-                  label="Studio name"
+                  label="Shop name"
                   icon={<LuStore className="h-4 w-4" />}
                   required
                   value={form.name}
@@ -76,7 +78,31 @@ export function VendorSignupPage() {
                   placeholder="e.g. Halden Woodworks"
                 />
                 <BoxInput
-                  label="Location"
+                  label="Email"
+                  icon={<LuStore className="h-4 w-4" />}
+                  required
+                  value={form.ownerEmail}
+                  onChange={set('ownerEmail')}
+                  placeholder="e.g. halden@woodworks.com"
+                />
+                <BoxInput
+                  label="Phone number"
+                  icon={<LuStore className="h-4 w-4" />}
+                  required
+                  value={form.ownerPhone}
+                  onChange={set('ownerPhone')}
+                  placeholder="e.g. +47 987 65 432"
+                />
+                <BoxInput
+                  label="Shop name"
+                  icon={<LuStore className="h-4 w-4" />}
+                  required
+                  value={form.name}
+                  onChange={set('name')}
+                  placeholder="e.g. Halden Woodworks"
+                />
+                <BoxInput
+                  label="Address / location"
                   hint="City, country — shown on your storefront"
                   icon={<LuMapPin className="h-4 w-4" />}
                   required
@@ -84,19 +110,11 @@ export function VendorSignupPage() {
                   onChange={set('location')}
                   placeholder="Oslo, NO"
                 />
-                <BoxInput
-                  label="One-line tagline"
-                  icon={<LuPenLine className="h-4 w-4" />}
-                  required
-                  maxLength={80}
-                  value={form.tagline}
-                  onChange={set('tagline')}
-                  placeholder="What you make, in a sentence"
-                />
+
                 <label className="block">
                   <span className="mb-1.5 flex items-center justify-between">
                     <span className="text-sm font-semibold text-ink">
-                      About the studio <span className="text-accent">*</span>
+                      About the shop / Description <span className="text-accent">*</span>
                     </span>
                     <span className="text-caption text-ink-mute tabular-nums">
                       {form.bio.length}/{BIO_MAX}
@@ -114,6 +132,8 @@ export function VendorSignupPage() {
                 </label>
               </div>
             </Panel>
+
+
 
             {/* <Panel icon={<LuUser className="h-4 w-4" />} title="About you">
               <div className="grid gap-4 sm:grid-cols-2">
