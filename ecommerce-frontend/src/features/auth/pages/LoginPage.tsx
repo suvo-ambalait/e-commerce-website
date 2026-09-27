@@ -16,11 +16,11 @@ export function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  const dest = (location.state as { from?: string } | null)?.from ?? '/account'
 
-  const submit = (e: FormEvent) => {
+  const submit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
-    navigate(dest, { replace: true })
+    const data = { name, email, password };
+    console.log('Form submitted:', data);
   }
 
   return (

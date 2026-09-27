@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
 import type { Role } from '@/shared/types'
 
-export function RequireRole({ role: _role, children: _children }: { role: Role; children: ReactNode }) {
-  const location = useLocation()
-  return <Navigate to="/login" replace state={{ from: location.pathname }} />
+// TODO: add real auth/role check once auth state exists.
+export function RequireRole({ role: _role, children }: { role: Role; children: ReactNode }) {
+  return <>{children}</>
 }
