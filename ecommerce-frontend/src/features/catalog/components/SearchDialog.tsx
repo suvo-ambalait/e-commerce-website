@@ -1,26 +1,47 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
+import { LuArrowDown, LuArrowUp, LuCornerDownLeft, LuLayers } from 'react-icons/lu'
 import { formatPrice } from '@/shared/lib/format'
 import { easeEditorial } from '@/shared/lib/motion'
+import { cn } from '@/shared/lib/cn'
 import { useScrollLock } from '@/shared/hooks/useScrollLock'
 import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue'
 import { SearchIcon, CloseIcon, ArrowRightIcon } from '@/shared/ui/icons'
 import { useCatalog } from '../context/CatalogContext'
 import { useVendors } from '@/features/vendor/context/VendorContext'
 
+type Tab = 'all' | 'pieces' | 'makers' | 'categories'
+
+interface Hit {
+  key: string
+  group: Exclude<Tab, 'all'>
+  to: string
+  image?: string
+  round?: boolean
+  title: string
+  subtitle: string
+  aside?: string
+}
+
+const groupLabels: Record<Hit['group'], string> = { pieces: 'Pieces', makers: 'Makers', categories: 'Categories' }
+
 export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const navigate = useNavigate()
   const { products, categories } = useCatalog()
-  const { activeVendors } = useVendors()
+  const { activeVendors, getVendor } = useVendors()
   const [query, setQuery] = useState('')
+  const [tab, setTab] = useState<Tab>('all')
+  const [active, setActive] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
   const debounced = useDebouncedValue(query.trim().toLowerCase(), 150)
   useScrollLock(open)
 
   useEffect(() => {
     if (open) {
       setQuery('')
+      setTab('all')
       const t = setTimeout(() => inputRef.current?.focus(), 60)
       return () => clearTimeout(t)
     }
@@ -35,9 +56,9 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
     return () => window.removeEventListener('keydown', onKey)
   }, [open, onClose])
 
-  const productHits = useMemo(() => {
+  const hits = useMemo<Hit[]>(() => {
     if (!debounced) return []
-    return products
+    const pieces: Hit[] = products
       .filter(
         (p) =>
           p.name.toLowerCase().includes(debounced) ||
@@ -46,38 +67,93 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
           p.tags.some((t) => t.includes(debounced)),
       )
       .slice(0, 6)
-  }, [debounced, products])
-
-  const vendorHits = useMemo(() => {
-    if (!debounced) return []
-    return activeVendors
+      .map((p) => ({
+        key: `p-${p.id}`,
+        group: 'pieces',
+        to: `/product/${p.id}`,
+        image: p.images[0],
+        title: p.name,
+        subtitle: [p.category, getVendor(p.vendorId)?.name].filter(Boolean).join(' · '),
+        aside: formatPrice(p.price),
+      }))
+    const makers: Hit[] = activeVendors
       .filter((v) => v.name.toLowerCase().includes(debounced) || v.tagline.toLowerCase().includes(debounced))
       .slice(0, 3)
-  }, [debounced, activeVendors])
+      .map((v) => ({
+        key: `v-${v.id}`,
+        group: 'makers',
+        to: `/vendor/${v.slug}`,
+        image: v.logo,
+        round: true,
+        title: v.name,
+        subtitle: `${v.location} · ${v.tagline}`,
+      }))
+    const cats: Hit[] = categories
+      .filter((c) => c.name.toLowerCase().includes(debounced) || c.description.toLowerCase().includes(debounced))
+      .slice(0, 4)
+      .map((c) => ({
+        key: `c-${c.id}`,
+        group: 'categories',
+        to: `/shop?category=${encodeURIComponent(c.name)}`,
+        image: c.image,
+        title: c.name,
+        subtitle: c.description,
+        aside: `${products.filter((p) => p.category === c.name).length} pieces`,
+      }))
+    return [...pieces, ...makers, ...cats]
+  }, [debounced, products, activeVendors, categories, getVendor])
+
+  const counts = {
+    all: hits.length,
+    pieces: hits.filter((h) => h.group === 'pieces').length,
+    makers: hits.filter((h) => h.group === 'makers').length,
+    categories: hits.filter((h) => h.group === 'categories').length,
+  }
+  const shown = tab === 'all' ? hits : hits.filter((h) => h.group === tab)
+
+  // reset the highlighted row whenever the result set changes
+  useEffect(() => setActive(0), [debounced, tab])
+
+  // keep the highlighted row in view
+  useEffect(() => {
+    listRef.current?.querySelector<HTMLElement>(`[data-index="${active}"]`)?.scrollIntoView({ block: 'nearest' })
+  }, [active])
 
   const go = (to: string) => {
     onClose()
     navigate(to)
   }
 
-  const submit = () => {
+  const searchAll = () => {
     const q = query.trim()
     if (q) go(`/search?q=${encodeURIComponent(q)}`)
   }
 
-  const hasResults = productHits.length > 0 || vendorHits.length > 0
+  const onInputKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown' && shown.length) {
+      e.preventDefault()
+      setActive((i) => (i + 1) % shown.length)
+    } else if (e.key === 'ArrowUp' && shown.length) {
+      e.preventDefault()
+      setActive((i) => (i - 1 + shown.length) % shown.length)
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      if (shown[active]) go(shown[active].to)
+      else searchAll()
+    }
+  }
 
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-120 flex items-start justify-center px-4 pt-[10vh] sm:pt-[14vh]">
+        <div className="fixed inset-0 z-120 flex items-start justify-center px-4 pt-[8vh] sm:pt-[12vh]">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             onClick={onClose}
-            className="absolute inset-0 bg-ink/40 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-[#0b0a10]/45 backdrop-blur-[3px]"
           />
 
           <motion.div
@@ -88,106 +164,181 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
             role="dialog"
             aria-modal="true"
             aria-label="Search"
-            className="relative flex max-h-[76vh] w-full max-w-xl flex-col overflow-hidden rounded-lg border border-border bg-surface shadow-lg"
+            className="relative flex max-h-[78vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-border bg-surface shadow-[0_30px_80px_rgba(40,20,80,0.25)]"
           >
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                submit()
-              }}
-              className="flex items-center gap-3 border-b border-border px-4"
-            >
-              <SearchIcon className="h-5 w-5 shrink-0 text-ink-mute" />
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search makers, materials and pieces…"
-                className="h-14 flex-1 bg-transparent text-base text-ink placeholder:text-ink-mute outline-none"
-              />
-              <button
-                type="button"
-                onClick={onClose}
-                aria-label="Close search"
-                className="shrink-0 rounded-full p-1 text-ink-mute hover:text-ink"
-              >
-                <CloseIcon className="h-5 w-5" />
-              </button>
-            </form>
+            {/* search field */}
+            <div className="p-3">
+              <div className="flex h-14 items-center gap-3 rounded-2xl border-2 border-accent! bg-surface pl-4 pr-2 ring-4 ring-accent/10">
+                <SearchIcon className="h-5 w-5 shrink-0 text-accent" />
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={onInputKey}
+                  placeholder="Search pieces, makers and materials…"
+                  aria-label="Search"
+                  role="combobox"
+                  aria-expanded={shown.length > 0}
+                  aria-controls="search-results"
+                  aria-activedescendant={shown[active] ? `search-hit-${active}` : undefined}
+                  className="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-base font-medium text-ink outline-none placeholder:font-normal placeholder:text-ink-mute focus:ring-0"
+                />
+                {query && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuery('')
+                      inputRef.current?.focus()
+                    }}
+                    className="h-8 shrink-0 rounded-full bg-surface-sunken px-3 text-caption font-semibold text-ink-soft transition-colors hover:text-ink"
+                  >
+                    Clear
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={onClose}
+                  aria-label="Close search"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-ink text-bg transition-opacity hover:opacity-85"
+                >
+                  <CloseIcon className="h-4 w-4" />
+                </button>
+              </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto">
+              {debounced && (
+                <div className="mt-3 flex gap-1 overflow-x-auto" role="tablist" aria-label="Result type">
+                  {(['all', 'pieces', 'makers', 'categories'] as Tab[]).map((t) => {
+                    const on = tab === t
+                    return (
+                      <button
+                        key={t}
+                        type="button"
+                        role="tab"
+                        aria-selected={on}
+                        onClick={() => {
+                          setTab(t)
+                          inputRef.current?.focus()
+                        }}
+                        className={cn(
+                          'flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-caption font-semibold transition-colors',
+                          on ? 'bg-ink text-bg' : 'text-ink-soft hover:bg-surface-sunken hover:text-ink',
+                        )}
+                      >
+                        {t === 'all' ? 'All' : groupLabels[t]}
+                        <span className={cn('tabular-nums', on ? 'text-[#a78bfa]' : 'text-ink-mute')}>{counts[t]}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div ref={listRef} id="search-results" role="listbox" className="min-h-0 flex-1 overflow-y-auto border-t border-border">
               {!debounced ? (
-                <div className="p-4">
-                  <p className="mb-2 text-caption font-medium uppercase tracking-wide text-ink-mute">
-                    Browse
-                  </p>
+                <div className="p-5">
+                  <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">Browse categories</p>
                   <div className="flex flex-wrap gap-2">
                     {categories.map((c) => (
                       <button
                         key={c.id}
                         type="button"
                         onClick={() => go(`/shop?category=${encodeURIComponent(c.name)}`)}
-                        className="rounded-full border border-border-strong px-3 py-1.5 text-caption text-ink-soft transition-colors hover:border-ink hover:text-ink"
+                        className="flex h-9 items-center gap-2 rounded-full border border-border-strong pl-1 pr-3.5 text-caption font-semibold text-ink-soft transition-colors hover:border-accent! hover:text-accent"
                       >
+                        <img src={c.image} alt="" className="h-7 w-7 rounded-full object-cover" />
                         {c.name}
                       </button>
                     ))}
                   </div>
                 </div>
-              ) : !hasResults ? (
-                <p className="px-4 py-10 text-center text-sm text-ink-mute">
-                  Nothing matches “{debounced}”.
-                </p>
+              ) : shown.length === 0 ? (
+                <div className="flex flex-col items-center px-6 py-14 text-center">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+                    <SearchIcon className="h-5 w-5" />
+                  </span>
+                  <p className="mt-4 font-display text-lg font-bold text-ink">Nothing matches “{query.trim()}”</p>
+                  <p className="mt-1 text-sm text-ink-mute">Try a material like “oak” or a maker’s name.</p>
+                </div>
               ) : (
-                <div className="py-2">
-                  {vendorHits.length > 0 && (
-                    <Section label="Makers">
-                      {vendorHits.map((v) => (
-                        <button
-                          key={v.id}
-                          type="button"
-                          onClick={() => go(`/vendor/${v.slug}`)}
-                          className={rowClass}
+                <div className="p-2">
+                  {shown.map((hit, i) => (
+                    <Fragment key={hit.key}>
+                      {(i === 0 || shown[i - 1].group !== hit.group) && (
+                        <p className="px-3 pb-2 pt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">
+                          {groupLabels[hit.group]}
+                        </p>
+                      )}
+                      <button
+                        type="button"
+                        id={`search-hit-${i}`}
+                        data-index={i}
+                        role="option"
+                        aria-selected={i === active}
+                        onMouseMove={() => setActive(i)}
+                        onClick={() => go(hit.to)}
+                        className={cn(
+                          'flex w-full items-center gap-3 rounded-2xl p-2.5 text-left transition-colors',
+                          i === active ? 'bg-accent-soft' : 'hover:bg-surface-sunken',
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            'flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden bg-surface-sunken',
+                            hit.round ? 'rounded-full' : 'rounded-xl',
+                          )}
                         >
-                          <img src={v.logo} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
-                          <span className="min-w-0 flex-1 text-left">
-                            <span className="block truncate text-sm text-ink">{v.name}</span>
-                            <span className="block truncate text-caption text-ink-mute">{v.tagline}</span>
+                          {hit.image ? (
+                            <img src={hit.image} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <LuLayers className="h-5 w-5 text-accent" />
+                          )}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate font-display text-[15px] font-bold tracking-[-0.01em] text-ink">
+                            <Highlight text={hit.title} query={debounced} />
                           </span>
-                        </button>
-                      ))}
-                    </Section>
-                  )}
-
-                  {productHits.length > 0 && (
-                    <Section label="Pieces">
-                      {productHits.map((p) => (
-                        <Link key={p.id} to={`/product/${p.id}`} onClick={onClose} className={rowClass}>
-                          <img src={p.images[0]} alt="" className="h-10 w-10 shrink-0 rounded-sm object-cover" />
-                          <span className="min-w-0 flex-1 text-left">
-                            <span className="block truncate text-sm text-ink">{p.name}</span>
-                            <span className="block text-caption text-ink-mute">{p.category}</span>
-                          </span>
-                          <span className="shrink-0 text-sm tabular-nums text-ink-soft">{formatPrice(p.price)}</span>
-                        </Link>
-                      ))}
-                    </Section>
-                  )}
+                          <span className="block truncate text-caption text-ink-mute">{hit.subtitle}</span>
+                        </span>
+                        {hit.aside && (
+                          <span className="shrink-0 font-display text-[15px] font-bold text-ink tabular-nums">{hit.aside}</span>
+                        )}
+                        <span
+                          className={cn(
+                            'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent text-on-accent transition-opacity',
+                            i === active ? 'opacity-100' : 'opacity-0',
+                          )}
+                          aria-hidden
+                        >
+                          <LuCornerDownLeft className="h-3.5 w-3.5" />
+                        </span>
+                      </button>
+                    </Fragment>
+                  ))}
                 </div>
               )}
             </div>
 
-            {debounced && (
-              <button
-                type="button"
-                onClick={submit}
-                className="flex items-center justify-between border-t border-border px-4 py-3 text-caption font-medium uppercase tracking-wide text-accent transition-colors hover:bg-surface-sunken"
-              >
-                Search for “{query.trim()}”
-                <ArrowRightIcon className="h-4 w-4" />
-              </button>
-            )}
+            {/* footer */}
+            <div className="flex items-center justify-between gap-3 border-t border-border bg-surface-sunken/60 px-4 py-3">
+              {debounced ? (
+                <button
+                  type="button"
+                  onClick={searchAll}
+                  className="flex min-w-0 items-center gap-1.5 text-caption font-semibold text-accent hover:underline"
+                >
+                  <span className="truncate">See all results for “{query.trim()}”</span>
+                  <ArrowRightIcon className="h-3.5 w-3.5 shrink-0" />
+                </button>
+              ) : (
+                <span className="text-caption text-ink-mute">Type to search the whole marketplace</span>
+              )}
+              <div className="hidden items-center gap-3 text-caption text-ink-mute sm:flex">
+                <KeyHint keys={[<LuArrowUp key="u" />, <LuArrowDown key="d" />]}>Move</KeyHint>
+                <KeyHint keys={[<LuCornerDownLeft key="e" />]}>Open</KeyHint>
+                <KeyHint keys={['esc']}>Close</KeyHint>
+              </div>
+            </div>
           </motion.div>
         </div>
       )}
@@ -195,17 +346,42 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
   )
 }
 
-const rowClass =
-  'flex w-full items-center gap-3 px-4 py-2.5 transition-colors hover:bg-surface-sunken'
+/** Wraps every case-insensitive occurrence of `query` in a violet mark. */
+function Highlight({ text, query }: { text: string; query: string }) {
+  if (!query) return <>{text}</>
+  const lower = text.toLowerCase()
+  const parts: ReactNode[] = []
+  let from = 0
+  let at = lower.indexOf(query)
+  while (at !== -1) {
+    if (at > from) parts.push(text.slice(from, at))
+    parts.push(
+      <mark key={at} className="rounded bg-accent/15 px-0.5 text-accent">
+        {text.slice(at, at + query.length)}
+      </mark>,
+    )
+    from = at + query.length
+    at = lower.indexOf(query, from)
+  }
+  parts.push(text.slice(from))
+  return <>{parts}</>
+}
 
-function Section({ label, children }: { label: string; children: React.ReactNode }) {
+function KeyHint({ keys, children }: { keys: ReactNode[]; children: ReactNode }) {
   return (
-    <div className="mb-1">
-      <p className="px-4 pb-1 pt-2 text-caption font-medium uppercase tracking-wide text-ink-mute">
-        {label}
-      </p>
+    <span className="flex items-center gap-1.5">
+      <span className="flex gap-0.5">
+        {keys.map((k, i) => (
+          <kbd
+            key={i}
+            className="flex h-5 min-w-5 items-center justify-center rounded-md border border-border-strong bg-surface px-1 font-sans text-[10px] font-semibold text-ink-soft [&>svg]:h-3 [&>svg]:w-3"
+          >
+            {k}
+          </kbd>
+        ))}
+      </span>
       {children}
-    </div>
+    </span>
   )
 }
 
