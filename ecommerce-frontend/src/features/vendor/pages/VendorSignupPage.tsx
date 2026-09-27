@@ -1,6 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { LuMapPin, LuPenLine, LuStore, LuUser } from 'react-icons/lu'
+import { LuMail, LuMapPin, LuPenLine, LuPhone, LuStore, LuUser } from 'react-icons/lu'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
 import { Container, PageHeader, Section } from '@/shared/ui'
 import { ArrowRightIcon, CheckIcon, MailIcon, StarIcon } from '@/shared/ui/icons'
@@ -100,14 +100,7 @@ export function VendorSignupPage() {
                   onChange={set('tagline')}
                   placeholder="e.g. Handcrafted wooden furniture"
                 />
-                <BoxInput
-                  label="Shop name"
-                  icon={<LuStore className="h-4 w-4" />}
-                  required
-                  value={form.name}
-                  onChange={set('name')}
-                  placeholder="e.g. Halden Woodworks"
-                />
+               
                 <BoxInput
                   label="Address / location"
                   hint="City, country — shown on your storefront"
@@ -207,6 +200,19 @@ export function VendorSignupPage() {
                   <p className="mt-1.5 line-clamp-2 text-caption leading-relaxed text-ink-soft">
                     {form.tagline || 'Your one-line tagline appears here.'}
                   </p>
+                  <p className="mt-3 line-clamp-4 whitespace-pre-line text-caption leading-relaxed text-ink-mute">
+                    {form.bio || 'A short description of your shop — materials, process, who’s behind it.'}
+                  </p>
+                  <ul className="mt-4 space-y-1.5 border-t border-border pt-3 text-caption">
+                    <li className="flex min-w-0 items-center gap-2 text-ink-soft">
+                      <LuMail className="h-3.5 w-3.5 shrink-0 text-accent" />
+                      <span className="truncate">{form.shopEmail || 'shop@example.com'}</span>
+                    </li>
+                    <li className="flex min-w-0 items-center gap-2 text-ink-soft">
+                      <LuPhone className="h-3.5 w-3.5 shrink-0 text-accent" />
+                      <span className="truncate">{form.shopPhone || '+00 000 00 000'}</span>
+                    </li>
+                  </ul>
                   <div className="mt-4 flex items-center justify-between text-caption">
                     <span className="text-ink-mute">0 pieces</span>
                     <span className="flex items-center gap-1 font-semibold text-accent">
