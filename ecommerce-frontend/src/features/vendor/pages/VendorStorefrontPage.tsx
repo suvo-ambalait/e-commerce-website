@@ -110,13 +110,8 @@ export function VendorStorefrontPage() {
 
           <div className="mt-6 flex gap-10">
             {isDesktop && products.length > 0 && (
-              <aside className="w-56 shrink-0">
-                <FilterPanel
-                  filters={query.filters}
-                  update={query.update}
-                  priceCeiling={query.priceCeiling}
-                  hideVendors
-                />
+              <aside className="w-64 shrink-0">
+                <FilterPanel query={query} products={products} hideVendors />
               </aside>
             )}
             <div className="min-w-0 flex-1">
@@ -133,13 +128,20 @@ export function VendorStorefrontPage() {
         </Container>
       </Section>
 
-      <Drawer open={drawerOpen && !isDesktop} onClose={() => setDrawerOpen(false)} side="left" title="Filters">
-        <div className="p-5">
-          <FilterPanel filters={query.filters} update={query.update} priceCeiling={query.priceCeiling} hideVendors />
-          <Button fullWidth className="mt-6" onClick={() => setDrawerOpen(false)}>
-            Show results
-          </Button>
-        </div>
+      <Drawer
+        open={drawerOpen && !isDesktop}
+        onClose={() => setDrawerOpen(false)}
+        side="left"
+        header={<></>}
+        widthClass="w-full max-w-sm"
+      >
+        <FilterPanel
+          query={query}
+          products={products}
+          hideVendors
+          onClose={() => setDrawerOpen(false)}
+          onShowResults={() => setDrawerOpen(false)}
+        />
       </Drawer>
     </>
   )

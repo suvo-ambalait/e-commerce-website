@@ -1,25 +1,24 @@
 import { useState, type FormEvent } from 'react'
-import { motion } from 'motion/react'
+import { Link } from 'react-router-dom'
+import { AnimatePresence, motion } from 'motion/react'
+import { LuBadgeCheck, LuHandCoins, LuLeaf, LuMapPin, LuPhone, LuPlus, LuWrench } from 'react-icons/lu'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
-import {
-  Accordion,
-  Button,
-  ButtonLink,
-  Container,
-  Section,
-  SectionHeading,
-} from '@/shared/ui'
-import { CheckIcon, ArrowRightIcon } from '@/shared/ui/icons'
+import { Container, Section } from '@/shared/ui'
+import { CheckIcon, ArrowRightIcon, MailIcon } from '@/shared/ui/icons'
 import { cn } from '@/shared/lib/cn'
-import { fadeUp, revealOnScroll } from '@/shared/lib/motion'
+import { easeEditorial, fadeUp, revealOnScroll } from '@/shared/lib/motion'
 import { imageFor } from '@/shared/lib/image'
 import { useSettings } from '@/features/admin/context/SettingsContext'
+import { useVendors } from '@/features/vendor/context/VendorContext'
+import { useCatalog } from '@/features/catalog/context/CatalogContext'
+import { DisplayHeading } from '../components/DisplayHeading'
+import { SellCta } from '../components/SellCta'
 
 const standards = [
-  ['Named makers', 'Every product is attributed to one workshop. No white-label, no drop-ship.'],
-  ['Material honesty', 'Listings state the real material and its origin — “solid oak”, not “oak finish”.'],
-  ['Repairability', 'We favour pieces that can be taken apart and fixed. Makers tell us how.'],
-  ['Fair settlement', 'Studios set their own prices. We take a flat commission and pay out weekly.'],
+  { icon: LuBadgeCheck, term: 'Named makers', desc: 'Every product is attributed to one workshop. No white-label, no drop-ship.' },
+  { icon: LuLeaf, term: 'Material honesty', desc: 'Listings state the real material and its origin — “solid oak”, not “oak finish”.' },
+  { icon: LuWrench, term: 'Repairability', desc: 'We favour pieces that can be taken apart and fixed. Makers tell us how.' },
+  { icon: LuHandCoins, term: 'Fair settlement', desc: 'Studios set their own prices. We take a flat commission and pay out weekly.' },
 ]
 
 const faqs = [
@@ -29,7 +28,15 @@ const faqs = [
   { id: 'f4', question: 'I make things — can I sell here?', answer: 'We review new studios on a rolling basis. Apply through “Sell on MorerDokan” and we’ll be in touch within a week.' },
 ]
 
-function LineField({
+const topics = [
+  { v: 'order', label: 'An order' },
+  { v: 'product', label: 'A product' },
+  { v: 'selling', label: 'Selling on MorerDokan' },
+  { v: 'press', label: 'Press' },
+  { v: 'other', label: 'Something else' },
+]
+
+function BoxField({
   label,
   required,
   type = 'text',
@@ -46,33 +53,33 @@ function LineField({
 }) {
   const id = `contact-${label.toLowerCase()}`
   const shared =
-    'peer w-full border-0 border-b border-border-strong bg-transparent px-0 pb-2 pt-1 text-sm text-ink outline-none placeholder:text-ink-mute/50'
+    'w-full rounded-xl border border-border-strong bg-surface px-4 text-sm text-ink outline-none transition-colors placeholder:text-ink-mute focus:border-accent! focus:ring-2 focus:ring-accent/20'
   return (
     <label htmlFor={id} className="block">
-      <span className="block text-caption uppercase tracking-[0.14em] text-ink-mute">{label}</span>
-      <span className="relative mt-1 block">
-        {textarea ? (
-          <textarea
-            id={id}
-            name={id}
-            required={required}
-            rows={4}
-            placeholder={placeholder}
-            className={cn(shared, 'resize-none leading-relaxed')}
-          />
-        ) : (
-          <input
-            id={id}
-            name={id}
-            type={type}
-            required={required}
-            autoComplete={autoComplete}
-            placeholder={placeholder}
-            className={shared}
-          />
-        )}
-        <span className="pointer-events-none absolute -bottom-px left-0 h-px w-full origin-left scale-x-0 bg-accent transition-transform duration-[var(--dur-2)] ease-[var(--ease-editorial)] peer-focus:scale-x-100" />
+      <span className="mb-1.5 block text-caption font-semibold text-ink-soft">
+        {label}
+        {required && <span className="text-accent"> *</span>}
       </span>
+      {textarea ? (
+        <textarea
+          id={id}
+          name={id}
+          required={required}
+          rows={5}
+          placeholder={placeholder}
+          className={cn(shared, 'resize-none py-3 leading-relaxed')}
+        />
+      ) : (
+        <input
+          id={id}
+          name={id}
+          type={type}
+          required={required}
+          autoComplete={autoComplete}
+          placeholder={placeholder}
+          className={cn(shared, 'h-12')}
+        />
+      )}
     </label>
   )
 }
@@ -80,47 +87,108 @@ function LineField({
 export function AboutPage() {
   useDocumentTitle('About · MorerDokan')
   const { settings } = useSettings()
+  const { activeVendors } = useVendors()
+  const { products } = useCatalog()
   const [sent, setSent] = useState(false)
   const [topic, setTopic] = useState('order')
+  const [openFaq, setOpenFaq] = useState<string | null>('f1')
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
     setSent(true)
   }
 
+  const contacts = [
+    { icon: MailIcon, label: 'Email', value: settings.contactEmail, href: `mailto:${settings.contactEmail}` },
+    { icon: LuPhone, label: 'Phone', value: settings.contactPhone, href: `tel:${settings.contactPhone.replace(/[^+\d]/g, '')}` },
+    { icon: LuMapPin, label: 'Studio', value: settings.contactAddress },
+  ]
+
   return (
     <>
-      <Section className="border-b border-border">
-        <Container size="narrow" className="text-center">
+      {/* hero */}
+      <Section className="relative overflow-hidden bg-surface-sunken/50">
+        {/* decorative rings — `!` beats the global `* { border-color }` rule in index.css */}
+        <div className="pointer-events-none absolute -left-40 -top-40 h-112 w-112 rounded-full border border-accent/15!" />
+        <div className="pointer-events-none absolute -right-32 bottom-[-12rem] h-112 w-112 rounded-full border border-accent/15!" />
+
+        <Container size="narrow" className="relative text-center">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <p className="text-caption font-medium uppercase tracking-[0.16em] text-accent">Our story</p>
-            <h1 className="mt-4 text-3xl text-ink text-balance md:text-display">
-              A shop window for workshops that don’t have one
-            </h1>
-            <p className="mt-5 text-base text-ink-soft">
-              MorerDokan began in 2021 as a shared stall at a design market. The makers kept asking the
-              same thing — could we keep the table running year round, online, without turning their
-              work into anonymous inventory. This is that table.
+            <p className="inline-flex items-center gap-2 rounded-full border border-accent/20! bg-accent-soft py-1.5 pl-1.5 pr-3.5 text-[13px] font-medium text-ink-soft">
+              <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-semibold text-on-accent">Since 2021</span>
+              Our story
             </p>
+            {/* `!` beats the global unlayered h1 font rule in index.css */}
+            <h1 className="mt-6 font-display! text-[clamp(2.5rem,1.6rem+3.8vw,4.75rem)] font-extrabold! leading-[0.98] tracking-[-0.045em]! text-ink text-balance">
+              A shop window for workshops <em className="font-medium text-accent">that don’t have one.</em>
+            </h1>
+            <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-ink-soft">
+              MorerDokan began in 2021 as a shared stall at a design market. The makers kept asking the same thing —
+              could we keep the table running year round, online, without turning their work into anonymous
+              inventory. This is that table.
+            </p>
+
+            <dl className="mx-auto mt-10 grid max-w-lg grid-cols-3 gap-3">
+              {[
+                { value: activeVendors.length, label: 'Studios' },
+                { value: products.length, label: 'Pieces' },
+                { value: 1, label: 'Checkout' },
+              ].map((s) => (
+                <div key={s.label} className="rounded-2xl border border-border bg-surface px-3 py-4 shadow-sm">
+                  <dd className="font-display text-3xl font-extrabold leading-none tracking-[-0.03em] text-ink tabular-nums">
+                    {s.value}
+                  </dd>
+                  <dt className="mt-1.5 text-caption text-ink-mute">{s.label}</dt>
+                </div>
+              ))}
+            </dl>
           </motion.div>
         </Container>
       </Section>
 
+      {/* standards */}
       <Section>
         <Container>
-          <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-center">
-            <img
-              src={imageFor('Studio', 'about-studio', { w: 1000, h: 1100 })}
-              alt="A shared studio space"
-              className="aspect-[5/4] w-full rounded-lg object-cover"
-            />
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-center lg:gap-14">
+            <div className="relative">
+              <img
+                src={imageFor('Studio', 'about-studio', { w: 1000, h: 1100 })}
+                alt="A shared studio space"
+                className="aspect-[5/4] w-full rounded-3xl object-cover"
+              />
+              <div className="absolute bottom-4 left-4 flex items-center gap-3 rounded-2xl bg-surface p-3 pr-5 shadow-[0_18px_40px_rgba(40,20,80,0.18)]">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-soft text-accent">
+                  <LuBadgeCheck className="h-5 w-5" aria-hidden />
+                </span>
+                <span>
+                  <span className="block text-sm font-semibold text-ink">Every studio reviewed</span>
+                  <span className="block text-caption text-ink-mute">Four checks before joining</span>
+                </span>
+              </div>
+            </div>
+
             <div>
-              <SectionHeading eyebrow="How we choose" title="Four things we check before a studio joins" />
-              <dl className="mt-8 space-y-6">
-                {standards.map(([term, desc]) => (
-                  <div key={term} className="border-l-2 border-accent pl-4">
-                    <dt className="text-sm font-medium text-ink">{term}</dt>
-                    <dd className="mt-1 text-sm text-ink-soft">{desc}</dd>
+              <DisplayHeading
+                eyebrow="How we choose"
+                title={
+                  <>
+                    Four things we check <em>before a studio joins</em>
+                  </>
+                }
+              />
+              <dl className="mt-8 grid gap-3 sm:grid-cols-2">
+                {standards.map(({ icon: Icon, term, desc }, i) => (
+                  <div key={term} className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-soft text-accent">
+                        <Icon className="h-5 w-5" aria-hidden />
+                      </span>
+                      <span className="font-display text-sm font-bold text-ink-mute tabular-nums">
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                    </div>
+                    <dt className="mt-4 font-display text-base font-bold text-ink">{term}</dt>
+                    <dd className="mt-1 text-sm leading-relaxed text-ink-soft">{desc}</dd>
                   </div>
                 ))}
               </dl>
@@ -129,62 +197,55 @@ export function AboutPage() {
         </Container>
       </Section>
 
-      <Section className="relative overflow-hidden border-y border-border">
-        {/* rotated edge label */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute left-4 top-1/2 hidden -translate-y-1/2 -rotate-90 text-[0.65rem] uppercase tracking-[0.3em] text-ink-mute 2xl:block"
-        >
-          — Write to us —
-        </span>
-        {/* oversized faint mark */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute -right-6 top-4 select-none font-serif text-[13rem] leading-none text-border-strong/25 sm:text-[18rem]"
-        >
-          *
-        </span>
-
+      {/* contact */}
+      <Section className="bg-surface-sunken/50">
         <Container>
           <motion.div
             variants={fadeUp}
             {...revealOnScroll}
-            className="relative grid grid-cols-1 gap-14 lg:grid-cols-[0.82fr_1.18fr] lg:gap-20"
+            className="grid grid-cols-1 gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:gap-12"
           >
-            {/* left — editorial contact card */}
-            <div className="lg:pt-4">
-              <p className="text-caption font-medium uppercase tracking-[0.2em] text-accent">Contact</p>
-              <h2 className="mt-4 font-serif text-4xl leading-[1.04] text-ink sm:text-5xl">
-                Say hello,
-                <span className="mt-1 block font-light italic text-ink-mute">we read everything.</span>
-              </h2>
-              <p className="mt-5 max-w-xs text-sm leading-relaxed text-ink-soft">
-                Order questions, feedback, or a studio we should carry. For piece-specific help the
-                maker is often faster — their contact is on every product page.
-              </p>
+            <div>
+              <DisplayHeading
+                eyebrow="Contact"
+                title={
+                  <>
+                    Say hello, <em>we read everything.</em>
+                  </>
+                }
+                description="Order questions, feedback, or a studio we should carry. For piece-specific help the maker is often faster — their contact is on every product page."
+              />
 
-              <dl className="mt-9 border-t border-ink">
-                {[
-                  { label: 'Email', value: settings.contactEmail, href: `mailto:${settings.contactEmail}` },
-                  { label: 'Phone', value: settings.contactPhone, href: `tel:${settings.contactPhone.replace(/[^+\d]/g, '')}` },
-                  { label: 'Studio', value: settings.contactAddress },
-                ].map((row) => {
-                  const Row = row.href ? 'a' : 'div'
+              <ul className="mt-8 space-y-2.5">
+                {contacts.map(({ icon: Icon, label, value, href }) => {
+                  const inner = (
+                    <>
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
+                        <Icon className="h-4.5 w-4.5" aria-hidden />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-mute">
+                          {label}
+                        </span>
+                        <span className="block truncate text-sm font-semibold text-ink">{value}</span>
+                      </span>
+                    </>
+                  )
+                  const cls =
+                    'flex items-center gap-3 rounded-2xl border border-border bg-surface p-3 shadow-sm transition-colors'
                   return (
-                    <Row
-                      key={row.label}
-                      {...(row.href ? { href: row.href } : {})}
-                      className={cn(
-                        'flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-border py-3.5 transition-colors',
-                        row.href && 'group hover:border-ink',
+                    <li key={label}>
+                      {href ? (
+                        <a href={href} className={cn(cls, 'hover:border-accent/50!')}>
+                          {inner}
+                        </a>
+                      ) : (
+                        <div className={cls}>{inner}</div>
                       )}
-                    >
-                      <dt className="text-caption uppercase tracking-[0.14em] text-ink-mute">{row.label}</dt>
-                      <dd className={cn('text-sm text-ink', row.href && 'group-hover:text-accent')}>{row.value}</dd>
-                    </Row>
+                    </li>
                   )
                 })}
-              </dl>
+              </ul>
 
               <p className="mt-5 flex items-center gap-2.5 text-caption text-ink-mute">
                 <span className="relative flex h-2 w-2">
@@ -195,43 +256,40 @@ export function AboutPage() {
               </p>
             </div>
 
-            {/* right — form */}
-            <div className="relative">
+            <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm sm:p-8">
               {sent ? (
-                <div className="flex min-h-full flex-col items-start justify-center rounded-lg border border-border bg-surface p-10">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-success-soft text-success">
-                    <CheckIcon className="h-6 w-6" />
+                <div className="flex h-full flex-col items-start justify-center py-10">
+                  <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-success-soft text-success">
+                    <CheckIcon className="h-7 w-7" />
                   </span>
-                  <p className="mt-4 font-serif text-xl text-ink">Message sent</p>
+                  <p className="mt-5 font-display text-2xl font-bold text-ink">Message sent</p>
                   <p className="mt-2 max-w-xs text-sm text-ink-soft">
                     Thanks for reaching out — we’ll be in touch shortly.
                   </p>
-                  <ButtonLink to="/shop" variant="secondary" className="mt-6">
+                  <Link
+                    to="/shop"
+                    className="mt-6 inline-flex h-11 items-center gap-2 rounded-full border border-border-strong px-5 text-sm font-semibold text-ink transition-colors hover:border-accent hover:text-accent"
+                  >
                     Back to shopping
-                  </ButtonLink>
+                    <ArrowRightIcon className="h-4 w-4" />
+                  </Link>
                 </div>
               ) : (
-                <form onSubmit={submit} className="space-y-8">
+                <form onSubmit={submit} className="space-y-6">
                   <div>
-                    <p className="text-caption font-medium tracking-wide text-ink-soft">What’s this about?</p>
+                    <p className="text-caption font-semibold text-ink-soft">What’s this about?</p>
                     <div className="mt-2.5 flex flex-wrap gap-2">
-                      {[
-                        { v: 'order', label: 'An order' },
-                        { v: 'product', label: 'A product' },
-                        { v: 'selling', label: 'Selling on MorerDokan' },
-                        { v: 'press', label: 'Press' },
-                        { v: 'other', label: 'Something else' },
-                      ].map((t) => (
+                      {topics.map((t) => (
                         <button
                           key={t.v}
                           type="button"
                           onClick={() => setTopic(t.v)}
                           aria-pressed={topic === t.v}
                           className={cn(
-                            'rounded-full border px-3.5 py-1.5 text-caption transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+                            'h-9 rounded-full border px-4 text-caption font-semibold transition-colors',
                             topic === t.v
-                              ? 'border-transparent bg-ink text-bg'
-                              : 'border-border-strong text-ink-soft hover:border-ink hover:text-ink',
+                              ? 'border-accent! bg-accent text-on-accent'
+                              : 'border-border-strong text-ink-soft hover:border-accent! hover:text-accent',
                           )}
                         >
                           {t.label}
@@ -240,16 +298,21 @@ export function AboutPage() {
                     </div>
                   </div>
 
-                  <div className="grid gap-8 sm:grid-cols-2">
-                    <LineField label="Name" required autoComplete="name" placeholder="Your name" />
-                    <LineField label="Email" required type="email" autoComplete="email" placeholder="you@example.com" />
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <BoxField label="Name" required autoComplete="name" placeholder="Your name" />
+                    <BoxField label="Email" required type="email" autoComplete="email" placeholder="you@example.com" />
                   </div>
-                  <LineField label="Message" required textarea placeholder="How can we help?" />
+                  <BoxField label="Message" required textarea placeholder="How can we help?" />
 
-                  <Button type="submit" size="lg">
+                  <button
+                    type="submit"
+                    className="group inline-flex h-12 items-center gap-3 rounded-full bg-accent pl-6 pr-2 text-sm font-semibold text-on-accent shadow-[0_10px_28px_rgba(109,40,217,0.3)] transition-colors hover:bg-accent-hover"
+                  >
                     Send message
-                    <ArrowRightIcon className="h-4 w-4" />
-                  </Button>
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#6d28d9]">
+                      <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                    </span>
+                  </button>
                 </form>
               )}
             </div>
@@ -257,28 +320,69 @@ export function AboutPage() {
         </Container>
       </Section>
 
+      {/* FAQ */}
       <Section>
         <Container size="narrow">
-          <SectionHeading eyebrow="FAQ" title="Common questions" align="center" />
-          <Accordion className="mt-8" items={faqs} defaultOpen="f1" />
+          <div className="text-center">
+            <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+              FAQ
+            </p>
+            <h2 className="mt-3 font-display! text-[clamp(2rem,1.4rem+2.6vw,3rem)] font-extrabold! leading-none tracking-[-0.04em]! text-ink">
+              Common <em className="font-medium text-accent">questions</em>
+            </h2>
+          </div>
+
+          <div className="mt-8 space-y-2.5">
+            {faqs.map((f) => {
+              const open = openFaq === f.id
+              return (
+                <div
+                  key={f.id}
+                  className={cn(
+                    'rounded-2xl border bg-surface transition-colors',
+                    open ? 'border-accent/40! shadow-[0_12px_30px_rgba(40,20,80,0.08)]' : 'border-border',
+                  )}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaq(open ? null : f.id)}
+                    aria-expanded={open}
+                    className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-sm font-semibold text-ink"
+                  >
+                    {f.question}
+                    <span
+                      className={cn(
+                        'flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors',
+                        open ? 'bg-accent text-on-accent' : 'bg-surface-sunken text-ink-soft',
+                      )}
+                    >
+                      <LuPlus className={cn('h-4 w-4 transition-transform duration-300', open && 'rotate-45')} />
+                    </span>
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {open && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.28, ease: easeEditorial }}
+                        className="overflow-hidden"
+                      >
+                        <p className="px-5 pb-5 pr-16 text-sm leading-relaxed text-ink-soft">{f.answer}</p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )
+            })}
+          </div>
         </Container>
       </Section>
 
-      <Section size="sm">
+      <Section size="sm" className="pt-0 md:pt-0">
         <Container>
-          <motion.div
-            variants={fadeUp}
-            {...revealOnScroll}
-            className="flex flex-col items-center justify-between gap-5 rounded-xl bg-ink px-8 py-10 text-center md:flex-row md:text-left"
-          >
-            <div>
-              <h2 className="font-serif text-2xl text-bg">Make something worth keeping?</h2>
-              <p className="mt-1.5 text-sm text-bg/70">Apply to open a studio on MorerDokan.</p>
-            </div>
-            <ButtonLink to="/vendor/signup" variant="secondary" className="shrink-0 border-transparent bg-bg">
-              Sell on MorerDokan
-            </ButtonLink>
-          </motion.div>
+          <SellCta />
         </Container>
       </Section>
     </>

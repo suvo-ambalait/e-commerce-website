@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
 import { useIsDesktop } from '@/shared/hooks/useMediaQuery'
+import { LuSlidersHorizontal } from 'react-icons/lu'
 import {
-  Badge,
   Breadcrumbs,
   Button,
   Container,
@@ -49,7 +49,7 @@ export function ShopPage() {
     }
   }, [categoryParam, query])
 
-  const heading = categoryParam ?? 'Shop all'
+  const makerCount = new Set(query.results.map((p) => p.vendorId)).size
 
   return (
     <Section size="sm">
@@ -59,16 +59,30 @@ export function ShopPage() {
         />
         <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-3xl text-ink">{heading}</h1>
-            <p className="mt-1 text-sm text-ink-mute">
-              {query.results.length} {pluralize(query.results.length, 'piece')}
+            {/* `!` beats the global unlayered h1 font rule in index.css */}
+            <h1 className="font-display! text-[clamp(2.25rem,1.6rem+2.6vw,3.5rem)] font-extrabold! leading-none tracking-[-0.04em]! text-ink">
+              Shop <em className="font-medium text-accent">{categoryParam ?? 'all'}</em>
+            </h1>
+            <p className="mt-2 text-sm text-ink-mute">
+              {query.results.length} {pluralize(query.results.length, 'piece')} from {makerCount}{' '}
+              {pluralize(makerCount, 'maker')}
             </p>
           </div>
           <div className="flex items-center gap-2">
             {!isDesktop && (
-              <Button variant="secondary" size="sm" onClick={() => setDrawerOpen(true)}>
-                Filters {query.activeCount > 0 && <Badge tone="accent">{query.activeCount}</Badge>}
-              </Button>
+              <button
+                type="button"
+                onClick={() => setDrawerOpen(true)}
+                className="flex h-10 items-center gap-2 rounded-full border border-border-strong bg-surface px-4 text-sm font-semibold text-ink transition-colors hover:border-accent"
+              >
+                <LuSlidersHorizontal className="h-4 w-4 text-accent" />
+                Filters
+                {query.activeCount > 0 && (
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] text-on-accent">
+                    {query.activeCount}
+                  </span>
+                )}
+              </button>
             )}
             <Select
               size="sm"
@@ -87,24 +101,10 @@ export function ShopPage() {
           </div>
         </div>
 
-        <div className="mt-8 flex gap-10">
+        <div className="mt-8 flex gap-8">
           {isDesktop && (
-            <aside className="w-60 shrink-0">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-medium text-ink">Filters</h2>
-                {query.activeCount > 0 && (
-                  <button
-                    type="button"
-                    onClick={query.reset}
-                    className="text-caption text-accent underline-offset-2 hover:underline"
-                  >
-                    Clear all
-                  </button>
-                )}
-              </div>
-              <div className="mt-5">
-                <FilterPanel filters={query.filters} update={query.update} priceCeiling={query.priceCeiling} />
-              </div>
+            <aside className="w-64 shrink-0">
+              <FilterPanel query={query} products={products} />
             </aside>
           )}
 
@@ -129,18 +129,19 @@ export function ShopPage() {
         </div>
       </Container>
 
-      <Drawer open={drawerOpen && !isDesktop} onClose={() => setDrawerOpen(false)} side="left" title="Filters">
-        <div className="p-5">
-          <FilterPanel filters={query.filters} update={query.update} priceCeiling={query.priceCeiling} />
-          <div className="mt-6 flex gap-2">
-            <Button variant="secondary" fullWidth onClick={query.reset}>
-              Clear
-            </Button>
-            <Button fullWidth onClick={() => setDrawerOpen(false)}>
-              Show {query.results.length}
-            </Button>
-          </div>
-        </div>
+      <Drawer
+        open={drawerOpen && !isDesktop}
+        onClose={() => setDrawerOpen(false)}
+        side="left"
+        header={<></>}
+        widthClass="w-full max-w-sm"
+      >
+        <FilterPanel
+          query={query}
+          products={products}
+          onClose={() => setDrawerOpen(false)}
+          onShowResults={() => setDrawerOpen(false)}
+        />
       </Drawer>
     </Section>
   )

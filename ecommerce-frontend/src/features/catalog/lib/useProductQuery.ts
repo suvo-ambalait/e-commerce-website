@@ -15,6 +15,8 @@ export interface ProductFilters {
   categories: string[]
   vendorIds: string[]
   tags: string[]
+  /** 0 = no lower bound */
+  minPrice: number
   maxPrice: number
   minRating: number
   onSale: boolean
@@ -24,6 +26,7 @@ export const emptyFilters: ProductFilters = {
   categories: [],
   vendorIds: [],
   tags: [],
+  minPrice: 0,
   maxPrice: 0,
   minRating: 0,
   onSale: false,
@@ -33,6 +36,10 @@ export function useProductQuery(source: Product[], initial?: Partial<ProductFilt
   const priceCeiling = useMemo(
     () => Math.ceil(Math.max(100, ...source.map((p) => p.price)) / 50) * 50,
     [source],
+  )
+  const priceFloor = useMemo(
+    () => Math.floor(Math.min(priceCeiling, ...source.map((p) => p.price)) / 10) * 10,
+    [source, priceCeiling],
   )
 
   const [filters, setFilters] = useState<ProductFilters>({
@@ -48,6 +55,7 @@ export function useProductQuery(source: Product[], initial?: Partial<ProductFilt
       if (filters.categories.length && !filters.categories.includes(p.category)) return false
       if (filters.vendorIds.length && !filters.vendorIds.includes(p.vendorId)) return false
       if (filters.tags.length && !filters.tags.some((t) => p.tags.includes(t))) return false
+      if (filters.minPrice && p.price < filters.minPrice) return false
       if (filters.maxPrice && p.price > filters.maxPrice) return false
       if (filters.minRating && p.rating < filters.minRating) return false
       if (filters.onSale && !(p.originalPrice && p.originalPrice > p.price)) return false
@@ -88,7 +96,8 @@ export function useProductQuery(source: Product[], initial?: Partial<ProductFilt
     filters.tags.length +
     (filters.minRating > 0 ? 1 : 0) +
     (filters.onSale ? 1 : 0) +
-    (filters.maxPrice < priceCeiling ? 1 : 0)
+    (filters.maxPrice < priceCeiling ? 1 : 0) +
+    (filters.minPrice > priceFloor ? 1 : 0)
 
   return {
     filters,
@@ -96,6 +105,7 @@ export function useProductQuery(source: Product[], initial?: Partial<ProductFilt
     reset,
     activeCount,
     priceCeiling,
+    priceFloor,
     sort,
     setSort: (next: SortKey) => {
       setSort(next)

@@ -78,7 +78,7 @@ export function ProductCard({
             )}
           />
 
-          <div className="absolute left-2.5 top-2.5 flex flex-wrap items-center gap-1.5">
+          <div className="absolute left-2.5 right-12 top-2.5 flex flex-wrap items-center gap-1.5">
             {isNew && !soldOut && (
               <span className="flex items-center gap-1.5 rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-ink shadow-sm">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent" />
