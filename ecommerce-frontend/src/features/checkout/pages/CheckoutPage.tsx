@@ -1,17 +1,28 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
+import { LuPackage, LuMapPin } from 'react-icons/lu'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
-import { Button, ButtonLink, Container, Section } from '@/shared/ui'
+import { Container, Section } from '@/shared/ui'
+import { ArrowRightIcon, BagIcon } from '@/shared/ui/icons'
+import { formatPrice } from '@/shared/lib/format'
 import type { Order, PaymentInfo, Shipment, ShippingInfo } from '@/shared/types'
 import { useCart } from '@/features/cart/context/CartContext'
 import { useCartPricing } from '@/features/cart/lib/useCartPricing'
 import { OrderSummary } from '@/features/cart/components/OrderSummary'
 import { useOrders } from '@/features/orders/context/OrdersContext'
 import { useInventory } from '@/features/inventory/context/InventoryContext'
-import { CheckoutSteps, type CheckoutStep } from '../components/CheckoutSteps'
+import { CheckoutHeader, CheckoutSteps, type CheckoutStep } from '../components/CheckoutSteps'
 import { ShipmentList } from '../components/ShipmentList'
-import { PaymentForm, ShippingForm, emptyPayment, emptyShipping } from '../components/checkoutForms'
+import {
+  CheckoutPanel,
+  PaymentForm,
+  ShippingForm,
+  emptyPayment,
+  emptyShipping,
+} from '../components/checkoutForms'
+
+type Step = Exclude<CheckoutStep, 'cart'>
 
 export function CheckoutPage() {
   useDocumentTitle('Checkout · MorerDokan')
@@ -21,19 +32,34 @@ export function CheckoutPage() {
   const { addOrder } = useOrders()
   const { applyOrderSale } = useInventory()
 
-  const [step, setStep] = useState<CheckoutStep>('shipping')
+  const [step, setStep] = useState<Step>('details')
   const [shipping, setShipping] = useState<ShippingInfo>(emptyShipping)
   const [payment, setPayment] = useState<PaymentInfo>(emptyPayment)
 
+  const goTo = (s: CheckoutStep) => {
+    if (s === 'cart') navigate('/cart')
+    else setStep(s)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   if (items.length === 0) {
     return (
-      <Section>
-        <Container size="narrow" className="text-center">
-          <h1 className="text-2xl text-ink">Your cart is empty</h1>
-          <p className="mt-2 text-sm text-ink-soft">Add something before checking out.</p>
-          <ButtonLink to="/shop" className="mt-5">
-            Browse the shop
-          </ButtonLink>
+      <Section size="sm" className="bg-surface-sunken/50">
+        <Container>
+          <div className="flex flex-col items-center rounded-3xl border border-border bg-surface px-6 py-16 text-center">
+            <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+              <BagIcon className="h-7 w-7" />
+            </span>
+            <p className="mt-5 font-display text-xl font-bold text-ink">Your cart is empty</p>
+            <p className="mt-2 text-sm text-ink-soft">Add something before checking out.</p>
+            <Link
+              to="/shop"
+              className="mt-6 inline-flex h-12 items-center gap-2 rounded-full bg-accent px-6 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover"
+            >
+              Browse the shop
+              <ArrowRightIcon className="h-4 w-4" />
+            </Link>
+          </div>
         </Container>
       </Section>
     )
@@ -76,84 +102,94 @@ export function CheckoutPage() {
     addOrder(order)
     applyOrderSale(order)
     clearCart()
+    pricing.clear()
     navigate('/order-confirmation', { state: { orderNumber } })
   }
 
   return (
-    <Section size="sm">
+    <Section size="sm" className="bg-surface-sunken/50">
       <Container>
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <h1 className="text-3xl text-ink">Checkout</h1>
-          <Link to="/cart" className="text-caption text-accent underline-offset-4 hover:underline">
-            Edit cart
-          </Link>
-        </div>
-        <div className="mt-6">
-          <CheckoutSteps current={step} />
-        </div>
+        <CheckoutHeader
+          title={
+            step === 'details' ? (
+              <>
+                Your <em>details</em>
+              </>
+            ) : (
+              <>
+                Secure <em>payment</em>
+              </>
+            )
+          }
+          subtitle={
+            step === 'details'
+              ? 'Where should the makers send your parcels?'
+              : 'Check your order, then pay once — we settle up with each studio.'
+          }
+          steps={<CheckoutSteps current={step} onStepClick={goTo} />}
+        />
 
-        <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-[1.6fr_1fr] lg:items-start">
-          <div>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={step}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-              >
-                {step === 'shipping' && (
-                  <ShippingForm value={shipping} onChange={setShipping} onSubmit={() => setStep('payment')} />
-                )}
-                {step === 'payment' && (
-                  <PaymentForm
-                    value={payment}
-                    onChange={setPayment}
-                    onSubmit={() => setStep('review')}
-                    onBack={() => setStep('shipping')}
-                  />
-                )}
-                {step === 'review' && (
-                  <div className="space-y-6">
-                    <div className="rounded-lg border border-border bg-surface p-4 text-sm">
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium text-ink">Shipping to</p>
-                        <button
-                          type="button"
-                          onClick={() => setStep('shipping')}
-                          className="text-caption text-accent hover:underline"
-                        >
-                          Edit
-                        </button>
-                      </div>
-                      <p className="mt-1 text-ink-soft">
-                        {shipping.fullName}, {shipping.address}, {shipping.city} {shipping.zip}, {shipping.country}
-                      </p>
-                    </div>
+        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[1.7fr_1fr] lg:items-start">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              {step === 'details' && (
+                <ShippingForm
+                  value={shipping}
+                  onChange={setShipping}
+                  onSubmit={() => goTo('payment')}
+                  onBack={() => goTo('cart')}
+                />
+              )}
+              {step === 'payment' && (
+                <PaymentForm
+                  value={payment}
+                  onChange={setPayment}
+                  onSubmit={placeOrder}
+                  onBack={() => goTo('details')}
+                  submitLabel={`Pay ${formatPrice(pricing.totals.grandTotal)}`}
+                  before={
+                    <>
+                      <CheckoutPanel
+                        icon={<LuMapPin className="h-4 w-4" />}
+                        title="Shipping to"
+                        action={
+                          <button
+                            type="button"
+                            onClick={() => goTo('details')}
+                            className="rounded-full border border-border-strong px-3 py-1 text-caption font-semibold text-ink transition-colors hover:border-accent hover:text-accent"
+                          >
+                            Edit
+                          </button>
+                        }
+                      >
+                        <p className="text-sm text-ink">{shipping.fullName}</p>
+                        <p className="mt-0.5 text-sm text-ink-soft">
+                          {shipping.address}, {shipping.city}, {shipping.state} {shipping.zip}, {shipping.country}
+                        </p>
+                        <p className="mt-0.5 text-caption text-ink-mute">{shipping.phone}</p>
+                      </CheckoutPanel>
 
-                    <div>
-                      <p className="mb-3 text-sm font-medium text-ink">
-                        {groups.length} {groups.length === 1 ? 'parcel' : 'parcels'}
-                      </p>
-                      <ShipmentList groups={groups} shipments={pricing.totals.shipments} />
-                    </div>
-
-                    <div className="flex gap-3">
-                      <Button type="button" variant="ghost" onClick={() => setStep('payment')}>
-                        Back
-                      </Button>
-                      <Button type="button" size="lg" onClick={placeOrder}>
-                        Place order · {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(pricing.totals.grandTotal)}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </div>
+                      <CheckoutPanel
+                        icon={<LuPackage className="h-4 w-4" />}
+                        title={`${groups.length} ${groups.length === 1 ? 'parcel' : 'parcels'}`}
+                      >
+                        <ShipmentList groups={groups} shipments={pricing.totals.shipments} />
+                      </CheckoutPanel>
+                    </>
+                  }
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
 
           <div className="lg:sticky lg:top-28">
-            <OrderSummary pricing={pricing} showPromo={step !== 'review'} />
+            <OrderSummary pricing={pricing} showPromo={step === 'details'} />
           </div>
         </div>
       </Container>

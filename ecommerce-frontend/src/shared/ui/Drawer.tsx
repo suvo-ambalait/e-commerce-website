@@ -11,6 +11,7 @@ export function Drawer({
   onClose,
   side = 'right',
   title,
+  header,
   children,
   widthClass = 'w-full max-w-md',
 }: {
@@ -18,6 +19,8 @@ export function Drawer({
   onClose: () => void
   side?: 'left' | 'right'
   title?: ReactNode
+  /** replaces the default title row entirely (render your own close button) */
+  header?: ReactNode
   children: ReactNode
   widthClass?: string
 }) {
@@ -46,12 +49,14 @@ export function Drawer({
               widthClass,
             )}
           >
-            <div className="flex items-center justify-between border-b border-border px-5 py-4">
-              <p className="text-caption font-medium uppercase tracking-[0.14em] text-ink-soft">{title}</p>
-              <IconButton label="Close" size="sm" onClick={onClose}>
-                <CloseIcon className="h-5 w-5" />
-              </IconButton>
-            </div>
+            {header ?? (
+              <div className="flex items-center justify-between border-b border-border px-5 py-4">
+                <p className="text-caption font-medium uppercase tracking-[0.14em] text-ink-soft">{title}</p>
+                <IconButton label="Close" size="sm" onClick={onClose}>
+                  <CloseIcon className="h-5 w-5" />
+                </IconButton>
+              </div>
+            )}
             <div className="flex-1 overflow-y-auto">{children}</div>
           </motion.aside>
         </div>

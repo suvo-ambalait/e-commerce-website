@@ -20,7 +20,7 @@ export function QuantityStepper({
   const btn = 'flex items-center justify-center px-3 text-ink-soft transition-colors hover:text-ink disabled:opacity-30'
 
   return (
-    <div className={cn('inline-flex items-center rounded-sm border border-border-strong', h, className)}>
+    <div className={cn('inline-flex items-center rounded-full border border-border-strong', h, className)}>
       <button type="button" aria-label="Decrease quantity" className={cn(btn, 'h-full')} disabled={value <= min} onClick={() => onChange(value - 1)}>
         <LuMinus className="h-3.5 w-3.5" />
       </button>
