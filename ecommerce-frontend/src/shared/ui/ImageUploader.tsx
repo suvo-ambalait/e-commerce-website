@@ -43,6 +43,8 @@ export function ImageUploader({
   const [busy, setBusy] = useState(false)
   const [dragOver, setDragOver] = useState(false)
   const [urlDraft, setUrlDraft] = useState('')
+  // one-image mode (logo, banner): full-width tile, no cover badge / reordering
+  const single = max === 1
 
   const addFiles = async (files: FileList | File[]) => {
     const list = Array.from(files)
@@ -73,17 +75,22 @@ export function ImageUploader({
   }
 
   return (
-    <div>
-      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+    <div className="@container">
+      <div className={cn('grid gap-3', single ? 'grid-cols-1' : 'grid-cols-3 sm:grid-cols-4')}>
         {value.map((src, i) => (
           <div key={src.slice(0, 32) + i} className={cn('group relative overflow-hidden rounded-xl border border-border bg-surface-sunken', aspect)}>
             <img src={src} alt="" className="h-full w-full object-cover" />
-            {i === 0 && (
+            {i === 0 && !single && (
               <span className="absolute left-1.5 top-1.5 rounded-full bg-accent px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-on-accent">
                 Cover
               </span>
             )}
-            <div className="absolute inset-x-0 bottom-0 flex justify-between bg-gradient-to-t from-ink/60 to-transparent p-1 opacity-0 transition-opacity group-hover:opacity-100">
+            <div
+              className={cn(
+                'absolute inset-x-0 bottom-0 flex justify-between bg-gradient-to-t from-ink/60 to-transparent p-1 opacity-0 transition-opacity group-hover:opacity-100',
+                (single || value.length < 2) && 'hidden',
+              )}
+            >
               <button type="button" onClick={() => move(i, i - 1)} className="rounded bg-surface/90 p-1 text-ink" aria-label="Move left">
                 <ChevronLeftIcon className="h-3.5 w-3.5" />
               </button>
@@ -123,7 +130,7 @@ export function ImageUploader({
             ) : (
               <>
                 <UploadIcon className="h-5 w-5" />
-                Upload
+                {single ? 'Upload image' : 'Upload'}
               </>
             )}
           </button>
@@ -142,12 +149,13 @@ export function ImageUploader({
         }}
       />
 
-      <div className="mt-2 flex gap-2">
+      {/* URL row stacks when the uploader is narrow (e.g. a logo column) */}
+      <div className="mt-2 flex min-w-0 flex-col gap-2 @[14rem]:flex-row">
         <input
           value={urlDraft}
           onChange={(e) => setUrlDraft(e.target.value)}
-          placeholder="…or paste an image URL"
-          className="h-9 flex-1 rounded-xl border border-border-strong bg-surface px-3 text-caption text-ink outline-none focus:border-accent! focus:ring-4 focus:ring-accent/15"
+          placeholder={single ? 'Paste image URL' : '…or paste an image URL'}
+          className="h-9 w-full min-w-0 shrink-0 rounded-xl border border-border-strong bg-surface px-3 text-caption @[14rem]:flex-1 text-ink outline-none focus:border-accent! focus:ring-4 focus:ring-accent/15"
         />
         <button
           type="button"
@@ -163,7 +171,11 @@ export function ImageUploader({
         </button>
       </div>
       <p className="mt-1 text-caption text-ink-mute">
-        {value.length}/{max} · first image is the cover · drag tiles to reorder
+        {single
+          ? value.length
+            ? 'Remove the image to replace it'
+            : 'Upload a file or paste a URL'
+          : `${value.length}/${max} · first image is the cover · drag tiles to reorder`}
       </p>
     </div>
   )
