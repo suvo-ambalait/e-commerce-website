@@ -50,17 +50,17 @@ export function Menu({
 const itemClass =
   'block w-full rounded-lg px-3 py-2 text-left text-sm text-ink-soft transition-colors hover:bg-surface-sunken hover:text-ink'
 
-export function MenuLink({ to, onClick, children }: { to: string; onClick?: () => void; children: ReactNode }) {
+export function MenuLink({ to, onClick, children, tone }: { to: string; onClick?: () => void; children: ReactNode; tone?: 'danger' }) {
   return (
-    <Link to={to} onClick={onClick} className={itemClass}>
+    <Link to={to} onClick={onClick} className={cn(itemClass, tone === 'danger' && 'hover:bg-red-500 hover:text-destructive-foreground')}>
       {children}
     </Link>
   )
 }
 
-export function MenuButton({ onClick, children }: { onClick?: () => void; children: ReactNode }) {
+export function MenuButton({ onClick, children, tone }: { onClick?: () => void; children: ReactNode; tone?: 'danger' }) {
   return (
-    <button type="button" onClick={onClick} className={itemClass}>
+    <button type="button" onClick={onClick} className={cn(itemClass, tone === 'danger' && 'hover:bg-destructive hover:text-destructive-foreground')}>
       {children}
     </button>
   )

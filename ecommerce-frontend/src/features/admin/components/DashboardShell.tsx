@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ComponentType, type ReactNode, type SVGProps } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
-import { LuPanelLeftClose, LuPanelLeftOpen, LuChevronsUpDown, LuCornerDownLeft } from 'react-icons/lu'
+import { LuPanelLeftClose, LuPanelLeftOpen, LuChevronsUpDown, LuCornerDownLeft, LuUser, LuSettings, LuGlobe, LuLogOut } from 'react-icons/lu'
 import { cn } from '@/shared/lib/cn'
 import { easeEditorial } from '@/shared/lib/motion'
 import { usePersistedState } from '@/shared/hooks/usePersistedState'
@@ -157,13 +157,28 @@ export function DashboardShell({
       {(close) => (
         <div>
           <MenuLink to={`${basePath}/account`} onClick={close}>
-            Your profile
+            <div className="flex items-center gap-2">
+              <LuUser className="h-4 w-4" />
+            <span>Your profile</span>
+            </div>
           </MenuLink>
           <MenuLink to="/vendor/dashboard/profile" onClick={close}>
-            Storefront settings
+            <div className="flex items-center gap-2">
+              <LuSettings className="h-4 w-4" />
+              <span>Storefront settings</span>
+            </div>
           </MenuLink>
           <MenuLink to="/" onClick={close}>
-            Switch to storefront
+            <div className="flex items-center gap-2">
+              <LuGlobe className="h-4 w-4" />
+              <span>View storefront</span>
+            </div>
+          </MenuLink>
+          <MenuLink to="/logout" onClick={close} tone="danger">
+            <div className="flex items-center gap-2">
+              <LuLogOut className="h-4 w-4" />
+              <span>Sign out</span>
+            </div>
           </MenuLink>
         </div>
       )}
