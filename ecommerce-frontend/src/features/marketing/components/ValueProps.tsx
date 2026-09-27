@@ -6,7 +6,7 @@ import { fadeUp, stagger } from '@/shared/lib/motion'
 const items = [
   {
     icon: StoreIcon,
-    title: 'One cart, many studios',
+    title: 'One cart, many shops',
     body: 'Buy from six makers at once. We split the order and settle up with each of them.',
   },
   {

@@ -27,7 +27,7 @@ export function EditorialPromo() {
           <div className="relative flex flex-col justify-center px-5 py-8 sm:px-10 sm:py-12 lg:px-12 lg:py-14">
             <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#c4b5fd]">
               <span className="h-1.5 w-1.5 rounded-full bg-[#a78bfa]" />
-              The MorerDokan letter
+              The AmbalaEshop letter
             </p>
             {/* `!` beats the global unlayered h2 font rule in index.css */}
             <h2 className="mt-4 font-display! text-[clamp(2rem,1.3rem+2.8vw,3.25rem)] font-extrabold! leading-[1.02] tracking-[-0.04em]! text-white">
@@ -36,7 +36,7 @@ export function EditorialPromo() {
               <em className="font-medium text-[#c4b5fd]">not replaced</em>
             </h2>
             <p className="mt-5 max-w-md text-sm leading-relaxed text-[#b8b3c7]">
-              We ask every studio the same questions before they join. The answers live on each maker’s page —
+              We ask every shop the same questions before they join. The answers live on each maker’s page —
               read them before you buy.
             </p>
 

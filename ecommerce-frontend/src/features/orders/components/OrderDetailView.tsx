@@ -99,7 +99,7 @@ export function OrderDetailView({
                       {vendor.name}
                     </Link>
                   ) : (
-                    'MorerDokan'
+                    'AmbalaEshop'
                   )}
                 </p>
                 <p className="text-caption text-ink-mute">

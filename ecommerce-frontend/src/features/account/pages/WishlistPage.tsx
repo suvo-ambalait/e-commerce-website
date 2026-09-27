@@ -6,7 +6,7 @@ import { useCatalog } from '@/features/catalog/context/CatalogContext'
 import { ProductGrid } from '@/features/catalog/components/ProductGrid'
 
 export function WishlistPage() {
-  useDocumentTitle('Saved items · MorerDokan')
+  useDocumentTitle('Saved items · AmbalaEshop')
   const { productIds, clear } = useWishlist()
   const { products } = useCatalog()
   const saved = products.filter((p) => productIds.includes(p.id))

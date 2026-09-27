@@ -24,7 +24,7 @@ export function ShipmentList({
             <div className="flex items-center justify-between gap-3">
               <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-accent">
                 <StoreIcon className="h-3.5 w-3.5" />
-                {vendor?.name ?? 'MorerDokan'}
+                {vendor?.name ?? 'AmbalaEshop'}
               </p>
               <p className="text-caption text-ink-mute">
                 Parcel {i + 1} of {groups.length}

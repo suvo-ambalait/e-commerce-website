@@ -118,8 +118,8 @@ export function useNotificationFeed() {
       list.push({
         id: `vendor-${v.id}`,
         kind: 'vendor',
-        title: 'New studio application',
-        body: `${v.name} wants to sell on MorerDokan`,
+        title: 'New shop application',
+        body: `${v.name} wants to sell on AmbalaEshop`,
         date: v.joinedAt,
         image: v.logo,
         to: `/admin/vendors/${v.id}`,

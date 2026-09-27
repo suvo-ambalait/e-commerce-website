@@ -65,7 +65,7 @@ export function Footer() {
               </p>
               {/* `!` beats the global unlayered h2 font rule in index.css */}
               <h2 className="mt-2 font-display! text-[clamp(1.6rem,1.2rem+1.8vw,2.4rem)] font-extrabold! leading-[1.05] tracking-[-0.035em]! text-white">
-                Stories from the studios,
+                Stories from the shops,
                 <br />
                 <em className="font-medium text-white/90">straight to your inbox.</em>
               </h2>
@@ -111,7 +111,7 @@ export function Footer() {
               <BrandLockup className="text-2xl" nameClassName="text-white" />
             </Link>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-[#b8b3c7]">
-              {settings.tagline}. One cart across many independent studios — we settle up with each maker so you
+              {settings.tagline}. One cart across many independent shops — we settle up with each maker so you
               don’t have to.
             </p>
 

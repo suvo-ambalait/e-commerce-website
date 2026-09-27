@@ -11,7 +11,7 @@ const RESEND_SECONDS = 30
 const CODE_LENGTH = 6
 
 export function VerifyOtpPage() {
-  useDocumentTitle('Verify code · MorerDokan')
+  useDocumentTitle('Verify code · AmbalaEshop')
   const navigate = useNavigate()
   const location = useLocation()
 

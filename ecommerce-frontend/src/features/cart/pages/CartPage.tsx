@@ -13,7 +13,7 @@ import { RelatedProducts } from '@/features/catalog/components/RelatedProducts'
 import { useCatalog } from '@/features/catalog/context/CatalogContext'
 
 export function CartPage() {
-  useDocumentTitle('Cart · MorerDokan')
+  useDocumentTitle('Cart · AmbalaEshop')
   const { items, groups, totalItems } = useCart()
   const pricing = useCartPricing()
   const { products } = useCatalog()
@@ -36,7 +36,7 @@ export function CartPage() {
             </span>
             <p className="mt-5 font-display text-xl font-bold text-ink">Nothing in the cart yet</p>
             <p className="mt-2 max-w-sm text-sm text-ink-soft">
-              When you add pieces from a few different makers, they’ll be grouped here by studio.
+              When you add pieces from a few different makers, they’ll be grouped here by shop.
             </p>
             <Link
               to="/shop"

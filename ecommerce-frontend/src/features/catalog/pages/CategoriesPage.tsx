@@ -6,7 +6,7 @@ import { useCatalog } from '../context/CatalogContext'
 import { CategoryCard } from '../components/CategoryCard'
 
 export function CategoriesPage() {
-  useDocumentTitle('Categories · MorerDokan')
+  useDocumentTitle('Categories · AmbalaEshop')
   const { categories, products } = useCatalog()
 
   return (
@@ -23,7 +23,7 @@ export function CategoriesPage() {
           Every <span className="font-medium italic text-accent">category</span>
         </h1>
         <p className="mt-3 max-w-lg text-sm text-ink-soft">
-          Each department is stocked by several studios. Follow one through to the shop to filter by maker,
+          Each department is stocked by several shops. Follow one through to the shop to filter by maker,
           price and material.
         </p>
 

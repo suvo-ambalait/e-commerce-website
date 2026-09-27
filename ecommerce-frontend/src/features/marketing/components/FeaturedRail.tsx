@@ -13,7 +13,7 @@ export function FeaturedRail() {
         <SectionHeading
           eyebrow="This season"
           title="Pieces we keep coming back to"
-          description="A rotating selection chosen with each studio — new work, quiet staples, and the odd thing on sale."
+          description="A rotating selection chosen with each shop — new work, quiet staples, and the odd thing on sale."
           action={
             <Link to="/shop" className="text-sm text-accent underline-offset-4 hover:underline">
               Shop all

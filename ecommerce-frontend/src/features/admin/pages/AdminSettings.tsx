@@ -50,7 +50,7 @@ export function AdminSettings() {
             <Field label="Tax rate (0–1)">
               {(id) => <Input id={id} type="number" step="0.01" min="0" max="1" value={form.taxRate} onChange={set('taxRate')} />}
             </Field>
-            <Field label="Commission rate (0–1)" hint="MorerDokan’s cut of each vendor sale">
+            <Field label="Commission rate (0–1)" hint="AmbalaEshop’s cut of each vendor sale">
               {(id) => <Input id={id} type="number" step="0.01" min="0" max="1" value={form.commissionRate} onChange={set('commissionRate')} />}
             </Field>
           </div>

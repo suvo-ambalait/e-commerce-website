@@ -121,7 +121,7 @@ export function MegaMenu({ categories }: { categories: Category[] }) {
                   <div className="pointer-events-none absolute -bottom-10 -right-6 h-28 w-28 rounded-full border border-white/15!" />
 
                   <span className="self-start rounded-full bg-white/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em]">
-                    Every studio
+                    Every shop
                   </span>
                   <p className="mt-3 font-display text-[1.6rem] font-extrabold leading-none tracking-[-0.035em]">
                     Shop <em className="font-medium">everything</em>

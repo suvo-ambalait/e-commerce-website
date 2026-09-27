@@ -8,7 +8,7 @@ import { EditorialPromo } from '../components/EditorialPromo'
 import { Newsletter } from '../components/Newsletter'
 
 export function HomePage() {
-  useDocumentTitle('MorerDokan — Considered design, many makers')
+  useDocumentTitle('AmbalaEshop — Considered design, many makers')
   return (
     <>
       <Hero />

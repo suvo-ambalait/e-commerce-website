@@ -14,7 +14,7 @@ export function SearchPage() {
   const query = params.get('q') ?? ''
   const [input, setInput] = useState(query)
 
-  useDocumentTitle(query ? `“${query}” · Search` : 'Search · MorerDokan')
+  useDocumentTitle(query ? `“${query}” · Search` : 'Search · AmbalaEshop')
 
   const q = query.trim().toLowerCase()
 

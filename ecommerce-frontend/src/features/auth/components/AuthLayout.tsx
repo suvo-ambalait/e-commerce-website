@@ -140,7 +140,7 @@ export function AuthCheckbox({
   )
 }
 
-/** "Want to sell on MorerDokan?" card shown under the sign-in card. */
+/** "Want to sell on AmbalaEshop?" card shown under the sign-in card. */
 export function SellPrompt() {
   return (
     <Link
@@ -150,9 +150,9 @@ export function SellPrompt() {
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
         <StoreIcon className="h-5 w-5" />
       </span>
-      <span className="min-w-0 flex-1 text-sm text-ink-soft">Want to sell on MorerDokan?</span>
+      <span className="min-w-0 flex-1 text-sm text-ink-soft">Want to sell on AmbalaEshop?</span>
       <span className="flex shrink-0 items-center gap-1 text-sm font-semibold text-accent">
-        Apply for a studio
+        Apply for a shop
         <ArrowRightIcon className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
       </span>
     </Link>

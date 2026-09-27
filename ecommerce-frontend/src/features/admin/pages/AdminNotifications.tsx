@@ -65,7 +65,7 @@ export function AdminNotifications() {
     <div className="space-y-4">
       <PageHeader
         title="Notifications"
-        description={`${unreadCount} unread · orders, stock and studio activity in one place`}
+        description={`${unreadCount} unread · orders, stock and shop activity in one place`}
         action={
           <>
             <button

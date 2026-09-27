@@ -19,7 +19,7 @@ export function CsvTools({ products, allowImport }: { products: Product[]; allow
 
   const exportNow = () => {
     const csv = toCsv(products, (id) => getVendor(id)?.name ?? '')
-    downloadCsv(`morerdokan-inventory-${new Date().toISOString().slice(0, 10)}.csv`, csv)
+    downloadCsv(`ambalaeshop-inventory-${new Date().toISOString().slice(0, 10)}.csv`, csv)
     notify('Inventory exported', 'success')
   }
 

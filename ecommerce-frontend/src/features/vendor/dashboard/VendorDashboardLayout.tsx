@@ -35,7 +35,7 @@ export function VendorDashboardLayout() {
       subtitle={vendor?.name ?? 'Vendor'}
       basePath="/vendor/dashboard"
       groups={groups}
-      user={{ name: vendor?.name ?? 'Vendor', role: 'Studio owner' }}
+      user={{ name: vendor?.name ?? 'Vendor', role: 'Shop owner' }}
       accent={
         vendor && vendor.status !== 'active' ? (
           <div className="rounded-2xl bg-warning-soft px-3.5 py-3 text-caption text-warning">

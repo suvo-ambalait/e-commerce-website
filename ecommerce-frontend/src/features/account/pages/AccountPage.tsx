@@ -2,7 +2,7 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
 import { ButtonLink, Container, Section } from '@/shared/ui'
 
 export function AccountPage() {
-  useDocumentTitle('Account · MorerDokan')
+  useDocumentTitle('Account · AmbalaEshop')
 
   return (
     <Section>

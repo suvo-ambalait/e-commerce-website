@@ -53,12 +53,12 @@ export function AdminVendors() {
   const change = (ids: string[], status: VendorStatus) => {
     ids.forEach((id) => setStatus(id, status))
     const verb = status === 'active' ? 'Approved' : status === 'suspended' ? 'Suspended' : 'Updated'
-    notify(`${verb}: ${ids.length} studio${ids.length > 1 ? 's' : ''}`, 'success')
+    notify(`${verb}: ${ids.length} shop${ids.length > 1 ? 's' : ''}`, 'success')
   }
 
   const columns: Column<Vendor>[] = [
     {
-      header: 'Studio',
+      header: 'Shop',
       id: 'studio',
       sortValue: (v) => v.name,
       cell: (v) => (
@@ -121,7 +121,7 @@ export function AdminVendors() {
     <div className="space-y-4">
       <PageHeader
         title="Vendors"
-        description={`${vendors.length} studios · ${count('pending')} awaiting review`}
+        description={`${vendors.length} shops · ${count('pending')} awaiting review`}
         action={
           <>
             <ExportButton
@@ -142,7 +142,7 @@ export function AdminVendors() {
         rows={rows}
         columns={columns}
         keyOf={(v) => v.id}
-        empty="No studios match."
+        empty="No shops match."
         toolbar={
           <TableToolbar
             end={
@@ -161,7 +161,7 @@ export function AdminVendors() {
               </>
             }
           >
-            <TableSearch value={search} onChange={setSearch} placeholder="Search studios" />
+            <TableSearch value={search} onChange={setSearch} placeholder="Search shops" />
             <TableTabs
               value={tab}
               onChange={setTab}

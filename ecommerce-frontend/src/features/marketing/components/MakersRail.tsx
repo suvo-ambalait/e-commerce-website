@@ -17,10 +17,10 @@ export function MakersRail() {
           eyebrow="The makers"
           title={
             <>
-              Studios you’re <em>buying from</em>
+              Shops you’re <em>buying from</em>
             </>
           }
-          description="Every product on MorerDokan is made by one of these independent workshops. Their name is on the piece, and on your receipt."
+          description="Every product on AmbalaEshop is made by one of these independent workshops. Their name is on the piece, and on your receipt."
           action={{ to: '/vendors', label: 'Full directory' }}
         />
         <motion.div

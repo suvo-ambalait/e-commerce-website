@@ -363,7 +363,7 @@ export function AdminProducts() {
     <div className="space-y-4">
       <PageHeader
         title="Products"
-        description={`${counts.all} products from ${studios} studios · ${needRestock.length} need restocking`}
+        description={`${counts.all} products from ${studios} shops · ${needRestock.length} need restocking`}
         action={
           <>
             <button

@@ -35,7 +35,7 @@ export function Header() {
         <div className="container-page grid h-9 grid-cols-1 items-center text-[11px] md:grid-cols-[1fr_auto_1fr]">
           <span className="hidden items-center gap-1.5 text-[#b8b3c7] md:flex">
             <StoreIcon className="h-3.5 w-3.5" aria-hidden />
-            Ships from the studio
+            Ships from the shop
           </span>
           <p className="truncate text-center font-semibold uppercase tracking-[0.14em]">
             Free shipping over {formatPriceWhole(settings.freeShippingThreshold)}

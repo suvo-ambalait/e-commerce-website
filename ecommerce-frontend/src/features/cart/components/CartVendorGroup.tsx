@@ -23,7 +23,7 @@ export function CartVendorGroup({ group }: { group: VendorGroup }) {
             to={vendor ? `/vendor/${vendor.slug}` : '#'}
             className="truncate text-sm font-bold text-ink hover:text-accent"
           >
-            {vendor?.name ?? 'MorerDokan'}
+            {vendor?.name ?? 'AmbalaEshop'}
           </Link>
           <span className="hidden shrink-0 text-caption text-ink-mute sm:inline">· Ships separately</span>
         </div>

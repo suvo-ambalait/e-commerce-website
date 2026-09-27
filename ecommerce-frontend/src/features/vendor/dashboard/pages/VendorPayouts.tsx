@@ -93,7 +93,7 @@ export function VendorPayouts() {
     <div className="space-y-4">
       <PageHeader
         title="Payouts"
-        description={`MorerDokan takes a flat ${Math.round(rate * 100)}% commission. Funds release once a parcel is marked delivered.`}
+        description={`AmbalaEshop takes a flat ${Math.round(rate * 100)}% commission. Funds release once a parcel is marked delivered.`}
         action={
           <ExportButton
             onClick={() =>

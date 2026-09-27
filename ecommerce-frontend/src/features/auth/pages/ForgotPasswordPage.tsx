@@ -8,7 +8,7 @@ import { AuthIntro } from '../components/AuthIntro'
 import { issueChallenge } from '../lib/recovery'
 
 export function ForgotPasswordPage() {
-  useDocumentTitle('Reset password · MorerDokan')
+  useDocumentTitle('Reset password · AmbalaEshop')
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
 

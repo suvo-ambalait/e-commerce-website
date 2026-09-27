@@ -38,7 +38,7 @@ export function ShopPage() {
     12,
   )
 
-  useDocumentTitle(`${categoryParam ?? 'Shop'} · MorerDokan`)
+  useDocumentTitle(`${categoryParam ?? 'Shop'} · AmbalaEshop`)
 
   // keep filters in sync when the category is changed from the nav / mega-menu
   const lastCategory = useRef(categoryParam)

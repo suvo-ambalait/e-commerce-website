@@ -28,9 +28,9 @@ interface SettingsContextValue {
 }
 
 const defaultSettings: StoreSettings = {
-  storeName: 'MorerDokan',
+  storeName: 'AmbalaEshop',
   tagline: 'Considered design, many makers',
-  contactEmail: 'hello@morerdokan.example',
+  contactEmail: 'hello@ambalaeshop.example',
   contactPhone: '+1 (555) 240-1998',
   contactAddress: '14 Rue des Artisans, Studio 3 · Brooklyn, NY',
   socialLinks: [
@@ -47,6 +47,22 @@ const defaultSettings: StoreSettings = {
   lowStockThreshold: 8,
 }
 
+/**
+ * Browsers that loaded the app before the rename still have the old brand
+ * saved in localStorage, which would override the new defaults. Swap those
+ * old values for the current defaults; anything an admin chose stays as is.
+ */
+const LEGACY_STORE_NAME = 'MorerDokan'
+const LEGACY_CONTACT_EMAIL = 'hello@morerdokan.example'
+
+function migrateLegacyBrand(s: StoreSettings): StoreSettings {
+  return {
+    ...s,
+    storeName: s.storeName === LEGACY_STORE_NAME ? defaultSettings.storeName : s.storeName,
+    contactEmail: s.contactEmail === LEGACY_CONTACT_EMAIL ? defaultSettings.contactEmail : s.contactEmail,
+  }
+}
+
 const SettingsContext = createContext<SettingsContextValue | null>(null)
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
@@ -54,7 +70,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<SettingsContextValue>(
     () => ({
-      settings: { ...defaultSettings, ...settings },
+      settings: migrateLegacyBrand({ ...defaultSettings, ...settings }),
       updateSettings: setSettings,
     }),
     [settings, setSettings],

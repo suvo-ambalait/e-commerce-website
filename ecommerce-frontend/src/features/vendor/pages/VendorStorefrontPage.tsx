@@ -34,7 +34,7 @@ export function VendorStorefrontPage() {
   const products = vendor ? productsByVendor(vendor.id) : []
   const query = useProductQuery(products, undefined, 9)
 
-  useDocumentTitle(vendor ? `${vendor.name} · MorerDokan` : 'Maker · MorerDokan')
+  useDocumentTitle(vendor ? `${vendor.name} · AmbalaEshop` : 'Maker · AmbalaEshop')
 
   if (!vendor) {
     return (

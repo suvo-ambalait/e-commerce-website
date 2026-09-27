@@ -75,7 +75,7 @@ export function MobileNav({
               Sign in
             </Link>
             <Link to="/vendor/signup" onClick={onClose} className="py-2 text-sm text-accent">
-              Sell on MorerDokan
+              Sell on AmbalaEshop
             </Link>
           </div>
         </div>

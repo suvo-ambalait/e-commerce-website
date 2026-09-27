@@ -1,4 +1,4 @@
-# MorerDokan — Backend Implementation Plan
+# AmbalaEshop — Backend Implementation Plan
 
 Laravel 12 REST API for the multi-vendor marketplace frontend in `../ecommerce-frontend`.
 
@@ -32,7 +32,7 @@ From `src/shared/types` (`Role`) and `AuthContext`:
 | `admin`    | Full platform: vendors approval, all products, categories, all orders, all inventory, customers, discounts, reviews moderation, store settings |
 
 Demo accounts today (keep as seeded logins):
-- Admin: `admin@morerdokan.example`
+- Admin: `admin@ambalaeshop.example`
 - Vendors: `ownerEmail` of each seed vendor (e.g. `studio@lumen.example`)
 
 ### 1.3 What already exists in this repo
@@ -393,9 +393,9 @@ Recommend a **single-row `store_settings` table** with a cached accessor.
 
 | column | type | default (from frontend) |
 |---|---|---|
-| `store_name` | string | `MorerDokan` |
+| `store_name` | string | `AmbalaEshop` |
 | `tagline` | string | `Considered design, many makers` |
-| `contact_email` | string | `hello@morerdokan.example` |
+| `contact_email` | string | `hello@ambalaeshop.example` |
 | `contact_phone` | string | `+1 (555) 240-1998` |
 | `contact_address` | string | `14 Rue des Artisans…` |
 | `social_links` | json | array of `{label,url}` |
@@ -494,7 +494,7 @@ PHP enums under `app/Enums/`: `Role`, `VendorStatus`, `ShopStatus`, `ProductStat
 ### 6.2 Roles & gates
 
 - Register migration/seeder creates roles `customer`, `vendor`, `admin`.
-- `admin` seeded on `admin@morerdokan.example`.
+- `admin` seeded on `admin@ambalaeshop.example`.
 - Vendor role granted when a `VendorApplication` is approved (shop status → active).
 - Middleware alias `role:admin`, `role:vendor` (spatie's `RoleMiddleware`).
 - Policies do the fine-grained work (ownership checks), middleware does the coarse gate.
@@ -810,7 +810,7 @@ Setup:
 1. `composer require spatie/laravel-backup`
 2. `php artisan vendor:publish --tag=backup-config`
 3. In `config/backup.php`:
-   - `backup.name` → `morerdokan`
+   - `backup.name` → `ambalaeshop`
    - `backup.source.files.include` → `base_path('storage/app/public')` (uploaded media), `base_path('.env')` optional
    - `backup.source.databases` → `['mysql']`
    - `backup.destination.disks` → a `backups` disk
@@ -831,7 +831,7 @@ Setup:
 7. Production: add an off-box disk (S3) to `destination.disks` too — never rely on the
    local `backups/` folder alone.
 
-Manual: `php artisan backup:run`. Restore: unzip the archive from `backups/morerdokan/`,
+Manual: `php artisan backup:run`. Restore: unzip the archive from `backups/ambalaeshop/`,
 `mysql < db-dump.sql`, restore media.
 
 Also add a lightweight `db:snapshot` custom command for dev (mysqldump →

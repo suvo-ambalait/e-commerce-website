@@ -40,7 +40,7 @@ export function VendorOverview() {
     <div className="space-y-6">
       <PageHeader
         title={`Hello, ${vendor.name}`}
-        description="A snapshot of your storefront on MorerDokan."
+        description="A snapshot of your storefront on AmbalaEshop."
         action={
           <ButtonLink to="/vendor/dashboard/products/new" size="sm" className="inline-flex h-10 items-center gap-2 rounded-xl bg-ink px-4 text-sm font-semibold text-bg transition-opacity hover:opacity-90">
             <LuPlus className="h-4 w-4" />

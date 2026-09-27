@@ -24,7 +24,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
     ? 'You’ve unlocked free shipping.'
     : single
       ? `Add ${formatPrice(freeShippingThreshold - single.subtotal)} more for free shipping.`
-      : `Free shipping on ${freeCount} of ${shipments.length} studios. Each ships free over ${formatPriceWhole(freeShippingThreshold)}.`
+      : `Free shipping on ${freeCount} of ${shipments.length} shops. Each ships free over ${formatPriceWhole(freeShippingThreshold)}.`
   const payable = subtotal + totals.shipping
 
   const header = (
@@ -89,7 +89,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                 <div key={group.vendorId} className="py-4">
                   <p className="mb-3 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-accent">
                     <StoreIcon className="h-3.5 w-3.5" />
-                    {vendor?.name ?? 'MorerDokan'}
+                    {vendor?.name ?? 'AmbalaEshop'}
                   </p>
                   <div className="space-y-4">
                     {group.items.map((item) => (

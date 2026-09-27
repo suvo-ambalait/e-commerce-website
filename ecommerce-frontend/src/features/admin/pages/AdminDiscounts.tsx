@@ -72,7 +72,7 @@ export function AdminDiscounts() {
       header: 'Applies to',
       id: 'scope',
       hideBelow: 'md',
-      cell: () => <span className="text-ink-soft">Every studio basket</span>,
+      cell: () => <span className="text-ink-soft">Every shop basket</span>,
     },
     {
       header: 'Status',
@@ -95,7 +95,7 @@ export function AdminDiscounts() {
     <div className="space-y-4">
       <PageHeader
         title="Discounts"
-        description={`${discounts.length} codes · ${activeCount} active · applied across every studio basket at checkout`}
+        description={`${discounts.length} codes · ${activeCount} active · applied across every shop basket at checkout`}
         action={
           <ExportButton
             onClick={() =>
@@ -177,7 +177,7 @@ export function AdminDiscounts() {
           )}
         />
 
-        <Panel title="New code" subtitle="Works on the whole cart, split across every studio.">
+        <Panel title="New code" subtitle="Works on the whole cart, split across every shop.">
           <form onSubmit={create} className="space-y-4">
             <Field label="Code" required hint="Letters and numbers — saved in capitals">
               {(id) => (

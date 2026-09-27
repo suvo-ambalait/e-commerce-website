@@ -67,7 +67,7 @@ export function VendorCard({
             {productCount != null && `${productCount} ${productCount === 1 ? 'piece' : 'pieces'}`}
           </span>
           <span className="flex items-center gap-1 font-semibold text-accent">
-            Visit studio
+            Visit shop
             <ArrowRightIcon className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
           </span>
         </div>

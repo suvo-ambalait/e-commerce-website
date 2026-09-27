@@ -21,7 +21,7 @@ function strengthOf(pw: string) {
 const strengthLabel = ['Too short', 'Weak', 'Fair', 'Good', 'Strong']
 
 export function ResetPasswordPage() {
-  useDocumentTitle('New password · MorerDokan')
+  useDocumentTitle('New password · AmbalaEshop')
   const navigate = useNavigate()
   const location = useLocation()
   const { notify } = useToast()

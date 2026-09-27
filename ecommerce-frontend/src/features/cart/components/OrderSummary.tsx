@@ -50,7 +50,7 @@ export function OrderSummary({
         </span>
       </div>
       <p className="mt-3 text-caption text-[#8a849c]">
-        Shipping is calculated per maker — each studio sends its own parcel.
+        Shipping is calculated per maker — each shop sends its own parcel.
       </p>
 
       {showPromo && (

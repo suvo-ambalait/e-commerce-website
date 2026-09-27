@@ -25,7 +25,7 @@ import {
 type Step = Exclude<CheckoutStep, 'cart'>
 
 export function CheckoutPage() {
-  useDocumentTitle('Checkout · MorerDokan')
+  useDocumentTitle('Checkout · AmbalaEshop')
   const navigate = useNavigate()
   const { items, groups, clearCart } = useCart()
   const pricing = useCartPricing()
@@ -124,7 +124,7 @@ export function CheckoutPage() {
           subtitle={
             step === 'details'
               ? 'Where should the makers send your parcels?'
-              : 'Check your order, then pay once — we settle up with each studio.'
+              : 'Check your order, then pay once — we settle up with each shop.'
           }
           steps={<CheckoutSteps current={step} onStepClick={goTo} />}
         />

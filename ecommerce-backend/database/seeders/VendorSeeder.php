@@ -28,7 +28,7 @@ class VendorSeeder extends Seeder
             $slug = Str::slug($data['shop']);
 
             $user = User::updateOrCreate(
-                ['email' => "{$slug}@vendor.morerdokan.test"],
+                ['email' => "{$slug}@vendor.ambalaeshop.test"],
                 [
                     'name' => $data['owner'],
                     'password' => Hash::make('password'),
@@ -59,7 +59,7 @@ class VendorSeeder extends Seeder
                 [
                     'vendor_id' => $vendor->id,
                     'name' => $data['shop'],
-                    'email' => "{$slug}@shop.morerdokan.test",
+                    'email' => "{$slug}@shop.ambalaeshop.test",
                     'logo' => null,
                     'description' => "{$data['shop']} — handmade goods from {$data['city']}.",
                     'address' => $data['city'],

@@ -7,7 +7,7 @@ import { imageFor } from '@/shared/lib/image'
 
 const perks = [
   'New arrivals before they reach the shop',
-  'Studio restock alerts for your saved pieces',
+  'Shop restock alerts for your saved pieces',
   'First access to limited runs',
 ]
 
@@ -46,7 +46,7 @@ export function Newsletter() {
               <em className="font-medium text-accent">one email a week</em>
             </h2>
             <p className="mt-5 max-w-md text-sm leading-relaxed text-ink-soft">
-              A short Friday note when studios release something, restock a favourite, or open a limited run.
+              A short Friday note when shops release something, restock a favourite, or open a limited run.
               Nothing else.
             </p>
 

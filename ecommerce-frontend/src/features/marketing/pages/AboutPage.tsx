@@ -18,20 +18,20 @@ const standards = [
   { icon: LuBadgeCheck, term: 'Named makers', desc: 'Every product is attributed to one workshop. No white-label, no drop-ship.' },
   { icon: LuLeaf, term: 'Material honesty', desc: 'Listings state the real material and its origin — “solid oak”, not “oak finish”.' },
   { icon: LuWrench, term: 'Repairability', desc: 'We favour pieces that can be taken apart and fixed. Makers tell us how.' },
-  { icon: LuHandCoins, term: 'Fair settlement', desc: 'Studios set their own prices. We take a flat commission and pay out weekly.' },
+  { icon: LuHandCoins, term: 'Fair settlement', desc: 'Shops set their own prices. We take a flat commission and pay out weekly.' },
 ]
 
 const faqs = [
-  { id: 'f1', question: 'Why did my order arrive in separate parcels?', answer: 'Each maker ships their own work directly, so an order from three studios arrives as three parcels — often on different days.' },
-  { id: 'f2', question: 'How does shipping cost work?', answer: 'Shipping is calculated per studio. Cross a studio’s free-shipping threshold and their portion ships free; the rest is a flat rate.' },
+  { id: 'f1', question: 'Why did my order arrive in separate parcels?', answer: 'Each maker ships their own work directly, so an order from three shops arrives as three parcels — often on different days.' },
+  { id: 'f2', question: 'How does shipping cost work?', answer: 'Shipping is calculated per shop. Cross a shop’s free-shipping threshold and their portion ships free; the rest is a flat rate.' },
   { id: 'f3', question: 'Can I return part of an order?', answer: 'Yes. Returns are handled per shipment against that maker’s policy, shown on every product page.' },
-  { id: 'f4', question: 'I make things — can I sell here?', answer: 'We review new studios on a rolling basis. Apply through “Sell on MorerDokan” and we’ll be in touch within a week.' },
+  { id: 'f4', question: 'I make things — can I sell here?', answer: 'We review new shops on a rolling basis. Apply through “Sell on AmbalaEshop” and we’ll be in touch within a week.' },
 ]
 
 const topics = [
   { v: 'order', label: 'An order' },
   { v: 'product', label: 'A product' },
-  { v: 'selling', label: 'Selling on MorerDokan' },
+  { v: 'selling', label: 'Selling on AmbalaEshop' },
   { v: 'press', label: 'Press' },
   { v: 'other', label: 'Something else' },
 ]
@@ -85,7 +85,7 @@ function BoxField({
 }
 
 export function AboutPage() {
-  useDocumentTitle('About · MorerDokan')
+  useDocumentTitle('About · AmbalaEshop')
   const { settings } = useSettings()
   const { activeVendors } = useVendors()
   const { products } = useCatalog()
@@ -101,7 +101,7 @@ export function AboutPage() {
   const contacts = [
     { icon: MailIcon, label: 'Email', value: settings.contactEmail, href: `mailto:${settings.contactEmail}` },
     { icon: LuPhone, label: 'Phone', value: settings.contactPhone, href: `tel:${settings.contactPhone.replace(/[^+\d]/g, '')}` },
-    { icon: LuMapPin, label: 'Studio', value: settings.contactAddress },
+    { icon: LuMapPin, label: 'Address', value: settings.contactAddress },
   ]
 
   return (
@@ -123,14 +123,14 @@ export function AboutPage() {
               A shop window for workshops <em className="font-medium text-accent">that don’t have one.</em>
             </h1>
             <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-ink-soft">
-              MorerDokan began in 2021 as a shared stall at a design market. The makers kept asking the same thing —
+              AmbalaEshop began in 2021 as a shared stall at a design market. The makers kept asking the same thing —
               could we keep the table running year round, online, without turning their work into anonymous
               inventory. This is that table.
             </p>
 
             <dl className="mx-auto mt-10 grid max-w-lg grid-cols-3 gap-3">
               {[
-                { value: activeVendors.length, label: 'Studios' },
+                { value: activeVendors.length, label: 'Shops' },
                 { value: products.length, label: 'Pieces' },
                 { value: 1, label: 'Checkout' },
               ].map((s) => (
@@ -161,7 +161,7 @@ export function AboutPage() {
                   <LuBadgeCheck className="h-5 w-5" aria-hidden />
                 </span>
                 <span>
-                  <span className="block text-sm font-semibold text-ink">Every studio reviewed</span>
+                  <span className="block text-sm font-semibold text-ink">Every shop reviewed</span>
                   <span className="block text-caption text-ink-mute">Four checks before joining</span>
                 </span>
               </div>
@@ -172,7 +172,7 @@ export function AboutPage() {
                 eyebrow="How we choose"
                 title={
                   <>
-                    Four things we check <em>before a studio joins</em>
+                    Four things we check <em>before a shop joins</em>
                   </>
                 }
               />
@@ -213,7 +213,7 @@ export function AboutPage() {
                     Say hello, <em>we read everything.</em>
                   </>
                 }
-                description="Order questions, feedback, or a studio we should carry. For piece-specific help the maker is often faster — their contact is on every product page."
+                description="Order questions, feedback, or a shop we should carry. For piece-specific help the maker is often faster — their contact is on every product page."
               />
 
               <ul className="mt-8 space-y-2.5">

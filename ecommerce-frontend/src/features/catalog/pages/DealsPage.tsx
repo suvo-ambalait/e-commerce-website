@@ -10,7 +10,7 @@ import { useCatalog } from '../context/CatalogContext'
 import { ProductGrid } from '../components/ProductGrid'
 
 export function DealsPage() {
-  useDocumentTitle('Sale · MorerDokan')
+  useDocumentTitle('Sale · AmbalaEshop')
   const { products } = useCatalog()
   const [category, setCategory] = useState<string | null>(null)
 
@@ -52,7 +52,7 @@ export function DealsPage() {
             <div className="max-w-xl">
               <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/80">
                 <SparkIcon className="h-3.5 w-3.5" />
-                Studio markdowns
+                Shop markdowns
               </p>
               {/* `!` beats the global unlayered h1 font rule in index.css */}
               <h1 className="mt-3 font-display! text-[clamp(2.5rem,1.6rem+3.6vw,4.5rem)] font-extrabold! leading-[0.95] tracking-[-0.045em]! text-white">
@@ -123,7 +123,7 @@ export function DealsPage() {
               <SparkIcon className="h-7 w-7" />
             </span>
             <p className="mt-5 font-display text-xl font-bold text-ink">No markdowns right now</p>
-            <p className="mt-2 text-sm text-ink-soft">Check back after the next studio restock.</p>
+            <p className="mt-2 text-sm text-ink-soft">Check back after the next shop restock.</p>
             <Link
               to="/shop"
               className="mt-6 inline-flex h-12 items-center gap-2 rounded-full bg-accent px-6 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover"

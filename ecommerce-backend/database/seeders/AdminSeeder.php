@@ -17,7 +17,7 @@ class AdminSeeder extends Seeder
         $role = Role::firstOrCreate(['name' => 'super-admin', 'guard_name' => 'web']);
 
         $admin = User::updateOrCreate(
-            ['email' => 'admin@morerdokan.test'],
+            ['email' => 'admin@ambalaeshop.test'],
             [
                 'name' => 'Super Admin',
                 'password' => Hash::make('password'),

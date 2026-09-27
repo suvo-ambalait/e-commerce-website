@@ -10,7 +10,7 @@ import { AuthCheckbox, AuthField, AuthShell, AuthSubmit, AuthTitle, SellPrompt }
 type Mode = 'signin' | 'signup'
 
 export function LoginPage() {
-  useDocumentTitle('Sign in · MorerDokan')
+  useDocumentTitle('Sign in · AmbalaEshop')
   const navigate = useNavigate()
   const location = useLocation()
   const [mode, setMode] = useState<Mode>('signin')
@@ -61,7 +61,7 @@ export function LoginPage() {
             subtitle={
               mode === 'signin'
                 ? 'Sign in to see your orders, wishlist and saved makers.'
-                : 'One account for every studio on MorerDokan.'
+                : 'One account for every shop on AmbalaEshop.'
             }
           >
             {mode === 'signin' ? (

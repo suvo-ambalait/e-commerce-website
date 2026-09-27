@@ -2,7 +2,7 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
 import { ButtonLink, Container } from '@/shared/ui'
 
 export function NotFoundPage() {
-  useDocumentTitle('Page not found · MorerDokan')
+  useDocumentTitle('Page not found · AmbalaEshop')
   return (
     <Container size="narrow" className="flex min-h-[60vh] flex-col items-center justify-center py-24 text-center">
       <p className="font-serif text-display text-border-strong">404</p>

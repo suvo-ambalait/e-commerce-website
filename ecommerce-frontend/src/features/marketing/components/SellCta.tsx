@@ -26,7 +26,7 @@ export function SellCta() {
         <h2 className="mt-3 font-display! text-[clamp(1.75rem,1.3rem+1.8vw,2.5rem)] font-extrabold! leading-[1.05] tracking-[-0.035em]! text-white">
           Make something <em className="font-medium text-[#c4b5fd]">worth keeping?</em>
         </h2>
-        <p className="mt-2 text-sm text-[#b8b3c7]">Apply to open a studio on MorerDokan — we reply within a week.</p>
+        <p className="mt-2 text-sm text-[#b8b3c7]">Apply to open a shop on AmbalaEshop — we reply within a week.</p>
       </div>
 
       <Link

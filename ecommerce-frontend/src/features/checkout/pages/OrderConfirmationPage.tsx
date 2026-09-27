@@ -9,7 +9,7 @@ import { useOrders } from '@/features/orders/context/OrdersContext'
 import { useVendors } from '@/features/vendor/context/VendorContext'
 
 export function OrderConfirmationPage() {
-  useDocumentTitle('Order confirmed · MorerDokan')
+  useDocumentTitle('Order confirmed · AmbalaEshop')
   const location = useLocation()
   const { orders } = useOrders()
   const { getVendor } = useVendors()
@@ -54,7 +54,7 @@ export function OrderConfirmationPage() {
             return (
               <div key={shipment.vendorId} className="rounded-lg border border-border bg-surface p-5">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-ink">{vendor?.name ?? 'MorerDokan'}</p>
+                  <p className="text-sm font-medium text-ink">{vendor?.name ?? 'AmbalaEshop'}</p>
                   <span className="text-caption text-ink-mute">{shipment.status}</span>
                 </div>
                 <ul className="mt-3 divide-y divide-border">

@@ -77,7 +77,7 @@ export function AdminLayout() {
             Storefront is live
           </p>
           <p className="mt-1 text-caption text-ink-soft">
-            {activeVendors.length} studios selling across {categories.length} categories.
+            {activeVendors.length} shops selling across {categories.length} categories.
           </p>
           <Link
             to="/"

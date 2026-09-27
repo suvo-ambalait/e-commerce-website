@@ -11,7 +11,7 @@ import { useToast } from '@/shared/ui/Toast'
 const BIO_MAX = 600
 
 export function VendorSignupPage() {
-  useDocumentTitle('Sell on MorerDokan')
+  useDocumentTitle('Sell on AmbalaEshop')
   const navigate = useNavigate()
   const { registerVendor } = useVendors()
   const { notify } = useToast()
@@ -44,7 +44,7 @@ export function VendorSignupPage() {
   }
 
   const steps = [
-    { title: 'Apply', text: 'Tell us about your workshop — takes about five minutes.' },
+    { title: 'Apply', text: 'Tell us about your shop — takes about five minutes.' },
     { title: 'Curator review', text: 'We check materials, making and repairability. Usually within a week.' },
     { title: 'Go live', text: 'Add products and payouts while you wait; your storefront opens once approved.' },
   ]
@@ -57,10 +57,10 @@ export function VendorSignupPage() {
           eyebrow="Apply to sell"
           title={
             <>
-              Open a studio <em>on MorerDokan</em>
+              Open a shop <em>on AmbalaEshop</em>
             </>
           }
-          description="Tell us about your workshop. Your storefront goes live once a curator has reviewed it — usually within a week. In the meantime you can add products and set up payouts."
+          description="Tell us about your shop. Your storefront goes live once a curator has reviewed it — usually within a week. In the meantime you can add products and set up payouts."
         />
 
         <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[1.5fr_1fr] lg:items-start">
@@ -74,7 +74,7 @@ export function VendorSignupPage() {
                   required
                   value={form.name}
                   onChange={set('name')}
-                  placeholder="e.g. Halden Woodworks"
+                  placeholder="e.g. Rahman Handicrafts"
                 />
                 <BoxInput
                   label="Email"
@@ -82,7 +82,7 @@ export function VendorSignupPage() {
                   required
                   value={form.shopEmail}
                   onChange={set('shopEmail')}
-                  placeholder="e.g. halden@woodworks.com"
+                  placeholder="e.g. rahman.handicrafts@gmail.com"
                 />
                 <BoxInput
                   label="Phone number"
@@ -90,7 +90,7 @@ export function VendorSignupPage() {
                   required
                   value={form.shopPhone}
                   onChange={set('shopPhone')}
-                  placeholder="e.g. +47 987 65 432"
+                  placeholder="e.g. +880 1712 345678"
                 />
                 <BoxInput
                   label="Tagline"
@@ -98,7 +98,7 @@ export function VendorSignupPage() {
                   required
                   value={form.tagline}
                   onChange={set('tagline')}
-                  placeholder="e.g. Handcrafted wooden furniture"
+                  placeholder="e.g. Handmade nakshi kantha and jute crafts"
                 />
                
                 <BoxInput
@@ -108,7 +108,7 @@ export function VendorSignupPage() {
                   required
                   value={form.location}
                   onChange={set('location')}
-                  placeholder="Oslo, NO"
+                  placeholder="Dhaka, BD"
                 />
 
                 <label className="block">
@@ -154,7 +154,7 @@ export function VendorSignupPage() {
                   autoComplete="email"
                   value={form.ownerEmail}
                   onChange={set('ownerEmail')}
-                  placeholder="you@studio.com"
+                  placeholder="you@shop.com"
                 />
               </div>
             </Panel> */}
@@ -190,7 +190,7 @@ export function VendorSignupPage() {
                 <div className="px-4 pb-4 pt-9">
                   <div className="flex items-center justify-between gap-3">
                     <p className="truncate font-display text-lg font-bold tracking-[-0.01em] text-ink">
-                      {form.name || 'Your studio name'}
+                      {form.name || 'Your shop name'}
                     </p>
                     <span className="flex shrink-0 items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-caption font-semibold text-ink">
                       <StarIcon className="h-3 w-3 fill-accent text-accent" />
@@ -210,13 +210,13 @@ export function VendorSignupPage() {
                     </li>
                     <li className="flex min-w-0 items-center gap-2 text-ink-soft">
                       <LuPhone className="h-3.5 w-3.5 shrink-0 text-accent" />
-                      <span className="truncate">{form.shopPhone || '+00 000 00 000'}</span>
+                      <span className="truncate">{form.shopPhone || '+880 1XXX XXXXXX'}</span>
                     </li>
                   </ul>
                   <div className="mt-4 flex items-center justify-between text-caption">
                     <span className="text-ink-mute">0 pieces</span>
                     <span className="flex items-center gap-1 font-semibold text-accent">
-                      Visit studio
+                      Visit shop
                       <ArrowRightIcon className="h-3.5 w-3.5" />
                     </span>
                   </div>

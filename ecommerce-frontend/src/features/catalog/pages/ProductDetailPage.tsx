@@ -45,7 +45,7 @@ export function ProductDetailPage() {
   const [size] = useState(SIZES[0])
   const [qty, setQty] = useState(1)
 
-  useDocumentTitle(product ? `${product.name} · MorerDokan` : 'Product · MorerDokan')
+  useDocumentTitle(product ? `${product.name} · AmbalaEshop` : 'Product · AmbalaEshop')
 
   if (!product) {
     return (

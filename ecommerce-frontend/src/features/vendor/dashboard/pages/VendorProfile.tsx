@@ -72,7 +72,7 @@ export function VendorProfile() {
       <form onSubmit={submit} className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_22rem] xl:items-start">
         {/* main column */}
         <div className="space-y-4">
-          <Section icon={<LuStore className="h-4 w-4" />} title="Studio details">
+          <Section icon={<LuStore className="h-4 w-4" />} title="Shop details">
             <div className="grid gap-4">
               <Field label="Tagline" required hint="One line — shown under your name everywhere">
                 {(id) => <Input id={id} required maxLength={90} value={form.tagline} onChange={set('tagline')} />}
@@ -80,7 +80,7 @@ export function VendorProfile() {
               <Field label="Location" required hint="City, country">
                 {(id) => <Input id={id} required value={form.location} onChange={set('location')} placeholder="Copenhagen, DK" />}
               </Field>
-              <Field label="About the studio" required>
+              <Field label="About the shop" required>
                 {(id) => (
                   <div>
                     <Textarea id={id} required rows={5} maxLength={BIO_MAX} value={form.bio} onChange={set('bio')} />
@@ -115,7 +115,7 @@ export function VendorProfile() {
             </div>
           </Section>
 
-          <Section icon={<LuScrollText className="h-4 w-4" />} title="Policies" subtitle="Shown on every product page from your studio.">
+          <Section icon={<LuScrollText className="h-4 w-4" />} title="Policies" subtitle="Shown on every product page from your shop.">
             <div className="grid gap-4 md:grid-cols-2">
               <Field label="Shipping policy" required>
                 {(id) => <Textarea id={id} required rows={3} value={form.shipping} onChange={set('shipping')} />}
@@ -154,7 +154,7 @@ export function VendorProfile() {
                   {form.tagline || 'Your one-line tagline appears here.'}
                 </p>
                 <p className="mt-3 line-clamp-3 border-t border-border pt-3 text-caption leading-relaxed text-ink-mute">
-                  {form.bio || 'Tell customers about your materials, process and who’s behind the studio.'}
+                  {form.bio || 'Tell customers about your materials, process and who’s behind the shop.'}
                 </p>
               </div>
             </div>

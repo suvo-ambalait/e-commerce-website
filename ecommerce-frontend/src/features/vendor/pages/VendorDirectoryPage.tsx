@@ -11,7 +11,7 @@ import { VendorCard } from '../components/VendorCard'
 import { SellCta } from '@/features/marketing/components/SellCta'
 
 export function VendorDirectoryPage() {
-  useDocumentTitle('Makers · MorerDokan')
+  useDocumentTitle('Makers · AmbalaEshop')
   const { activeVendors } = useVendors()
   const { productsByVendor } = useCatalog()
 
@@ -22,7 +22,7 @@ export function VendorDirectoryPage() {
     : 0
 
   const stats = [
-    { icon: LuStore, value: activeVendors.length, label: 'Independent studios' },
+    { icon: LuStore, value: activeVendors.length, label: 'Independent shops' },
     { icon: LuPackage, value: pieces, label: 'Pieces in the shop' },
     { icon: LuGlobe, value: countries, label: 'Countries' },
     { icon: LuStar, value: avgRating.toFixed(1), label: 'Average rating' },
@@ -37,10 +37,10 @@ export function VendorDirectoryPage() {
             eyebrow="The makers"
             title={
               <>
-                Studios behind <em>every piece</em>
+                Shops behind <em>every piece</em>
               </>
             }
-            description={`${activeVendors.length} independent studios sell on MorerDokan. Each keeps its own storefront, sets its own prices, and ships its own work.`}
+            description={`${activeVendors.length} independent shops sell on AmbalaEshop. Each keeps its own storefront, sets its own prices, and ships its own work.`}
             action={
               <Link
                 to="/vendor/signup"
