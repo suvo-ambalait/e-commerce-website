@@ -1,135 +1,181 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { ButtonLink, Container } from '@/shared/ui'
-import { ArrowRightIcon } from '@/shared/ui/icons'
+import { ArrowRightIcon, TruckIcon, PlusIcon } from '@/shared/ui/icons'
+import { LuRotateCcw, LuLock, LuShirt } from 'react-icons/lu'
 import { easeEditorial } from '@/shared/lib/motion'
 import { imageFor } from '@/shared/lib/image'
+import { discountFraction, formatPrice, formatPriceWhole } from '@/shared/lib/format'
+import { useCatalog } from '@/features/catalog/context/CatalogContext'
+import { useCart } from '@/features/cart/context/CartContext'
+import { useSettings } from '@/features/admin/context/SettingsContext'
+import { useToast } from '@/shared/ui/Toast'
 
-const line = {
-  hidden: { opacity: 0, y: '0.6em' },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: easeEditorial, delay: 0.1 + i * 0.09 },
-  }),
-}
+const rise = (delay: number) => ({
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.6, ease: easeEditorial, delay },
+})
 
 export function Hero() {
+  const { products } = useCatalog()
+  const { settings } = useSettings()
+  const { addItem } = useCart()
+  const { notify } = useToast()
+
+  // bestseller = best-rated featured piece (falls back to the whole catalogue)
+  const pool = products.filter((p) => p.featured)
+  const bestseller = [...(pool.length ? pool : products)].sort(
+    (a, b) => b.rating * b.reviewCount - a.rating * a.reviewCount,
+  )[0]
+
+  const maxOff = Math.round(
+    Math.max(0, ...products.map((p) => discountFraction(p.price, p.originalPrice))) * 100,
+  )
+
+  const addBestseller = () => {
+    if (!bestseller) return
+    addItem(bestseller)
+    notify(`${bestseller.name} added to cart`, 'success')
+  }
+
+  const perks = [
+    { icon: TruckIcon, label: `Free shipping over ${formatPriceWhole(settings.freeShippingThreshold)}` },
+    { icon: LuRotateCcw, label: '30-day free returns' },
+    { icon: LuLock, label: 'Secure checkout' },
+  ]
+
   return (
     <section className="relative overflow-x-clip">
-      <Container className="pb-14 pt-9 md:pb-20 md:pt-14">
-        {/* micro rule */}
-        <div className="flex items-center justify-between gap-4 border-b border-border pb-4 text-[0.65rem] uppercase tracking-[0.2em] text-ink-mute">
-          <span>Est. 2021</span>
-          <span className="hidden sm:block">Independent studios · One checkout</span>
-          <span>Ships worldwide</span>
+      <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 pt-10 sm:px-6 md:pt-14 lg:grid-cols-2 lg:gap-16 lg:px-10">
+        {/* copy */}
+        <div className="flex flex-col gap-7 pb-4 lg:gap-8 lg:pb-10">
+          <motion.div
+            {...rise(0)}
+            className="flex items-center gap-2.5 self-start rounded-full border border-accent/20 bg-accent-soft py-2 pl-2 pr-3.5 text-[13px] font-medium text-ink-soft"
+          >
+            <span className="rounded-full bg-accent px-2.5 py-1 text-xs font-semibold text-on-accent">New</span>
+            Autumn / Winter collection just landed
+          </motion.div>
+
+          <motion.h1
+            {...rise(0.08)}
+            // `!` beats the global unlayered `h1` font rule in index.css
+            className="m-0 font-display! text-[clamp(3.25rem,2rem+5vw,6.5rem)] font-extrabold! leading-[0.92] tracking-[-0.045em]! text-ink"
+          >
+            Made for
+            <br />
+            after <span className="font-medium italic text-accent">dark.</span>
+          </motion.h1>
+
+          <motion.p {...rise(0.16)} className="m-0 max-w-[500px] text-lg leading-relaxed text-ink-soft md:text-[19px]">
+            Considered essentials in deep tones and clean lines — built to layer, made to last, and ready to
+            ship today.
+          </motion.p>
+
+          <motion.div {...rise(0.24)} className="flex flex-wrap items-center gap-3">
+            <Link
+              to="/shop"
+              className="group inline-flex h-14 items-center gap-3 rounded-full bg-accent px-7 text-base font-semibold text-on-accent shadow-md transition-colors hover:bg-accent-hover"
+            >
+              Shop new arrivals
+              <ArrowRightIcon className="h-[18px] w-[18px] transition-transform group-hover:translate-x-0.5" />
+            </Link>
+            <Link
+              to="/categories"
+              className="inline-flex h-14 items-center rounded-full bg-ink px-7 text-base font-semibold text-bg transition-opacity hover:opacity-90"
+            >
+              Explore lookbook
+            </Link>
+          </motion.div>
+
+          <motion.ul
+            {...rise(0.32)}
+            className="m-0 flex list-none flex-wrap gap-x-7 gap-y-3 p-0 pt-2 text-sm text-ink-soft"
+          >
+            {perks.map(({ icon: Icon, label }) => (
+              <li key={label} className="flex items-center gap-2">
+                <Icon className="h-[18px] w-[18px] text-accent" aria-hidden />
+                {label}
+              </li>
+            ))}
+          </motion.ul>
         </div>
 
-        <div className="grid grid-cols-1 gap-10 pt-10 lg:grid-cols-12 lg:gap-6 lg:pt-14">
-          {/* headline */}
-          <div className="lg:col-span-7 lg:pt-4">
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              className="text-caption font-medium uppercase tracking-[0.18em] text-accent"
-            >
-              A marketplace of makers
-            </motion.p>
+        {/* featured visual */}
+        <motion.div
+          aria-label="Featured product"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, ease: easeEditorial, delay: 0.1 }}
+          className="relative h-[460px] self-end sm:h-[560px] lg:h-[640px]"
+        >
+          <div className="absolute inset-y-0 left-0 right-0 overflow-hidden rounded-t-[32px] bg-accent sm:left-10">
+            {/* decorative rings */}
+            <div className="absolute -right-[120px] -top-[140px] h-[520px] w-[520px] rounded-full border border-white/30" />
+            <div className="absolute -right-10 -top-[60px] h-[360px] w-[360px] rounded-full border border-white/25" />
 
-            <h1 className="mt-5 font-serif text-display leading-[1.02] tracking-tight text-ink">
-              {['Considered design,', 'from the people', 'who make it.'].map((text, i) => (
-                <motion.span
-                  key={text}
-                  custom={i}
-                  variants={line}
-                  initial="hidden"
-                  animate="visible"
-                  className={i === 1 ? 'block font-light italic text-accent' : 'block'}
-                >
-                  {text}
-                </motion.span>
-              ))}
-            </h1>
+            <div className="absolute inset-x-6 bottom-0 top-6 overflow-hidden rounded-t-3xl bg-accent-soft sm:inset-x-10 sm:top-10">
+              <img
+                src={imageFor('Textiles', 'hero-a', { w: 960, h: 1180 })}
+                alt="Layered textiles in deep autumn tones"
+                className="h-full w-full object-cover"
+              />
+            </div>
 
-            <motion.p
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: easeEditorial, delay: 0.5 }}
-              className="mt-7 max-w-md text-base leading-relaxed text-ink-soft"
-            >
-              Lighting, tableware, furniture and textiles from workshops in seven countries — one
-              catalogue, one cart, one checkout.
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: easeEditorial, delay: 0.6 }}
-              className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-3"
-            >
-              <ButtonLink to="/shop" size="lg">
-                Shop the collection
-              </ButtonLink>
-              <Link
-                to="/vendors"
-                className="group inline-flex items-center gap-1.5 text-sm font-medium text-ink underline-offset-4 hover:underline"
+            {maxOff > 0 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.6, rotate: -30 }}
+                animate={{ opacity: 1, scale: 1, rotate: -12 }}
+                transition={{ duration: 0.6, ease: easeEditorial, delay: 0.5 }}
+                className="absolute right-6 top-12 flex h-[104px] w-[104px] flex-col items-center justify-center rounded-full bg-ink font-display leading-none text-bg shadow-lg sm:right-10 sm:top-[72px]"
               >
-                Meet the makers
-                <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </Link>
-            </motion.div>
+                <span className="text-[13px] font-semibold tracking-[0.06em]">UP TO</span>
+                <span className="text-[32px] font-extrabold">{maxOff}%</span>
+                <span className="text-[13px] font-semibold tracking-[0.06em]">OFF</span>
+              </motion.div>
+            )}
           </div>
 
-          {/* image cluster */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.9, ease: easeEditorial, delay: 0.15 }}
-            className="relative lg:col-span-5 lg:-mt-2"
-          >
-            {/* framed backdrop */}
-            <div className="absolute -right-3 -top-3 hidden h-full w-full rounded-lg border border-border sm:block" />
-
-            <img
-              src={imageFor('Lighting', 'hero-a', { w: 960, h: 1180 })}
-              alt="A lit table lamp beside a timber sideboard"
-              className="relative aspect-4/5 w-full rounded-lg object-cover shadow-md"
-            />
-
-            <motion.img
-              src={imageFor('Tableware', 'hero-b', { w: 640, h: 640 })}
-              alt="Stacked hand-thrown ceramic plates"
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute -bottom-7 -left-6 hidden aspect-square w-36 rounded-lg border-[6px] border-bg object-cover shadow-lg sm:block lg:-left-10 lg:w-44"
-            />
-
-            <span className="absolute right-3 top-3 rounded-full bg-bg/85 px-3 py-1.5 text-caption text-ink shadow-sm backdrop-blur">
-              Lumen Atelier · Copenhagen
-            </span>
-          </motion.div>
-        </div>
-
-        {/* stats */}
-        <motion.dl
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: easeEditorial, delay: 0.7 }}
-          className="mt-14 grid max-w-lg grid-cols-3 gap-6 border-t border-border pt-6 lg:mt-20"
-        >
-          {[
-            ['7', 'studios'],
-            ['40+', 'pieces'],
-            ['1', 'checkout'],
-          ].map(([n, label]) => (
-            <div key={label}>
-              <dt className="font-serif text-2xl text-ink sm:text-3xl">{n}</dt>
-              <dd className="mt-0.5 text-caption uppercase tracking-[0.12em] text-ink-mute">{label}</dd>
-            </div>
-          ))}
-        </motion.dl>
-      </Container>
+          {bestseller && (
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0, y: [0, -6, 0] }}
+              transition={{
+                opacity: { duration: 0.6, delay: 0.6 },
+                x: { duration: 0.6, ease: easeEditorial, delay: 0.6 },
+                y: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1.2 },
+              }}
+              className="absolute bottom-6 left-3 flex w-[calc(100%-1.5rem)] max-w-[300px] items-center gap-3.5 rounded-[20px] bg-ink p-4 text-bg shadow-[0_24px_48px_rgba(40,20,80,0.25)] sm:bottom-12 sm:left-0"
+            >
+              <Link
+                to={`/product/${bestseller.id}`}
+                className="flex h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-accent-soft"
+              >
+                {bestseller.images[0] ? (
+                  <img src={bestseller.images[0]} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <LuShirt className="h-7 w-7 text-accent" aria-hidden />
+                )}
+              </Link>
+              <div className="flex min-w-0 grow flex-col gap-1">
+                <span className="text-xs font-semibold tracking-[0.04em] text-accent-soft/80">BESTSELLER</span>
+                <Link to={`/product/${bestseller.id}`} className="truncate text-base font-semibold hover:underline">
+                  {bestseller.name}
+                </Link>
+                <span className="text-sm opacity-70">{formatPrice(bestseller.price)}</span>
+              </div>
+              <button
+                type="button"
+                onClick={addBestseller}
+                aria-label={`Add ${bestseller.name} to cart`}
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent text-on-accent transition-colors hover:bg-accent-hover"
+              >
+                <PlusIcon className="h-[18px] w-[18px]" />
+              </button>
+            </motion.div>
+          )}
+        </motion.div>
+      </div>
     </section>
   )
 }
