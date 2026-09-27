@@ -1,9 +1,9 @@
-import { Link } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
 import { Breadcrumbs, Container, Section } from '@/shared/ui'
 import { fadeUp, stagger } from '@/shared/lib/motion'
 import { useCatalog } from '../context/CatalogContext'
+import { CategoryCard } from '../components/CategoryCard'
 
 export function CategoriesPage() {
   useDocumentTitle('Categories · MorerDokan')
@@ -13,42 +13,33 @@ export function CategoriesPage() {
     <Section size="sm">
       <Container>
         <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Categories' }]} />
-        <h1 className="mt-4 text-3xl text-ink">Every category</h1>
-        <p className="mt-1 max-w-lg text-sm text-ink-soft">
-          Eight departments, each stocked by several studios. Follow one through to the shop to filter
-          by maker, price and material.
+
+        <p className="mt-6 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">
+          <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+          {categories.length} departments
+        </p>
+        {/* `!` beats the global unlayered h1 font rule in index.css */}
+        <h1 className="mt-3 font-display! text-[clamp(2.25rem,1.5rem+3vw,3.75rem)] font-extrabold! leading-none tracking-[-0.04em]! text-ink">
+          Every <span className="font-medium italic text-accent">category</span>
+        </h1>
+        <p className="mt-3 max-w-lg text-sm text-ink-soft">
+          Each department is stocked by several studios. Follow one through to the shop to filter by maker,
+          price and material.
         </p>
 
         <motion.div
           variants={stagger}
           initial="hidden"
           animate="visible"
-          className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          className="mt-10 grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-5 md:grid-cols-3 lg:grid-cols-4"
         >
           {categories.map((category) => (
             <motion.div key={category.id} variants={fadeUp}>
-              <Link
-                to={`/shop?category=${encodeURIComponent(category.name)}`}
-                className="group block overflow-hidden rounded-lg border border-border"
-              >
-                <div className="relative aspect-[3/2] overflow-hidden bg-surface-sunken">
-                  <img
-                    src={category.image}
-                    alt={category.name}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-700 ease-[var(--ease-editorial)] group-hover:scale-105"
-                  />
-                </div>
-                <div className="p-4">
-                  <div className="flex items-baseline justify-between">
-                    <p className="font-serif text-lg text-ink">{category.name}</p>
-                    <span className="text-caption text-ink-mute">
-                      {products.filter((p) => p.category === category.name).length}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-ink-soft">{category.description}</p>
-                </div>
-              </Link>
+              <CategoryCard
+                category={category}
+                count={products.filter((p) => p.category === category.name).length}
+                showDescription
+              />
             </motion.div>
           ))}
         </motion.div>
