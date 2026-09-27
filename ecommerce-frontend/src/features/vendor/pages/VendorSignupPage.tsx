@@ -115,7 +115,7 @@ export function VendorSignupPage() {
               </div>
             </Panel>
 
-            <Panel icon={<LuUser className="h-4 w-4" />} title="About you">
+            {/* <Panel icon={<LuUser className="h-4 w-4" />} title="About you">
               <div className="grid gap-4 sm:grid-cols-2">
                 <BoxInput
                   label="Your name"
@@ -137,7 +137,7 @@ export function VendorSignupPage() {
                   placeholder="you@studio.com"
                 />
               </div>
-            </Panel>
+            </Panel> */}
 
             <button
               type="submit"

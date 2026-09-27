@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\RegisterRequest;
+use App\Http\Requests\VendorRegisterRequest;
 use App\Models\OtpVerification;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -13,6 +14,7 @@ use OpenApi\Attributes as OA;
 #[OA\Tag(name: 'Auth', description: 'Authentication endpoints')]
 class AuthController extends Controller
 {
+    //  User Registration method
     #[OA\Post(
         path: '/v1/auth/register',
         tags: ['Auth'],
@@ -67,6 +69,14 @@ class AuthController extends Controller
         ]);
     }
 
+
+    // Register vendor method
+    public function registerVendor(VendorRegisterRequest $request) {
+
+    }
+
+
+    // User Login method
     #[OA\Post(
         path: '/v1/auth/login',
         tags: ['Auth'],
@@ -121,6 +131,7 @@ class AuthController extends Controller
         ]);
     }
 
+    // User Logout method
     #[OA\Post(
         path: '/v1/auth/logout',
         tags: ['Auth'],
@@ -144,6 +155,7 @@ class AuthController extends Controller
         return response()->json(['message' => 'User logged out successfully!']);
     }
 
+    // Get Authenticated User method
     #[OA\Get(
         path: '/v1/auth/user',
         tags: ['Auth'],
