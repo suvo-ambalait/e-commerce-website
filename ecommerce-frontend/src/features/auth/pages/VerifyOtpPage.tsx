@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { motion } from 'motion/react'
 import { LuShieldCheck } from 'react-icons/lu'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
-import { Button, Container, Section } from '@/shared/ui'
+import { AuthShell, AuthSubmit } from '../components/AuthLayout'
 import { AuthIntro } from '../components/AuthIntro'
 import { OtpInput } from '../components/OtpInput'
 import { issueChallenge, readChallenge } from '../lib/recovery'
@@ -73,70 +72,64 @@ export function VerifyOtpPage() {
   const demoCode = readChallenge()?.code
 
   return (
-    <Section>
-      <Container size="narrow" className="max-w-md">
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <AuthIntro
-            backTo="/forgot-password"
-            backLabel="Use a different email"
-            icon={<LuShieldCheck className="h-5 w-5" />}
-            title="Enter the 6-digit code"
-          >
-            We sent a code to <span className="font-medium text-ink">{email}</span>. It expires in 10 minutes.
-          </AuthIntro>
+    <AuthShell>
+      <AuthIntro
+        backTo="/forgot-password"
+        backLabel="Use a different email"
+        icon={<LuShieldCheck className="h-5 w-5" />}
+        title={
+          <>
+            Check your <em>inbox</em>
+          </>
+        }
+      >
+        We sent a 6-digit code to <span className="font-semibold text-ink">{email}</span>. It expires in 10 minutes.
+      </AuthIntro>
 
-          <form onSubmit={submit} className="mt-8 space-y-4">
-            <OtpInput
-              value={code}
-              onChange={(next) => {
-                setCode(next)
-                if (error) setError(null)
-              }}
-              length={CODE_LENGTH}
-              invalid={Boolean(error)}
-              onComplete={verify}
-            />
-            {error && <p className="text-caption text-danger">{error}</p>}
+      <form onSubmit={submit} className="mt-7 space-y-5">
+        <div>
+          <OtpInput
+            value={code}
+            onChange={(next) => {
+              setCode(next)
+              if (error) setError(null)
+            }}
+            length={CODE_LENGTH}
+            invalid={Boolean(error)}
+            onComplete={verify}
+          />
+          {error && <p className="mt-2 text-caption font-medium text-danger">{error}</p>}
+        </div>
 
-            <Button type="submit" size="lg" fullWidth disabled={code.length !== CODE_LENGTH}>
-              Verify code
-            </Button>
-          </form>
+        <AuthSubmit disabled={code.length !== CODE_LENGTH}>Verify code</AuthSubmit>
+      </form>
 
-          <p className="mt-6 text-center text-caption text-ink-mute">
-            Didn&rsquo;t get it?{' '}
-            {seconds > 0 ? (
-              <span>
-                Resend in 0:{String(seconds).padStart(2, '0')}
-              </span>
-            ) : (
-              <button type="button" onClick={resend} className="text-accent hover:underline">
-                Resend code
-              </button>
-            )}
+      <p className="mt-6 text-center text-sm text-ink-mute">
+        Didn&rsquo;t get it?{' '}
+        {seconds > 0 ? (
+          <span className="font-semibold text-ink tabular-nums">Resend in 0:{String(seconds).padStart(2, '0')}</span>
+        ) : (
+          <button type="button" onClick={resend} className="font-semibold text-accent hover:underline">
+            Resend code
+          </button>
+        )}
+      </p>
+
+      {demoCode && (
+        <div className="mt-6 rounded-2xl bg-accent-soft/70 p-4 text-caption text-ink-soft">
+          <p className="font-semibold text-ink">Demo mode</p>
+          <p className="mt-1">
+            No email is actually sent. Your code is{' '}
+            <button
+              type="button"
+              className="font-bold tracking-[0.2em] text-accent hover:underline"
+              onClick={() => setCode(demoCode)}
+            >
+              {demoCode}
+            </button>
           </p>
-
-          {demoCode && (
-            <div className="mt-6 rounded-lg border border-border bg-surface-sunken/60 p-4 text-caption text-ink-soft">
-              <p className="font-medium text-ink">Demo mode</p>
-              <p className="mt-1">
-                No email is actually sent. Your code is{' '}
-                <button
-                  type="button"
-                  className="font-medium tracking-[0.2em] text-accent hover:underline"
-                  onClick={() => setCode(demoCode)}
-                >
-                  {demoCode}
-                </button>
-              </p>
-            </div>
-          )}
-        </motion.div>
-      </Container>
-    </Section>
+        </div>
+      )}
+    </AuthShell>
   )
 }

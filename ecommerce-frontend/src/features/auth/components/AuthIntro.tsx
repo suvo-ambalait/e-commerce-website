@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { LuArrowLeft } from 'react-icons/lu'
+import { AuthTitle } from './AuthLayout'
 
 /**
  * Shared header for the password-recovery flow (forgot → verify → reset).
- * A back link, an optional icon badge, a title and a supporting line.
+ * A back pill, an optional icon badge, a display title and a supporting line.
  */
 export function AuthIntro({
   backTo,
@@ -16,27 +17,28 @@ export function AuthIntro({
   backTo: string
   backLabel?: string
   icon?: ReactNode
-  title: string
+  title: ReactNode
   children?: ReactNode
 }) {
   return (
     <div>
       <Link
         to={backTo}
-        className="inline-flex items-center gap-1.5 text-caption text-ink-mute transition-colors hover:text-ink"
+        className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border-strong px-3 text-caption font-semibold text-ink-soft transition-colors hover:border-accent hover:text-accent"
       >
-        <LuArrowLeft className="h-4 w-4" />
+        <LuArrowLeft className="h-3.5 w-3.5" />
         {backLabel}
       </Link>
 
       {icon && (
-        <div className="mt-6 flex h-12 w-12 items-center justify-center rounded-full border border-border bg-surface-sunken text-ink-soft">
+        <div className="mt-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-soft text-accent">
           {icon}
         </div>
       )}
 
-      <h1 className="mt-5 text-2xl text-ink">{title}</h1>
-      {children && <p className="mt-2 text-sm text-ink-soft">{children}</p>}
+      <div className="mt-5">
+        <AuthTitle subtitle={children}>{title}</AuthTitle>
+      </div>
     </div>
   )
 }

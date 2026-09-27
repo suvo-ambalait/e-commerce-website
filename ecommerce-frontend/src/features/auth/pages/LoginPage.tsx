@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from 'react'
 import { useLocation, useNavigate, Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
+import { LuLock, LuUser } from 'react-icons/lu'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
-import { Button, Container, Field, Input, Section } from '@/shared/ui'
+import { MailIcon } from '@/shared/ui/icons'
 import { cn } from '@/shared/lib/cn'
+import { AuthCheckbox, AuthField, AuthShell, AuthSubmit, AuthTitle, SellPrompt } from '../components/AuthLayout'
 
 type Mode = 'signin' | 'signup'
 
@@ -15,6 +17,8 @@ export function LoginPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  // UI only for now — not yet used by submit
+  const [remember, setRemember] = useState(true)
 
 
   const submit = (e: React.SyntheticEvent<HTMLFormElement>) => {
@@ -24,82 +28,100 @@ export function LoginPage() {
   }
 
   return (
-    <Section>
-      <Container size="narrow" className="max-w-md">
-        <div className="flex rounded-full bg-surface-sunken p-1">
-          {(['signin', 'signup'] as Mode[]).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMode(m)}
-              className={cn(
-                'flex-1 rounded-full py-2 text-sm transition-colors',
-                mode === m ? 'bg-surface text-ink shadow-sm' : 'text-ink-mute',
-              )}
-            >
-              {m === 'signin' ? 'Sign in' : 'Create account'}
-            </button>
-          ))}
-        </div>
-
-        <AnimatePresence mode="wait">
-          <motion.form
-            key={mode}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-            onSubmit={submit}
-            className="mt-8 space-y-4"
-          >
-            <h1 className="text-2xl text-ink">
-              {mode === 'signin' ? 'Welcome back' : 'Create your account'}
-            </h1>
-
-            {mode === 'signup' && (
-              <Field label="Full name" required>
-                {(id) => <Input id={id} required value={name} onChange={(e) => setName(e.target.value)} />}
-              </Field>
+    <AuthShell footer={<SellPrompt />}>
+      {/* mode switch */}
+      <div className="flex rounded-full bg-surface-sunken p-1">
+        {(['signin', 'signup'] as Mode[]).map((m) => (
+          <button
+            key={m}
+            type="button"
+            onClick={() => setMode(m)}
+            aria-pressed={mode === m}
+            className={cn(
+              'h-9 flex-1 rounded-full text-sm font-semibold transition-colors',
+              mode === m ? 'bg-surface text-ink shadow-sm' : 'text-ink-mute hover:text-ink',
             )}
-            <Field label="Email" required>
-              {(id) => (
-                <Input id={id} type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-              )}
-            </Field>
-            <Field label="Password" required>
-              {(id) => (
-                <Input
-                  id={id}
-                  type="password"
-                  required
-                  minLength={4}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              )}
-            </Field>
+          >
+            {m === 'signin' ? 'Sign in' : 'Create account'}
+          </button>
+        ))}
+      </div>
 
-            {mode === 'signin' && (
-              <div className="text-right">
-                <Link to="/forgot-password" className="text-caption text-accent hover:underline">
+      <AnimatePresence mode="wait">
+        <motion.form
+          key={mode}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.2 }}
+          onSubmit={submit}
+          className="mt-7 space-y-5"
+        >
+          <AuthTitle
+            subtitle={
+              mode === 'signin'
+                ? 'Sign in to see your orders, wishlist and saved makers.'
+                : 'One account for every studio on MorerDokan.'
+            }
+          >
+            {mode === 'signin' ? (
+              <>
+                Welcome <em>back</em>
+              </>
+            ) : (
+              <>
+                Create your <em>account</em>
+              </>
+            )}
+          </AuthTitle>
+
+          {mode === 'signup' && (
+            <AuthField
+              label="Full name"
+              icon={<LuUser className="h-4 w-4" />}
+              required
+              autoComplete="name"
+              placeholder="Your name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          )}
+          <AuthField
+            label="Email"
+            icon={<MailIcon className="h-4 w-4" />}
+            type="email"
+            required
+            autoComplete="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <AuthField
+            label="Password"
+            icon={<LuLock className="h-4 w-4" />}
+            type="password"
+            required
+            minLength={4}
+            autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+            placeholder={mode === 'signin' ? 'Your password' : 'Create a password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            labelAside={
+              mode === 'signin' && (
+                <Link to="/forgot-password" className="text-caption font-semibold text-accent hover:underline">
                   Forgot password?
                 </Link>
-              </div>
-            )}
+              )
+            }
+          />
 
-            <Button type="submit" size="lg" fullWidth>
-              {mode === 'signin' ? 'Sign in' : 'Create account'}
-            </Button>
-          </motion.form>
-        </AnimatePresence>
+          {mode === 'signin' && (
+            <AuthCheckbox label="Keep me signed in" checked={remember} onChange={setRemember} />
+          )}
 
-        <p className="mt-6 text-center text-caption text-ink-mute">
-          Want to sell?{' '}
-          <Link to="/vendor/signup" className="text-accent hover:underline">
-            Apply for a studio
-          </Link>
-        </p>
-      </Container>
-    </Section>
+          <AuthSubmit>{mode === 'signin' ? 'Sign in' : 'Create account'}</AuthSubmit>
+        </motion.form>
+      </AnimatePresence>
+    </AuthShell>
   )
 }

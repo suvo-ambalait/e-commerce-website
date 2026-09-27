@@ -51,7 +51,7 @@ export function Footer() {
   }
 
   return (
-    <footer className="mt-8 overflow-hidden bg-[#0b0a10] text-white">
+    <footer className="overflow-hidden bg-[#0b0a10] text-white">
       <div className="container-page pt-12 md:pt-16">
         {/* newsletter band */}
         <div className="relative overflow-hidden rounded-3xl bg-[#6d28d9] px-6 py-8 sm:px-10 sm:py-10">

@@ -1,9 +1,8 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { motion } from 'motion/react'
-import { LuLockKeyhole } from 'react-icons/lu'
+import { LuLock, LuLockKeyhole } from 'react-icons/lu'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
-import { Button, Container, Field, Input, Section } from '@/shared/ui'
+import { AuthField, AuthShell, AuthSubmit } from '../components/AuthLayout'
 import { useToast } from '@/shared/ui/Toast'
 import { AuthIntro } from '../components/AuthIntro'
 import { clearChallenge } from '../lib/recovery'
@@ -54,88 +53,80 @@ export function ResetPasswordPage() {
   }
 
   return (
-    <Section>
-      <Container size="narrow" className="max-w-md">
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <AuthIntro
-            backTo="/login"
-            backLabel="Back to sign in"
-            icon={<LuLockKeyhole className="h-5 w-5" />}
-            title="Set a new password"
-          >
-            For <span className="font-medium text-ink">{state.email}</span>. Choose something you haven&rsquo;t used before.
-          </AuthIntro>
+    <AuthShell>
+      <AuthIntro
+        backTo="/login"
+        backLabel="Back to sign in"
+        icon={<LuLockKeyhole className="h-5 w-5" />}
+        title={
+          <>
+            Set a new <em>password</em>
+          </>
+        }
+      >
+        For <span className="font-semibold text-ink">{state.email}</span>. Choose something you haven&rsquo;t used
+        before.
+      </AuthIntro>
 
-          <form onSubmit={submit} className="mt-8 space-y-4">
-            <Field label="New password" required>
-              {(id) => (
-                <Input
-                  id={id}
-                  type="password"
-                  required
-                  autoFocus
-                  autoComplete="new-password"
-                  minLength={MIN_LENGTH}
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value)
-                    if (error) setError(null)
-                  }}
-                />
-              )}
-            </Field>
-
-            {password && (
-              <div className="space-y-1.5">
-                <div className="flex gap-1.5">
-                  {[0, 1, 2, 3].map((i) => (
-                    <span
-                      key={i}
-                      className={
-                        'h-1 flex-1 rounded-full transition-colors ' +
-                        (i < score
-                          ? score <= 1
-                            ? 'bg-danger'
-                            : score === 2
-                              ? 'bg-warning'
-                              : 'bg-success'
-                          : 'bg-border-strong')
-                      }
-                    />
-                  ))}
-                </div>
-                <p className="text-caption text-ink-mute">{strengthLabel[score]}</p>
+      <form onSubmit={submit} className="mt-7 space-y-5">
+        <div>
+          <AuthField
+            label="New password"
+            icon={<LuLock className="h-4 w-4" />}
+            type="password"
+            required
+            autoFocus
+            autoComplete="new-password"
+            minLength={MIN_LENGTH}
+            placeholder={`At least ${MIN_LENGTH} characters`}
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value)
+              if (error) setError(null)
+            }}
+          />
+          {password && (
+            <div className="mt-2.5 flex items-center gap-3">
+              <div className="flex flex-1 gap-1.5">
+                {[0, 1, 2, 3].map((i) => (
+                  <span
+                    key={i}
+                    className={
+                      'h-1.5 flex-1 rounded-full transition-colors ' +
+                      (i < score
+                        ? score <= 1
+                          ? 'bg-danger'
+                          : score === 2
+                            ? 'bg-warning'
+                            : 'bg-accent'
+                        : 'bg-surface-sunken')
+                    }
+                  />
+                ))}
               </div>
-            )}
+              <span className="w-16 text-right text-caption font-semibold text-ink-soft">{strengthLabel[score]}</span>
+            </div>
+          )}
+        </div>
 
-            <Field label="Confirm password" required>
-              {(id) => (
-                <Input
-                  id={id}
-                  type="password"
-                  required
-                  autoComplete="new-password"
-                  value={confirm}
-                  onChange={(e) => {
-                    setConfirm(e.target.value)
-                    if (error) setError(null)
-                  }}
-                />
-              )}
-            </Field>
+        <AuthField
+          label="Confirm password"
+          icon={<LuLock className="h-4 w-4" />}
+          type="password"
+          required
+          autoComplete="new-password"
+          placeholder="Type it again"
+          value={confirm}
+          onChange={(e) => {
+            setConfirm(e.target.value)
+            if (error) setError(null)
+          }}
+        />
 
-            {error && <p className="text-caption text-danger">{error}</p>}
+        {error && <p className="text-caption font-medium text-danger">{error}</p>}
 
-            <Button type="submit" size="lg" fullWidth>
-              Update password
-            </Button>
-          </form>
-        </motion.div>
-      </Container>
-    </Section>
+        <AuthSubmit>Update password</AuthSubmit>
+      </form>
+    </AuthShell>
   )
 }
