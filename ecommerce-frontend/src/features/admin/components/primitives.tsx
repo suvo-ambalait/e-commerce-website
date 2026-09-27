@@ -8,18 +8,53 @@ export function PageHeader({
   description,
   action,
 }: {
-  title: string
+  title: ReactNode
   description?: ReactNode
   action?: ReactNode
 }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-3">
+    <div className="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h2 className="font-serif text-2xl text-ink">{title}</h2>
-        {description && <p className="mt-1 text-sm text-ink-mute">{description}</p>}
+        {/* `!` beats the global unlayered h2 font rule in index.css */}
+        <h2 className="font-display! text-[2rem] font-extrabold! leading-none tracking-[-0.04em]! text-ink [&_em]:font-medium [&_em]:text-accent">
+          {title}
+        </h2>
+        {description && <p className="mt-2 text-sm text-ink-mute">{description}</p>}
       </div>
-      {action}
+      {action && <div className="flex flex-wrap items-center gap-2">{action}</div>}
     </div>
+  )
+}
+
+/** White rounded card with an optional title row (title, subtitle, right-aligned aside). */
+export function Panel({
+  title,
+  subtitle,
+  aside,
+  children,
+  className,
+}: {
+  title?: ReactNode
+  subtitle?: ReactNode
+  aside?: ReactNode
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <section className={cn('rounded-2xl border border-border bg-surface p-5 shadow-sm', className)}>
+      {(title || aside) && (
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            {title && (
+              <h3 className="font-display! text-base font-bold! tracking-[-0.01em]! text-ink">{title}</h3>
+            )}
+            {subtitle && <p className="mt-0.5 text-caption text-ink-mute">{subtitle}</p>}
+          </div>
+          {aside}
+        </div>
+      )}
+      {children}
+    </section>
   )
 }
 
@@ -30,31 +65,60 @@ export function StatCard({
   icon: Icon,
   spark,
   delta,
+  aside,
+  tone = 'default',
 }: {
   label: string
   value: string
-  hint?: string
+  hint?: ReactNode
   icon?: ComponentType<SVGProps<SVGSVGElement>>
   spark?: number[]
   delta?: { value: string; positive: boolean }
+  /** replaces the sparkline slot (avatars, a button…) */
+  aside?: ReactNode
+  tone?: 'default' | 'warning'
 }) {
+  const warn = tone === 'warning'
   return (
-    <div className="rounded-lg border border-border bg-surface p-4">
-      <div className="flex items-center justify-between">
-        <p className="text-caption uppercase tracking-wide text-ink-mute">{label}</p>
-        {Icon && <Icon className="h-4 w-4 text-ink-mute" />}
-      </div>
-      <div className="mt-2 flex items-end justify-between gap-2">
-        <p className="font-serif text-2xl text-ink">{value}</p>
-        {spark && <Sparkline values={spark} />}
-      </div>
-      <div className="mt-0.5 flex items-center gap-2 text-caption">
-        {delta && (
-          <span className={delta.positive ? 'text-success' : 'text-danger'}>
-            {delta.positive ? '↑' : '↓'} {delta.value}
+    <div
+      className={cn(
+        'h-full rounded-2xl border p-4 shadow-sm',
+        warn ? 'border-warning/30! bg-warning-soft/50' : 'border-border bg-surface',
+      )}
+    >
+      <div className="flex items-center gap-2.5">
+        {Icon && (
+          <span
+            className={cn(
+              'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
+              warn ? 'bg-warning/15 text-warning' : 'bg-accent-soft text-accent',
+            )}
+          >
+            <Icon className="h-4 w-4" />
           </span>
         )}
-        {hint && <span className="text-ink-mute">{hint}</span>}
+        <p className="text-caption font-semibold text-ink-soft">{label}</p>
+      </div>
+      <div className="mt-3 flex items-end justify-between gap-3">
+        <div className="min-w-0">
+          <p
+            className={cn(
+              'font-display text-[1.9rem] font-extrabold leading-none tracking-[-0.03em] tabular-nums',
+              warn ? 'text-warning' : 'text-ink',
+            )}
+          >
+            {value}
+          </p>
+          <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-caption">
+            {delta && (
+              <span className={cn('font-semibold', delta.positive ? 'text-success' : 'text-danger')}>
+                {delta.positive ? '↑' : '↓'} {delta.value}
+              </span>
+            )}
+            {hint && <span className={warn ? 'font-medium text-warning' : 'text-ink-mute'}>{hint}</span>}
+          </p>
+        </div>
+        {aside ?? (spark && <Sparkline values={spark} className="mb-1 h-8 w-24 shrink-0" />)}
       </div>
     </div>
   )
@@ -66,7 +130,7 @@ export function StatGrid({ children }: { children: ReactNode }) {
       initial="hidden"
       animate="visible"
       variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
-      className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+      className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
     >
       {children}
     </motion.div>
@@ -116,7 +180,7 @@ export function DataTable<T>({
 
   if (rows.length === 0) {
     return (
-      <div className="rounded-lg border border-border bg-surface p-10 text-center text-sm text-ink-mute">
+      <div className="rounded-2xl border border-border bg-surface p-10 text-center text-sm text-ink-mute shadow-sm">
         {empty}
       </div>
     )
@@ -128,12 +192,12 @@ export function DataTable<T>({
   return (
     <>
       {/* table on md+, stacked cards on mobile — scrolls sideways when columns overflow */}
-      <div className="hidden overflow-x-auto rounded-lg border border-border bg-surface md:block">
+      <div className="hidden overflow-x-auto rounded-2xl border border-border bg-surface shadow-sm md:block">
         <table className="w-full min-w-3xl text-sm">
           <thead>
-            <tr className="border-b border-border bg-surface-sunken/60 text-left text-caption uppercase tracking-wide text-ink-mute">
+            <tr className="border-b border-border bg-surface-sunken/60 text-left text-[11px] uppercase tracking-[0.12em] text-accent">
               {columns.map((col) => (
-                <th key={col.header} className={cn('whitespace-nowrap px-4 py-3 font-medium', col.hideBelow && hideClass[col.hideBelow])}>
+                <th key={col.header} className={cn('whitespace-nowrap px-4 py-3 font-semibold', col.hideBelow && hideClass[col.hideBelow])}>
                   {col.header}
                 </th>
               ))}
@@ -141,7 +205,7 @@ export function DataTable<T>({
           </thead>
           <tbody>
             {pageRows.map((row) => (
-              <tr key={keyOf(row)} className="border-b border-border last:border-0 hover:bg-surface-sunken/40">
+              <tr key={keyOf(row)} className="border-b border-border transition-colors last:border-0 hover:bg-accent-soft/40">
                 {columns.map((col) => (
                   <td
                     key={col.header}
@@ -158,10 +222,10 @@ export function DataTable<T>({
 
       <div className="space-y-3 md:hidden">
         {pageRows.map((row) => (
-          <div key={keyOf(row)} className="rounded-lg border border-border bg-surface p-4">
+          <div key={keyOf(row)} className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
             {columns.map((col) => (
               <div key={col.header} className="flex justify-between gap-3 py-1 text-sm">
-                <span className="text-caption uppercase tracking-wide text-ink-mute">{col.header}</span>
+                <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-accent">{col.header}</span>
                 <span className="text-right text-ink-soft">{col.cell(row)}</span>
               </div>
             ))}
@@ -169,7 +233,7 @@ export function DataTable<T>({
         ))}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-surface px-4 py-2.5">
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-surface px-4 py-2.5 shadow-sm">
         <p className="text-caption text-ink-mute">
           Showing <span className="text-ink-soft">{start + 1}–{Math.min(start + pageSize, rows.length)}</span> of{' '}
           <span className="text-ink-soft">{rows.length}</span>

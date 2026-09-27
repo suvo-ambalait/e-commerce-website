@@ -35,9 +35,10 @@ export function VendorDashboardLayout() {
       subtitle={vendor?.name ?? 'Vendor'}
       basePath="/vendor/dashboard"
       groups={groups}
+      user={{ name: vendor?.name ?? 'Vendor', role: 'Studio owner' }}
       accent={
         vendor && vendor.status !== 'active' ? (
-          <div className="mb-2 rounded-md bg-warning-soft px-3 py-2 text-caption text-warning">
+          <div className="rounded-2xl bg-warning-soft px-3.5 py-3 text-caption text-warning">
             <Badge tone="warning">{vendor.status}</Badge>
             <p className="mt-1 leading-snug">Storefront hidden until a curator approves it.</p>
           </div>

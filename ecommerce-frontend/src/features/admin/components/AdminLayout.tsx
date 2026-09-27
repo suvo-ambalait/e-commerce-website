@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+import { LuExternalLink } from 'react-icons/lu'
 import { DashboardShell, type NavGroup } from './DashboardShell'
 import {
   GridIcon,
@@ -11,35 +13,81 @@ import {
   AlertIcon,
   StarIcon,
 } from './icons'
-
-const groups: NavGroup[] = [
-  { items: [{ label: 'Overview', to: '/admin', end: true, icon: GridIcon }] },
-  {
-    title: 'Catalog',
-    items: [
-      { label: 'Products', to: '/admin/products', icon: BoxIcon },
-      { label: 'Inventory', to: '/admin/inventory', icon: AlertIcon },
-      { label: 'Categories', to: '/admin/categories', icon: LayersIcon },
-    ],
-  },
-  {
-    title: 'Sales',
-    items: [
-      { label: 'Orders', to: '/admin/orders', icon: ReceiptIcon },
-      { label: 'Reviews', to: '/admin/reviews', icon: StarIcon },
-      { label: 'Discounts', to: '/admin/discounts', icon: PercentIcon },
-    ],
-  },
-  {
-    title: 'People',
-    items: [
-      { label: 'Vendors', to: '/admin/vendors', icon: StorefrontIcon },
-      { label: 'Customers', to: '/admin/customers', icon: UsersIcon },
-    ],
-  },
-  { title: 'Configure', items: [{ label: 'Settings', to: '/admin/settings', icon: CogIcon }] },
-]
+import { useCatalog } from '@/features/catalog/context/CatalogContext'
+import { useInventory } from '@/features/inventory/context/InventoryContext'
+import { useVendors } from '@/features/vendor/context/VendorContext'
+import { BellIcon } from '@/shared/ui/icons'
+import { useNotificationFeed } from '../lib/useNotificationFeed'
 
 export function AdminLayout() {
-  return <DashboardShell storageKey="admin" subtitle="Platform admin" basePath="/admin" groups={groups} />
+  const { products, categories } = useCatalog()
+  const { statusFor } = useInventory()
+  const { vendors, activeVendors } = useVendors()
+
+  const lowStock = products.filter((p) => statusFor(p) !== 'in').length
+  const pendingVendors = vendors.filter((v) => v.status === 'pending').length
+  const { unreadCount } = useNotificationFeed()
+
+  const groups: NavGroup[] = [
+    {
+      items: [
+        { label: 'Overview', to: '/admin', end: true, icon: GridIcon },
+        { label: 'Notifications', to: '/admin/notifications', icon: BellIcon, badge: { count: unreadCount } },
+      ],
+    },
+    {
+      title: 'Catalog',
+      items: [
+        { label: 'Products', to: '/admin/products', icon: BoxIcon },
+        { label: 'Inventory', to: '/admin/inventory', icon: AlertIcon, badge: { count: lowStock, tone: 'warning' } },
+        { label: 'Categories', to: '/admin/categories', icon: LayersIcon },
+      ],
+    },
+    {
+      title: 'Sales',
+      items: [
+        { label: 'Orders', to: '/admin/orders', icon: ReceiptIcon },
+        { label: 'Reviews', to: '/admin/reviews', icon: StarIcon },
+        { label: 'Discounts', to: '/admin/discounts', icon: PercentIcon },
+      ],
+    },
+    {
+      title: 'People',
+      items: [
+        { label: 'Vendors', to: '/admin/vendors', icon: StorefrontIcon, badge: { count: pendingVendors } },
+        { label: 'Customers', to: '/admin/customers', icon: UsersIcon },
+      ],
+    },
+    { title: 'Configure', items: [{ label: 'Settings', to: '/admin/settings', icon: CogIcon }] },
+  ]
+
+  return (
+    <DashboardShell
+      storageKey="admin"
+      subtitle="Platform admin"
+      basePath="/admin"
+      groups={groups}
+      accent={
+        <div className="rounded-2xl bg-accent-soft/70 p-3.5">
+          <p className="flex items-center gap-2 text-sm font-semibold text-ink">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
+            </span>
+            Storefront is live
+          </p>
+          <p className="mt-1 text-caption text-ink-soft">
+            {activeVendors.length} studios selling across {categories.length} categories.
+          </p>
+          <Link
+            to="/"
+            className="mt-2.5 inline-flex h-8 items-center gap-1.5 rounded-full bg-surface px-3 text-caption font-semibold text-ink shadow-sm transition-colors hover:text-accent"
+          >
+            View storefront
+            <LuExternalLink className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      }
+    />
+  )
 }

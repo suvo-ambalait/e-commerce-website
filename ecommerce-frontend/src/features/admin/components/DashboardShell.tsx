@@ -1,13 +1,14 @@
-import { useState, type ComponentType, type ReactNode, type SVGProps } from 'react'
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { useEffect, useRef, useState, type ComponentType, type ReactNode, type SVGProps } from 'react'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
+import { LuPanelLeftClose, LuPanelLeftOpen, LuChevronsUpDown, LuCornerDownLeft } from 'react-icons/lu'
 import { cn } from '@/shared/lib/cn'
 import { easeEditorial } from '@/shared/lib/motion'
 import { usePersistedState } from '@/shared/hooks/usePersistedState'
 import { ScrollToTop } from '@/shared/layout/ScrollToTop'
-import { Logo } from '@/shared/layout/Logo'
-import { Avatar, Drawer, Menu, MenuLink } from '@/shared/ui'
-import { ChevronRightIcon, MenuIcon, StoreIcon } from '@/shared/ui/icons'
+import { BrandLockup, Logo } from '@/shared/layout/Logo'
+import { Drawer, Menu, MenuLink } from '@/shared/ui'
+import { ChevronRightIcon, MenuIcon, SearchIcon } from '@/shared/ui/icons'
 import { NotificationsMenu } from './NotificationsMenu'
 
 export interface NavItem {
@@ -15,13 +16,21 @@ export interface NavItem {
   to: string
   end?: boolean
   icon: ComponentType<SVGProps<SVGSVGElement>>
+  /** small count pill beside the label (dot in the collapsed rail) */
+  badge?: { count: number; tone?: 'accent' | 'warning' }
 }
 
 export interface NavGroup {
-  /** undefined = ungrouped items pinned to the top, never collapsible */
+  /** undefined = ungrouped items pinned to the top */
   title?: string
   items: NavItem[]
 }
+
+const badgeTone = {
+  accent: 'bg-accent-soft text-accent',
+  warning: 'bg-warning-soft text-warning',
+}
+const dotTone = { accent: 'bg-accent', warning: 'bg-warning' }
 
 export function DashboardShell({
   storageKey,
@@ -29,183 +38,240 @@ export function DashboardShell({
   groups,
   accent,
   basePath,
+  user = { name: 'Admin', role: 'Platform owner' },
 }: {
   storageKey: string
   subtitle: string
   groups: NavGroup[]
+  /** card shown above the user row in the expanded sidebar */
   accent?: ReactNode
   basePath: string
+  user?: { name: string; role: string }
 }) {
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [jumpOpen, setJumpOpen] = useState(false)
   const [collapsed, setCollapsed] = usePersistedState(`${storageKey}:rail`, false)
-  const [closedGroups, setClosedGroups] = usePersistedState<string[]>(`${storageKey}:groups`, [])
 
   const allItems = groups.flatMap((g) => g.items)
   const current =
     allItems.find((n) => (n.end ? location.pathname === n.to : location.pathname.startsWith(n.to)))?.label ??
     subtitle
 
-  const toggleGroup = (title: string) =>
-    setClosedGroups((prev) => (prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title]))
+  // Ctrl/Cmd+K → jump to a section
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setJumpOpen(true)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   const NavTree = ({ rail }: { rail: boolean }) => (
     <div className="space-y-4">
-      {groups.map((group, gi) => {
-        const closed = group.title ? closedGroups.includes(group.title) : false
-        return (
-          <div key={group.title ?? `g${gi}`}>
-            {group.title && !rail && (
-              <button
-                type="button"
-                onClick={() => toggleGroup(group.title!)}
-                className="flex w-full items-center justify-between px-3 py-1.5 text-[0.6875rem] font-medium uppercase tracking-[0.12em] text-ink-mute transition-colors hover:text-ink-soft"
+      {groups.map((group, gi) => (
+        <div key={group.title ?? `g${gi}`}>
+          {group.title && !rail && (
+            <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-accent">{group.title}</p>
+          )}
+          {group.title && rail && gi > 0 && <div className="mx-auto mb-3 w-6 border-t border-border" />}
+          <div className="space-y-0.5">
+            {group.items.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                title={rail ? item.label : undefined}
+                onClick={() => setMobileOpen(false)}
+                className={({ isActive }) =>
+                  cn(
+                    'relative flex items-center gap-3 rounded-xl text-sm font-medium transition-colors',
+                    rail ? 'mx-auto h-10 w-10 justify-center' : 'px-3 py-2',
+                    isActive
+                      ? 'bg-accent-soft text-accent'
+                      : 'text-ink-soft hover:bg-surface-sunken hover:text-ink',
+                  )
+                }
               >
-                {group.title}
-                <ChevronRightIcon className={cn('h-3.5 w-3.5 transition-transform', !closed && 'rotate-90')} />
-              </button>
-            )}
-            {group.title && rail && gi > 0 && <div className="mx-3 my-2 border-t border-border" />}
-            <AnimatePresence initial={false}>
-              {(!closed || rail) && (
-                <motion.div
-                  initial={group.title && !rail ? { height: 0, opacity: 0 } : false}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2, ease: easeEditorial }}
-                  className="overflow-hidden"
-                >
-                  <div className="space-y-0.5">
-                    {group.items.map((item) => (
-                      <NavLink
-                        key={item.to}
-                        to={item.to}
-                        end={item.end}
-                        title={rail ? item.label : undefined}
-                        onClick={() => setMobileOpen(false)}
-                        className={({ isActive }) =>
-                          cn(
-                            'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
-                            rail && 'justify-center px-0',
-                            isActive
-                              ? 'bg-ink text-bg'
-                              : 'text-ink-soft hover:bg-surface-sunken hover:text-ink',
-                          )
-                        }
-                      >
-                        <item.icon className="h-4.5 w-4.5 shrink-0" />
-                        {!rail && item.label}
-                      </NavLink>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                <item.icon className="h-4.5 w-4.5 shrink-0" />
+                {!rail && <span className="flex-1">{item.label}</span>}
+                {item.badge && item.badge.count > 0 &&
+                  (rail ? (
+                    <span
+                      className={cn(
+                        'absolute right-1.5 top-1.5 h-2 w-2 rounded-full ring-2 ring-surface',
+                        dotTone[item.badge.tone ?? 'accent'],
+                      )}
+                    />
+                  ) : (
+                    <span
+                      className={cn(
+                        'flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-semibold tabular-nums',
+                        badgeTone[item.badge.tone ?? 'accent'],
+                      )}
+                    >
+                      {item.badge.count}
+                    </span>
+                  ))}
+              </NavLink>
+            ))}
           </div>
-        )
-      })}
+        </div>
+      ))}
     </div>
   )
 
+  const UserRow = ({ rail }: { rail: boolean }) => (
+    <Menu
+      side="top"
+      align="left"
+      trigger={({ toggle }) => (
+        <button
+          type="button"
+          onClick={toggle}
+          aria-label="Account menu"
+          className={cn(
+            'flex w-full items-center gap-2.5 rounded-xl text-left transition-colors hover:bg-surface-sunken',
+            rail ? 'justify-center p-1' : 'p-2',
+          )}
+        >
+          <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink font-display text-sm font-bold text-bg">
+            {user.name[0]}
+            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-success ring-2 ring-surface" />
+          </span>
+          {!rail && (
+            <>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-semibold text-ink">{user.name}</span>
+                <span className="block truncate text-caption text-ink-mute">{user.role}</span>
+              </span>
+              <LuChevronsUpDown className="h-4 w-4 shrink-0 text-ink-mute" />
+            </>
+          )}
+        </button>
+      )}
+    >
+      {(close) => (
+        <div>
+          <MenuLink to={`${basePath}/account`} onClick={close}>
+            Your profile
+          </MenuLink>
+          <MenuLink to="/vendor/dashboard/profile" onClick={close}>
+            Storefront settings
+          </MenuLink>
+          <MenuLink to="/" onClick={close}>
+            Switch to storefront
+          </MenuLink>
+        </div>
+      )}
+    </Menu>
+  )
+
   return (
-    <div className="flex min-h-screen bg-bg">
+    <div className="dash-shell flex min-h-screen bg-surface-sunken/60">
       <ScrollToTop />
 
+      {/* desktop sidebar */}
       <aside
         className={cn(
-          'sticky top-0 hidden h-dvh shrink-0 flex-col border-r border-border bg-surface transition-[width] duration-200 lg:flex',
-          collapsed ? 'w-16' : 'w-64',
+          'sticky top-0 hidden h-dvh shrink-0 p-3 transition-[width] duration-200 lg:block',
+          collapsed ? 'w-[5.25rem]' : 'w-68',
         )}
       >
-        <div className={cn('flex flex-col gap-1 px-4 py-5', collapsed && 'items-center px-0')}>
-          <Link to="/" className="inline-flex text-ink" aria-label="Storefront home">
-            <Logo className="text-[1.05rem]" markOnly={collapsed} />
-          </Link>
-          {!collapsed && (
-            <span className="pl-7 text-[0.625rem] uppercase tracking-[0.12em] text-ink-mute">
-              {subtitle}
-            </span>
-          )}
-        </div>
+        <div className="flex h-full flex-col rounded-3xl border border-border bg-surface shadow-sm">
+          {/* brand */}
+          <div className={cn('flex items-center gap-2 p-4', collapsed && 'flex-col px-0')}>
+            <Link to="/" className="min-w-0 flex-1" aria-label="Storefront home">
+              {collapsed ? (
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#6d28d9]">
+                  <Logo markOnly className="text-[1.2rem] text-white" />
+                </span>
+              ) : (
+                <span className="block">
+                  <BrandLockup className="text-[1.15rem]" nameClassName="text-ink" />
+                  <span className="mt-0.5 block pl-[2.3rem] text-caption text-ink-mute">{subtitle}</span>
+                </span>
+              )}
+            </Link>
+            <button
+              type="button"
+              onClick={() => setCollapsed(!collapsed)}
+              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border text-ink-mute transition-colors hover:border-accent/50! hover:text-accent"
+            >
+              {collapsed ? <LuPanelLeftOpen className="h-4 w-4" /> : <LuPanelLeftClose className="h-4 w-4" />}
+            </button>
+          </div>
 
-        <div className="flex-1 overflow-y-auto px-3 pb-4">
-          <NavTree rail={collapsed} />
-        </div>
-
-        <div className="border-t border-border p-3">
-          {!collapsed && accent}
-          <div className={cn('space-y-0.5', collapsed && 'flex flex-col items-center')}>
-            <Link
-              to="/"
-              title="Back to store"
+          {/* jump to */}
+          <div className={cn('px-3 pb-3', collapsed && 'flex justify-center px-0')}>
+            <button
+              type="button"
+              onClick={() => setJumpOpen(true)}
+              aria-label="Jump to a section"
               className={cn(
-                'flex items-center gap-3 rounded-md px-3 py-2 text-sm text-ink-soft hover:bg-surface-sunken hover:text-ink',
-                collapsed && 'justify-center px-0',
+                'flex items-center gap-2 rounded-xl border border-border bg-surface-sunken/60 text-sm text-ink-mute transition-colors hover:border-accent/50!',
+                collapsed ? 'h-10 w-10 justify-center' : 'h-10 w-full px-3',
               )}
             >
-              <StoreIcon className="h-4.5 w-4.5" />
-              {!collapsed && 'Back to store'}
-            </Link>
+              <SearchIcon className="h-4 w-4 shrink-0" />
+              {!collapsed && (
+                <>
+                  <span className="flex-1 text-left">Jump to…</span>
+                  <kbd className="rounded-md border border-border bg-surface px-1.5 font-sans text-[10px] font-semibold text-ink-mute">
+                    Ctrl K
+                  </kbd>
+                </>
+              )}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setCollapsed(!collapsed)}
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className={cn(
-              'mt-1 flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-ink-mute hover:bg-surface-sunken hover:text-ink',
-              collapsed && 'justify-center px-0',
-            )}
-          >
-            <ChevronRightIcon className={cn('h-4.5 w-4.5 transition-transform', !collapsed && 'rotate-180')} />
-            {!collapsed && 'Collapse'}
-          </button>
+
+          <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-3">
+            <NavTree rail={collapsed} />
+          </div>
+
+          <div className="space-y-2 border-t border-border p-3">
+            {!collapsed && accent}
+            <UserRow rail={collapsed} />
+          </div>
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-surface/90 px-4 py-3 backdrop-blur sm:px-8">
+        {/* top row: breadcrumb (desktop) / menu bar (mobile) */}
+        <div className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-border bg-surface/90 px-4 py-3 backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:px-8 lg:pb-0 lg:pt-6 lg:backdrop-blur-none">
           <div className="flex items-center gap-3">
             <button
               type="button"
               aria-label="Open menu"
               onClick={() => setMobileOpen(true)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-ink-soft hover:text-ink lg:hidden"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border text-ink-soft hover:text-ink lg:hidden"
             >
               <MenuIcon className="h-5 w-5" />
             </button>
-            <div>
-              <p className="text-[0.625rem] uppercase tracking-[0.12em] text-ink-mute">{subtitle}</p>
-              <h1 className="font-serif text-lg text-ink">{current}</h1>
-            </div>
+            <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-caption">
+              <span className="text-ink-mute">{subtitle}</span>
+              <ChevronRightIcon className="h-3 w-3 text-ink-mute" />
+              <span className="font-semibold text-ink">{current}</span>
+            </nav>
           </div>
-          <div className="flex items-center gap-1.5">
-            <NotificationsMenu />
-            <Menu
-              trigger={({ toggle }) => (
-                <button type="button" onClick={toggle} aria-label="Account menu" className="ml-1 flex items-center gap-2 rounded-full">
-                  <Avatar name="?" size={30} />
-                  <ChevronRightIcon className="hidden h-3.5 w-3.5 rotate-90 text-ink-mute sm:block" />
-                </button>
-              )}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setJumpOpen(true)}
+              aria-label="Jump to a section"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-surface text-ink-soft lg:hidden"
             >
-              {(close) => (
-                <div className="pt-1">
-                  <MenuLink to={`${basePath}/account`} onClick={close}>
-                    Your profile
-                  </MenuLink>
-                  <MenuLink to="/vendor/dashboard/profile" onClick={close}>
-                    Storefront settings
-                  </MenuLink>
-                  <MenuLink to="/" onClick={close}>
-                    Switch to storefront
-                  </MenuLink>
-                </div>
-              )}
-            </Menu>
+              <SearchIcon className="h-4 w-4" />
+            </button>
+            <NotificationsMenu />
           </div>
-        </header>
+        </div>
 
-        <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
+        <main className="flex-1 px-4 py-6 lg:px-8 lg:pt-3">
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 8 }}
@@ -218,11 +284,117 @@ export function DashboardShell({
       </div>
 
       <Drawer open={mobileOpen} onClose={() => setMobileOpen(false)} side="left" title={subtitle} widthClass="w-full max-w-xs">
-        <div className="p-3">
-          <NavTree rail={false} />
+        <div className="flex min-h-full flex-col p-3">
+          <div className="flex-1">
+            <NavTree rail={false} />
+          </div>
+          <div className="mt-4 space-y-2 border-t border-border pt-3">
+            {accent}
+            <UserRow rail={false} />
+          </div>
         </div>
       </Drawer>
+
+      <JumpTo open={jumpOpen} onClose={() => setJumpOpen(false)} items={allItems} />
     </div>
   )
 }
 
+/** Small command palette listing every dashboard section. */
+function JumpTo({ open, onClose, items }: { open: boolean; onClose: () => void; items: NavItem[] }) {
+  const navigate = useNavigate()
+  const [q, setQ] = useState('')
+  const [active, setActive] = useState(0)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    setQ('')
+    setActive(0)
+    const t = setTimeout(() => inputRef.current?.focus(), 50)
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    window.addEventListener('keydown', onKey)
+    return () => {
+      clearTimeout(t)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [open, onClose])
+
+  const shown = items.filter((i) => i.label.toLowerCase().includes(q.trim().toLowerCase()))
+  const go = (to: string) => {
+    onClose()
+    navigate(to)
+  }
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-120 flex items-start justify-center px-4 pt-[12vh]">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-[#0b0a10]/45 backdrop-blur-[3px]"
+          />
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            transition={{ duration: 0.18, ease: easeEditorial }}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Jump to"
+            className="relative w-full max-w-md overflow-hidden rounded-3xl border border-border bg-surface p-3 shadow-[0_30px_80px_rgba(40,20,80,0.25)]"
+          >
+            <div className="flex h-12 items-center gap-3 rounded-2xl border-2 border-accent! px-4 ring-4 ring-accent/10">
+              <SearchIcon className="h-4 w-4 text-accent" />
+              <input
+                ref={inputRef}
+                value={q}
+                onChange={(e) => {
+                  setQ(e.target.value)
+                  setActive(0)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowDown' && shown.length) {
+                    e.preventDefault()
+                    setActive((a) => (a + 1) % shown.length)
+                  } else if (e.key === 'ArrowUp' && shown.length) {
+                    e.preventDefault()
+                    setActive((a) => (a - 1 + shown.length) % shown.length)
+                  } else if (e.key === 'Enter' && shown[active]) {
+                    go(shown[active].to)
+                  }
+                }}
+                placeholder="Jump to a section…"
+                aria-label="Jump to a section"
+                className="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-sm font-medium text-ink outline-none placeholder:font-normal placeholder:text-ink-mute focus:ring-0"
+              />
+            </div>
+            <ul className="mt-2 max-h-80 overflow-y-auto">
+              {shown.length === 0 && <li className="px-3 py-6 text-center text-sm text-ink-mute">No section matches.</li>}
+              {shown.map((item, i) => (
+                <li key={item.to}>
+                  <button
+                    type="button"
+                    onMouseMove={() => setActive(i)}
+                    onClick={() => go(item.to)}
+                    className={cn(
+                      'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors',
+                      i === active ? 'bg-accent-soft text-accent' : 'text-ink-soft',
+                    )}
+                  >
+                    <item.icon className="h-4.5 w-4.5" />
+                    <span className="flex-1">{item.label}</span>
+                    {i === active && <LuCornerDownLeft className="h-3.5 w-3.5" />}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  )
+}

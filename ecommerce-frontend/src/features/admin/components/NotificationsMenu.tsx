@@ -1,110 +1,30 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { LuSlidersHorizontal } from 'react-icons/lu'
 import { Menu } from '@/shared/ui'
-import { BellIcon } from '@/shared/ui/icons'
+import { ArrowRightIcon, BellIcon } from '@/shared/ui/icons'
 import { cn } from '@/shared/lib/cn'
-import { formatPrice } from '@/shared/lib/format'
-import { useVendors } from '@/features/vendor/context/VendorContext'
-import { useCatalog } from '@/features/catalog/context/CatalogContext'
-import { useOrders } from '@/features/orders/context/OrdersContext'
-import { useInventory } from '@/features/inventory/context/InventoryContext'
-import { useSettings } from '../context/SettingsContext'
-import { summariseVendorSales } from '@/features/orders/lib/analytics'
+import { groupByDay, useNotificationFeed, type NoteKind } from '../lib/useNotificationFeed'
+import { NotificationItem } from './NotificationItem'
 
-interface Note {
-  id: string
-  tone: 'info' | 'warn' | 'good'
-  title: string
-  body: string
-  to: string
-}
+type Filter = 'all' | 'unread' | NoteKind
 
-function useNotifications(): Note[] {
-  const { vendors } = useVendors()
-  const { products } = useCatalog()
-  const { orders } = useOrders()
-  const { statusFor } = useInventory()
-  const { settings } = useSettings()
-
-  const notes: Note[] = []
-  const isVendor = false
-  const scopeId: string | undefined = undefined
-
-  const scopedProducts = scopeId ? products.filter((p) => p.vendorId === scopeId) : products
-  const low = scopedProducts.filter((p) => statusFor(p) === 'low')
-  const out = scopedProducts.filter((p) => statusFor(p) === 'out')
-
-  const scopedOrders = scopeId
-    ? orders.filter((o) => o.shipments.some((s) => s.vendorId === scopeId))
-    : orders
-  const processing = scopedOrders.filter((o) =>
-    o.shipments.some((s) => (scopeId ? s.vendorId === scopeId : true) && s.status === 'Processing'),
-  )
-
-  if (!isVendor) {
-    const pending = vendors.filter((v) => v.status === 'pending')
-    if (pending.length) {
-      notes.push({
-        id: 'pending-vendors',
-        tone: 'info',
-        title: `${pending.length} vendor application${pending.length > 1 ? 's' : ''}`,
-        body: pending.map((v) => v.name).join(', '),
-        to: '/admin/vendors',
-      })
-    }
-  }
-
-  if (processing.length) {
-    notes.push({
-      id: 'orders-processing',
-      tone: 'info',
-      title: `${processing.length} order${processing.length > 1 ? 's' : ''} to fulfil`,
-      body: 'Awaiting shipment',
-      to: isVendor ? '/vendor/dashboard/orders' : '/admin/orders',
-    })
-  }
-
-  if (out.length) {
-    notes.push({
-      id: 'out-stock',
-      tone: 'warn',
-      title: `${out.length} product${out.length > 1 ? 's' : ''} out of stock`,
-      body: out.slice(0, 3).map((p) => p.name).join(', '),
-      to: isVendor ? '/vendor/dashboard/inventory' : '/admin/inventory',
-    })
-  } else if (low.length) {
-    notes.push({
-      id: 'low-stock',
-      tone: 'warn',
-      title: `${low.length} product${low.length > 1 ? 's' : ''} running low`,
-      body: low.slice(0, 3).map((p) => p.name).join(', '),
-      to: isVendor ? '/vendor/dashboard/inventory' : '/admin/inventory',
-    })
-  }
-
-  if (isVendor && scopeId) {
-    const sales = summariseVendorSales(orders, scopeId, settings.commissionRate)
-    if (sales.pendingPayout > 0) {
-      notes.push({
-        id: 'payout',
-        tone: 'good',
-        title: `${formatPrice(sales.pendingPayout)} ready to withdraw`,
-        body: 'From delivered shipments',
-        to: '/vendor/dashboard/payouts',
-      })
-    }
-  }
-
-  return notes
-}
-
-const dot = {
-  info: 'bg-accent',
-  warn: 'bg-warning',
-  good: 'bg-success',
-}
+const filters: { value: Filter; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'unread', label: 'Unread' },
+  { value: 'order', label: 'Orders' },
+  { value: 'stock', label: 'Stock' },
+  { value: 'vendor', label: 'Vendors' },
+]
 
 export function NotificationsMenu() {
-  const notes = useNotifications()
+  const { notes, isUnread, markRead, markAllRead, unreadCount } = useNotificationFeed()
+  const [filter, setFilter] = useState<Filter>('all')
+
+  const shown = notes.filter((n) =>
+    filter === 'all' ? true : filter === 'unread' ? isUnread(n.id) : n.kind === filter,
+  )
+  const groups = groupByDay(shown.slice(0, 12))
 
   return (
     <Menu
@@ -112,46 +32,105 @@ export function NotificationsMenu() {
         <button
           type="button"
           onClick={toggle}
-          aria-label={`Notifications, ${notes.length} new`}
+          aria-label={`Notifications, ${unreadCount} unread`}
+          aria-expanded={open}
           className={cn(
-            'relative inline-flex h-9 w-9 items-center justify-center rounded-full text-ink-soft transition-colors hover:text-ink',
-            open && 'bg-surface-sunken text-ink',
+            'relative inline-flex h-9 w-9 items-center justify-center rounded-xl border bg-surface text-accent transition-colors',
+            open ? 'border-accent! bg-accent-soft ring-4 ring-accent/10' : 'border-border hover:border-accent/50!',
           )}
         >
-          <BellIcon className="h-5 w-5" />
-          {notes.length > 0 && (
-            <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-accent ring-2 ring-surface" />
+          <BellIcon className="h-4 w-4" />
+          {unreadCount > 0 && (
+            <span className="absolute -right-1.5 -top-1.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-on-accent ring-2 ring-surface">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
           )}
         </button>
       )}
     >
       {(close) => (
-        <div className="w-80 max-w-[calc(100vw-2rem)]">
-          <div className="flex items-center justify-between border-b border-border px-3 pb-2 pt-1">
-            <p className="text-sm font-medium text-ink">Notifications</p>
-            <span className="text-caption text-ink-mute">{notes.length}</span>
+        <div className="w-[26rem] max-w-[calc(100vw-2.5rem)]">
+          {/* header */}
+          <div className="flex items-center justify-between gap-3 px-2.5 pb-3 pt-2">
+            <p className="flex items-center gap-2">
+              <span className="font-display text-lg font-bold tracking-[-0.01em] text-ink">Notifications</span>
+              {unreadCount > 0 && (
+                <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-semibold text-accent">
+                  {unreadCount} new
+                </span>
+              )}
+            </p>
+            <div className="flex items-center gap-2">
+              {unreadCount > 0 && (
+                <button type="button" onClick={markAllRead} className="text-caption font-semibold text-accent hover:underline">
+                  Mark all read
+                </button>
+              )}
+              <Link
+                to="/admin/notifications#delivery"
+                onClick={close}
+                aria-label="Notification settings"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-ink-soft transition-colors hover:border-accent/50! hover:text-accent"
+              >
+                <LuSlidersHorizontal className="h-3.5 w-3.5" />
+              </Link>
+            </div>
           </div>
-          {notes.length === 0 ? (
-            <p className="px-3 py-8 text-center text-sm text-ink-mute">You’re all caught up.</p>
-          ) : (
-            <ul className="max-h-96 overflow-y-auto py-1">
-              {notes.map((note) => (
-                <li key={note.id}>
-                  <Link
-                    to={note.to}
-                    onClick={close}
-                    className="flex gap-3 rounded-sm px-3 py-2.5 transition-colors hover:bg-surface-sunken"
-                  >
-                    <span className={cn('mt-1.5 h-2 w-2 shrink-0 rounded-full', dot[note.tone])} />
-                    <span className="min-w-0">
-                      <span className="block text-sm text-ink">{note.title}</span>
-                      <span className="block truncate text-caption text-ink-mute">{note.body}</span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
+
+          {/* filters */}
+          <div className="flex gap-1.5 overflow-x-auto border-b border-border px-2.5 pb-3">
+            {filters.map((f) => (
+              <button
+                key={f.value}
+                type="button"
+                aria-pressed={filter === f.value}
+                onClick={() => setFilter(f.value)}
+                className={cn(
+                  'h-8 shrink-0 rounded-full border px-3 text-caption font-semibold transition-colors',
+                  filter === f.value
+                    ? 'border-ink! bg-ink text-bg'
+                    : 'border-border-strong text-ink-soft hover:border-accent! hover:text-accent',
+                )}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
+          {/* list */}
+          <div className="max-h-[26rem] overflow-y-auto px-1 py-2">
+            {groups.length === 0 ? (
+              <p className="px-3 py-10 text-center text-sm text-ink-mute">You’re all caught up.</p>
+            ) : (
+              groups.map((g) => (
+                <div key={g.label}>
+                  <p className="px-2 pb-2 pt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-mute">
+                    {g.label}
+                  </p>
+                  <div className="space-y-1.5 pb-2">
+                    {g.items.map((n) => (
+                      <NotificationItem
+                        key={n.id}
+                        note={n}
+                        unread={isUnread(n.id)}
+                        onRead={() => markRead(n.id)}
+                        onNavigate={close}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <Link
+            to="/admin/notifications"
+            onClick={close}
+            className="flex items-center justify-center gap-1.5 border-t border-border py-3 text-sm font-semibold text-accent hover:underline"
+          >
+            View all notifications
+            <ArrowRightIcon className="h-4 w-4" />
+          </Link>
         </div>
       )}
     </Menu>

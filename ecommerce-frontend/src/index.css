@@ -170,6 +170,16 @@ h1, h2, h3, h4 {
   letter-spacing: -0.015em;
 }
 
+/* admin + vendor dashboards use the bold display face for every heading */
+.dash-shell h1,
+.dash-shell h2,
+.dash-shell h3,
+.dash-shell h4 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
 ::selection {
   background: var(--accent-soft);
   color: var(--ink);

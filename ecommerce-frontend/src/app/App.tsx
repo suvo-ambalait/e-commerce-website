@@ -57,6 +57,7 @@ import { AdminSettings } from '@/features/admin/pages/AdminSettings'
 import { AdminDiscounts } from '@/features/admin/pages/AdminDiscounts'
 import { AdminReviews } from '@/features/admin/pages/AdminReviews'
 import { DashboardAccount } from '@/features/admin/pages/DashboardAccount'
+import { AdminNotifications } from '@/features/admin/pages/AdminNotifications'
 
 export function App() {
   return (
@@ -132,6 +133,7 @@ export function App() {
         <Route path="customers/:email" element={<AdminCustomerDetail />} />
         <Route path="discounts" element={<AdminDiscounts />} />
         <Route path="settings" element={<AdminSettings />} />
+        <Route path="notifications" element={<AdminNotifications />} />
         <Route path="account" element={<DashboardAccount />} />
       </Route>
     </Routes>
