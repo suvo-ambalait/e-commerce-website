@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react'
+import { LuUpload } from 'react-icons/lu'
 import { Button, Modal, Textarea } from '@/shared/ui'
+import { ExportButton } from '@/features/admin/components/TableKit'
 import { useToast } from '@/shared/ui/Toast'
 import type { Product } from '@/shared/types'
 import { useVendors } from '@/features/vendor/context/VendorContext'
@@ -30,13 +32,19 @@ export function CsvTools({ products, allowImport }: { products: Product[]; allow
 
   return (
     <div className="flex gap-2">
-      <Button size="sm" variant="secondary" onClick={exportNow}>
-        Export CSV
-      </Button>
+      <ExportButton onClick={exportNow} />
       {allowImport && (
-        <Button size="sm" variant="secondary" onClick={() => { setOpen(true); setResult(null) }}>
-          Import CSV
-        </Button>
+        <button
+          type="button"
+          onClick={() => {
+            setOpen(true)
+            setResult(null)
+          }}
+          className="inline-flex h-10 items-center gap-2 rounded-xl border border-border bg-surface px-3.5 text-sm font-semibold text-ink transition-colors hover:border-accent/50!"
+        >
+          <LuUpload className="h-4 w-4" />
+          Import
+        </button>
       )}
 
       <Modal open={open} onClose={() => setOpen(false)} title="Import inventory">
