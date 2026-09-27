@@ -145,11 +145,11 @@ export function Hero() {
                 x: { duration: 0.6, ease: easeEditorial, delay: 0.6 },
                 y: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1.2 },
               }}
-              className="absolute bottom-6 left-3 flex w-[calc(100%-1.5rem)] max-w-[300px] items-center gap-3.5 rounded-[20px] bg-ink p-4 text-bg shadow-[0_24px_48px_rgba(40,20,80,0.25)] sm:bottom-12 sm:left-0"
+              className="absolute bottom-6 left-3 flex w-[calc(100%-1.5rem)] max-w-[300px] items-center gap-3.5 rounded-[20px] bg-[#0b0a10] p-4 text-white ring-1 ring-transparent dark:ring-white/10 shadow-[0_24px_48px_rgba(40,20,80,0.25)] sm:bottom-12 sm:left-0"
             >
               <Link
                 to={`/product/${bestseller.id}`}
-                className="flex h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-accent-soft"
+                className="flex h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#ede9fe]"
               >
                 {bestseller.images[0] ? (
                   <img src={bestseller.images[0]} alt="" className="h-full w-full object-cover" />
@@ -158,11 +158,11 @@ export function Hero() {
                 )}
               </Link>
               <div className="flex min-w-0 grow flex-col gap-1">
-                <span className="text-xs font-semibold tracking-[0.04em] text-accent-soft/80">BESTSELLER</span>
+                <span className="text-xs font-semibold tracking-[0.04em] text-[#c4b5fd]">BESTSELLER</span>
                 <Link to={`/product/${bestseller.id}`} className="truncate text-base font-semibold hover:underline">
                   {bestseller.name}
                 </Link>
-                <span className="text-sm opacity-70">{formatPrice(bestseller.price)}</span>
+                <span className="text-sm text-[#b8b3c7]">{formatPrice(bestseller.price)}</span>
               </div>
               <button
                 type="button"
