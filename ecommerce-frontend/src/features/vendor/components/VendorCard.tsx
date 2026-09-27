@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
+import { LuMapPin } from 'react-icons/lu'
 import { cn } from '@/shared/lib/cn'
 import { Avatar, Badge } from '@/shared/ui'
-import { StarIcon } from '@/shared/ui/icons'
+import { ArrowRightIcon, StarIcon } from '@/shared/ui/icons'
 import type { Vendor } from '@/shared/types'
 
 export function VendorCard({
@@ -17,37 +18,58 @@ export function VendorCard({
     <Link
       to={`/vendor/${vendor.slug}`}
       className={cn(
-        'group flex h-full flex-col overflow-hidden rounded-lg border border-border bg-surface transition-shadow duration-[var(--dur-2)] hover:shadow-md',
+        'group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition-[box-shadow,transform,border-color] duration-300 ease-editorial hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-[0_18px_40px_rgba(40,20,80,0.12)]',
         className,
       )}
     >
-      <div className="relative h-24 overflow-hidden bg-surface-sunken">
-        <img
-          src={vendor.banner}
-          alt=""
-          loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-700 ease-[var(--ease-editorial)] group-hover:scale-105"
-        />
+      {/* banner */}
+      <div className="relative h-28 bg-accent-soft">
+        <div className="h-full overflow-hidden">
+          <img
+            src={vendor.banner}
+            alt=""
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-700 ease-editorial group-hover:scale-105"
+          />
+        </div>
+
+        <span className="absolute right-2.5 top-2.5 flex items-center gap-1 rounded-full bg-surface/95 px-2.5 py-1 text-[11px] font-medium text-ink shadow-sm backdrop-blur">
+          <LuMapPin className="h-3 w-3 text-accent" aria-hidden />
+          {vendor.location}
+        </span>
         {vendor.status === 'pending' && (
-          <span className="absolute right-2.5 top-2.5">
+          <span className="absolute left-2.5 top-2.5">
             <Badge tone="warning">Under review</Badge>
           </span>
         )}
+
+        <Avatar
+          src={vendor.logo}
+          name={vendor.name}
+          size={48}
+          className="absolute -bottom-6 left-4 ring-4 ring-surface"
+        />
       </div>
 
-      <div className="flex flex-1 items-center gap-3 p-3.5">
-        <Avatar src={vendor.logo} name={vendor.name} size={44} className="shrink-0" />
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-serif text-[0.95rem] leading-tight text-ink">{vendor.name}</p>
-          <p className="mt-0.5 flex items-center gap-1.5 text-caption text-ink-mute">
-            <span className="truncate">{vendor.location}</span>
-            <StarIcon className="h-3 w-3 shrink-0 fill-accent text-accent" />
-            <span className="shrink-0">{vendor.rating.toFixed(1)}</span>
-            {productCount != null && <span className="shrink-0">· {productCount} pieces</span>}
-          </p>
-          <p className="mt-1 line-clamp-1 text-caption leading-relaxed text-ink-soft">
-            {vendor.tagline}
-          </p>
+      {/* body */}
+      <div className="flex flex-1 flex-col px-4 pb-4 pt-9">
+        <div className="flex items-center justify-between gap-3">
+          <p className="truncate font-display text-lg font-bold tracking-[-0.01em] text-ink">{vendor.name}</p>
+          <span className="flex shrink-0 items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-caption font-semibold text-ink tabular-nums">
+            <StarIcon className="h-3 w-3 fill-accent text-accent" />
+            {vendor.rating.toFixed(1)}
+          </span>
+        </div>
+        <p className="mt-1.5 line-clamp-2 text-caption leading-relaxed text-ink-soft">{vendor.tagline}</p>
+
+        <div className="mt-auto flex items-center justify-between gap-3 pt-5 text-caption">
+          <span className="text-ink-mute">
+            {productCount != null && `${productCount} ${productCount === 1 ? 'piece' : 'pieces'}`}
+          </span>
+          <span className="flex items-center gap-1 font-semibold text-accent">
+            Visit studio
+            <ArrowRightIcon className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+          </span>
         </div>
       </div>
     </Link>

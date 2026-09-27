@@ -1,18 +1,19 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useSettings } from '@/features/admin/context/SettingsContext'
-import { Button, Input } from '@/shared/ui'
-import { ArrowRightIcon } from '@/shared/ui/icons'
+import { ArrowRightIcon, CheckIcon } from '@/shared/ui/icons'
 import { SocialLinks } from './SocialLinks'
-import { Logo } from './Logo'
+import { BrandLockup } from './Logo'
 
-const columns = [
+type FooterLink = { label: string; to: string; badge?: string }
+
+const columns: { title: string; links: FooterLink[] }[] = [
   {
     title: 'Shop',
     links: [
       { label: 'All products', to: '/shop' },
       { label: 'New this week', to: '/shop?sort=new' },
-      { label: 'On sale', to: '/deals' },
+      { label: 'On sale', to: '/deals', badge: 'Sale' },
       { label: 'Gift ideas', to: '/shop' },
     ],
   },
@@ -35,6 +36,10 @@ const columns = [
   },
 ]
 
+/**
+ * Dark footer — fixed colours so it reads as a dark block in both themes.
+ * Border colours carry `!` to beat the global `* { border-color }` rule in index.css.
+ */
 export function Footer() {
   const { settings } = useSettings()
   const [email, setEmail] = useState('')
@@ -46,66 +51,125 @@ export function Footer() {
   }
 
   return (
-    <footer className="mt-8 border-t border-border bg-surface-sunken">
-      <div className="container-page grid grid-cols-1 gap-12 py-16 lg:grid-cols-[1.4fr_2fr]">
-        <div>
-          <Link to="/" className="inline-flex" aria-label={`${settings.storeName} home`}>
-            <Logo className="text-[1.4rem]" />
-          </Link>
-          <p className="mt-3 max-w-sm text-sm text-ink-soft">{settings.tagline}. One cart across many
-            independent studios — we settle up with each maker so you don’t have to.</p>
+    <footer className="mt-8 overflow-hidden bg-[#0b0a10] text-white">
+      <div className="container-page pt-12 md:pt-16">
+        {/* newsletter band */}
+        <div className="relative overflow-hidden rounded-3xl bg-[#6d28d9] px-6 py-8 sm:px-10 sm:py-10">
+          <div className="pointer-events-none absolute -top-40 left-1/2 h-96 w-96 rounded-full border border-white/15!" />
+          <div className="pointer-events-none absolute -top-24 left-[58%] h-64 w-64 rounded-full border border-white/15!" />
 
-          <form onSubmit={submit} className="mt-6 max-w-sm">
-            <label className="text-caption font-medium uppercase tracking-wide text-ink-mute">
-              The MorerDokan letter
-            </label>
-            {done ? (
-              <p className="mt-2 text-sm text-success">Thanks — check your inbox to confirm.</p>
-            ) : (
-              <div className="mt-2 flex gap-2">
-                <Input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                />
-                <Button type="submit" aria-label="Subscribe" className="shrink-0 px-4">
-                  <ArrowRightIcon className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-          </form>
+          <div className="relative flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/80">
+                The {settings.storeName} letter
+              </p>
+              {/* `!` beats the global unlayered h2 font rule in index.css */}
+              <h2 className="mt-2 font-display! text-[clamp(1.6rem,1.2rem+1.8vw,2.4rem)] font-extrabold! leading-[1.05] tracking-[-0.035em]! text-white">
+                Stories from the studios,
+                <br />
+                <em className="font-medium text-white/90">straight to your inbox.</em>
+              </h2>
+            </div>
 
-          <p className="mt-6 text-caption font-medium uppercase tracking-wide text-ink-mute">Follow along</p>
-          <SocialLinks links={settings.socialLinks} className="mt-2.5" />
+            <form onSubmit={submit} className="w-full max-w-md shrink-0">
+              <label htmlFor="footer-email" className="text-caption font-semibold text-white">
+                Email address
+              </label>
+              {done ? (
+                <p className="mt-2 flex h-13 items-center gap-2.5 rounded-full bg-white/15 px-5 text-sm font-medium text-white">
+                  <CheckIcon className="h-4 w-4" />
+                  Thanks — check your inbox to confirm.
+                </p>
+              ) : (
+                <div className="mt-2 flex h-13 items-center gap-2 rounded-full bg-white p-1.5 pl-5 shadow-[0_12px_30px_rgba(20,8,50,0.3)]">
+                  <input
+                    id="footer-email"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="h-full min-w-0 flex-1 border-0 bg-transparent text-sm text-[#0b0a10] outline-none placeholder:text-[#8a849c] focus:ring-0"
+                  />
+                  <button
+                    type="submit"
+                    className="group flex h-full shrink-0 items-center gap-2 rounded-full bg-[#0b0a10] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#2a2144]"
+                  >
+                    Subscribe
+                    <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </button>
+                </div>
+              )}
+            </form>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
-          {columns.map((col) => (
-            <div key={col.title}>
-              <h3 className="text-caption font-medium uppercase tracking-wide text-ink-mute">{col.title}</h3>
-              <ul className="mt-4 space-y-2.5">
-                {col.links.map((link) => (
-                  <li key={link.label}>
-                    <Link to={link.to} className="text-sm text-ink-soft transition-colors hover:text-ink">
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+        {/* brand + link columns */}
+        <div className="grid grid-cols-1 gap-12 py-14 lg:grid-cols-[1.3fr_2fr]">
+          <div>
+            <Link to="/" className="inline-flex" aria-label={`${settings.storeName} home`}>
+              <BrandLockup className="text-2xl" nameClassName="text-white" />
+            </Link>
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-[#b8b3c7]">
+              {settings.tagline}. One cart across many independent studios — we settle up with each maker so you
+              don’t have to.
+            </p>
+
+            <p className="mt-7 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8a849c]">Follow along</p>
+            <SocialLinks links={settings.socialLinks} variant="inverse" className="mt-3" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
+            {columns.map((col) => (
+              <div key={col.title}>
+                <h3 className="font-sans! text-[11px] font-semibold! uppercase tracking-[0.14em]! text-[#a78bfa]">
+                  {col.title}
+                </h3>
+                <ul className="mt-4 space-y-3">
+                  {col.links.map((link) => (
+                    <li key={link.label}>
+                      <Link
+                        to={link.to}
+                        className="inline-flex items-center gap-2 text-sm text-[#d4cfe3] transition-colors hover:text-white"
+                      >
+                        {link.label}
+                        {link.badge && (
+                          <span className="rounded-full bg-[#6d28d9] px-2 py-0.5 text-[10px] font-semibold text-white">
+                            {link.badge}
+                          </span>
+                        )}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="border-t border-border">
-        <div className="container-page flex flex-col items-center justify-between gap-3 py-6 text-caption text-ink-mute sm:flex-row">
-          <p>© {new Date().getFullYear()} {settings.storeName}. A demonstration marketplace.</p>
+      {/* oversized watermark wordmark */}
+      <div aria-hidden className="pointer-events-none select-none overflow-hidden">
+        <p className="container-page -mb-[0.18em] whitespace-nowrap text-center font-display text-[clamp(4rem,17vw,15rem)] font-extrabold leading-none tracking-[-0.06em] text-white/[0.045]">
+          {settings.storeName}
+        </p>
+      </div>
+
+      <div className="border-t border-white/10!">
+        <div className="container-page flex flex-col items-center justify-between gap-3 py-6 text-caption text-[#8a849c] sm:flex-row">
+          <p>
+            © {new Date().getFullYear()} {settings.storeName}. A demonstration marketplace.
+          </p>
           <div className="flex gap-5">
-            <a href="#" className="transition-colors hover:text-ink">Privacy</a>
-            <a href="#" className="transition-colors hover:text-ink">Terms</a>
-            <a href="#" className="transition-colors hover:text-ink">Accessibility</a>
+            <a href="#" className="transition-colors hover:text-white">
+              Privacy
+            </a>
+            <a href="#" className="transition-colors hover:text-white">
+              Terms
+            </a>
+            <a href="#" className="transition-colors hover:text-white">
+              Accessibility
+            </a>
           </div>
         </div>
       </div>

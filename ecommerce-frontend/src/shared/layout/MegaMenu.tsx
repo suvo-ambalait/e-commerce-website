@@ -5,6 +5,7 @@ import { cn } from '@/shared/lib/cn'
 import { easeEditorial } from '@/shared/lib/motion'
 import { useClickOutside } from '@/shared/hooks/useClickOutside'
 import type { Category } from '@/shared/types'
+import { ChevronDownIcon } from '@/shared/ui/icons'
 
 export function MegaMenu({ categories }: { categories: Category[] }) {
   const [open, setOpen] = useState(false)
@@ -21,12 +22,12 @@ export function MegaMenu({ categories }: { categories: Category[] }) {
         onMouseEnter={() => setOpen(true)}
         aria-expanded={open}
         className={cn(
-          'relative py-1 text-sm transition-colors hover:text-ink',
-          'after:absolute after:inset-x-0 after:-bottom-0.5 after:h-0.5 after:origin-center after:rounded-full after:bg-accent after:transition-transform after:duration-200 hover:after:scale-x-100',
-          active || open ? 'text-ink after:scale-x-100' : 'text-ink-soft after:scale-x-0',
+          'flex h-8 items-center gap-1 rounded-full px-3.5 text-sm font-medium transition-colors',
+          active || open ? 'bg-surface text-ink shadow-sm' : 'text-ink-soft hover:text-ink',
         )}
       >
         Categories
+        <ChevronDownIcon className={cn('h-3.5 w-3.5 transition-transform', open && 'rotate-180')} />
       </button>
 
       <AnimatePresence>
@@ -38,15 +39,15 @@ export function MegaMenu({ categories }: { categories: Category[] }) {
             transition={{ duration: 0.18, ease: easeEditorial }}
             className="absolute left-0 top-full z-50 w-lg max-w-[calc(100vw-2rem)] pt-3"
           >
-            <div className="grid grid-cols-2 gap-1 rounded-lg border border-border bg-surface p-3 shadow-lg">
+            <div className="grid grid-cols-2 gap-1 rounded-2xl border border-border bg-surface p-3 shadow-lg">
               {categories.map((category) => (
                 <Link
                   key={category.id}
                   to={`/shop?category=${encodeURIComponent(category.name)}`}
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 rounded-sm p-2 transition-colors hover:bg-surface-sunken"
+                  className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-surface-sunken"
                 >
-                  <img src={category.image} alt="" className="h-12 w-12 shrink-0 rounded-sm object-cover" />
+                  <img src={category.image} alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
                   <span>
                     <span className="block text-sm text-ink">{category.name}</span>
                     <span className="line-clamp-1 block text-caption text-ink-mute">
@@ -58,7 +59,7 @@ export function MegaMenu({ categories }: { categories: Category[] }) {
               <Link
                 to="/shop"
                 onClick={() => setOpen(false)}
-                className="col-span-2 mt-1 rounded-sm bg-ink px-3 py-2.5 text-center text-caption font-medium uppercase tracking-wide text-bg"
+                className="col-span-2 mt-1 rounded-full bg-accent px-3 py-2.5 text-center text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover"
               >
                 Shop everything
               </Link>

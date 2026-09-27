@@ -34,3 +34,22 @@ export function Logo({ className, markOnly = false }: { className?: string; mark
     </span>
   )
 }
+
+/**
+ * Storefront lockup — the mark in a violet rounded square beside a bold
+ * display wordmark. Used by the header and footer.
+ */
+export function BrandLockup({ className, nameClassName }: { className?: string; nameClassName?: string }) {
+  const { settings } = useSettings()
+
+  return (
+    <span className={cn('inline-flex items-center gap-2.5', className)}>
+      <span className="flex h-[1.6em] w-[1.6em] shrink-0 items-center justify-center rounded-[0.4em] bg-[#6d28d9]">
+        <Logo markOnly className="text-[0.95em] text-white" />
+      </span>
+      <span className={cn('font-display font-bold leading-none tracking-[-0.03em]', nameClassName)}>
+        {settings.storeName}
+      </span>
+    </span>
+  )
+}

@@ -27,11 +27,19 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   blog: LuNewspaper,
 }
 
+const VARIANTS = {
+  default: 'border-border-strong text-ink-soft hover:border-ink hover:bg-ink hover:text-bg',
+  /** for dark surfaces — `!` beats the global `* { border-color }` rule in index.css */
+  inverse: 'border-white/15! text-[#d4cfe3] hover:border-[#6d28d9]! hover:bg-[#6d28d9] hover:text-white',
+}
+
 export function SocialLinks({
   links,
+  variant = 'default',
   className,
 }: {
   links: SocialLink[]
+  variant?: keyof typeof VARIANTS
   className?: string
 }) {
   return (
@@ -46,7 +54,10 @@ export function SocialLinks({
               title={link.label}
               target={link.url.startsWith('http') ? '_blank' : undefined}
               rel={link.url.startsWith('http') ? 'noreferrer' : undefined}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-border-strong text-ink-soft transition-colors hover:border-ink hover:bg-ink hover:text-bg"
+              className={cn(
+                'flex h-9 w-9 items-center justify-center rounded-full border transition-colors',
+                VARIANTS[variant],
+              )}
             >
               <Icon className="h-4 w-4" />
             </a>
