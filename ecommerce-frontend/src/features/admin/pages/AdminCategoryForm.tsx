@@ -43,7 +43,7 @@ export function AdminCategoryForm() {
   return (
     <div className="space-y-5">
       <PageHeader title={editing ? 'Edit category' : 'New category'} />
-      <form onSubmit={submit} className="max-w-xl space-y-5 rounded-lg border border-border bg-surface p-6">
+      <form onSubmit={submit} className="max-w-xl space-y-5 rounded-2xl border border-border bg-surface shadow-sm p-6">
         <Field label="Name" required>
           {(fid) => <Input id={fid} required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />}
         </Field>

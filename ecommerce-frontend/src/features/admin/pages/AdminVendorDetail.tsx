@@ -88,12 +88,12 @@ export function AdminVendorDetail() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="rounded-lg border border-border bg-surface p-5">
+        <div className="rounded-2xl border border-border bg-surface shadow-sm p-5">
           <h3 className="text-sm font-medium text-ink">About</h3>
           <p className="mt-2 text-sm leading-relaxed text-ink-soft">{vendor.bio}</p>
           <p className="mt-3 text-caption text-ink-mute">Owner: {vendor.ownerEmail}</p>
         </div>
-        <div className="rounded-lg border border-border bg-surface p-5">
+        <div className="rounded-2xl border border-border bg-surface shadow-sm p-5">
           <h3 className="text-sm font-medium text-ink">Policies</h3>
           <p className="mt-2 text-sm text-ink-soft">
             <span className="text-ink-mute">Shipping — </span>

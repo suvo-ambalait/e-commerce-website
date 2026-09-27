@@ -76,10 +76,10 @@ export function ImageUploader({
     <div>
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
         {value.map((src, i) => (
-          <div key={src.slice(0, 32) + i} className={cn('group relative overflow-hidden rounded-md border border-border bg-surface-sunken', aspect)}>
+          <div key={src.slice(0, 32) + i} className={cn('group relative overflow-hidden rounded-xl border border-border bg-surface-sunken', aspect)}>
             <img src={src} alt="" className="h-full w-full object-cover" />
             {i === 0 && (
-              <span className="absolute left-1.5 top-1.5 rounded-full bg-ink/80 px-2 py-0.5 text-[0.625rem] font-medium uppercase tracking-wide text-bg">
+              <span className="absolute left-1.5 top-1.5 rounded-full bg-accent px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-on-accent">
                 Cover
               </span>
             )}
@@ -113,9 +113,9 @@ export function ImageUploader({
             onDragLeave={() => setDragOver(false)}
             onDrop={onDrop}
             className={cn(
-              'flex flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed text-caption transition-colors',
+              'flex flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed text-caption font-semibold transition-colors',
               aspect,
-              dragOver ? 'border-accent bg-accent-soft text-accent' : 'border-border-strong text-ink-mute hover:border-ink hover:text-ink',
+              dragOver ? 'border-accent bg-accent-soft text-accent' : 'border-accent/30! bg-accent-soft/30 text-accent hover:border-accent! hover:bg-accent-soft/60',
             )}
           >
             {busy ? (
@@ -147,7 +147,7 @@ export function ImageUploader({
           value={urlDraft}
           onChange={(e) => setUrlDraft(e.target.value)}
           placeholder="…or paste an image URL"
-          className="h-9 flex-1 rounded-sm border border-border-strong bg-surface px-3 text-caption text-ink outline-none focus:border-ink"
+          className="h-9 flex-1 rounded-xl border border-border-strong bg-surface px-3 text-caption text-ink outline-none focus:border-accent! focus:ring-4 focus:ring-accent/15"
         />
         <button
           type="button"
@@ -157,7 +157,7 @@ export function ImageUploader({
               setUrlDraft('')
             }
           }}
-          className="h-9 shrink-0 rounded-sm border border-border-strong px-3 text-caption text-ink-soft hover:border-ink"
+          className="h-9 shrink-0 rounded-xl border border-border-strong px-3 text-caption font-semibold text-ink-soft hover:border-accent! hover:text-accent"
         >
           Add
         </button>

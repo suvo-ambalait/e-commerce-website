@@ -70,11 +70,11 @@ export function VendorOverview() {
       </StatGrid>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="rounded-lg border border-border bg-surface p-5 lg:col-span-2">
+        <div className="rounded-2xl border border-border bg-surface shadow-sm p-5 lg:col-span-2">
           <h3 className="text-sm font-medium text-ink">Your revenue, last 14 days</h3>
           <AreaChart className="mt-3" data={revenue} valueFormat={(n) => formatPrice(n)} />
         </div>
-        <div className="rounded-lg border border-border bg-surface p-5">
+        <div className="rounded-2xl border border-border bg-surface shadow-sm p-5">
           <h3 className="text-sm font-medium text-ink">Orders by weekday</h3>
           <BarChart className="mt-4" data={dayBars} height={150} />
         </div>

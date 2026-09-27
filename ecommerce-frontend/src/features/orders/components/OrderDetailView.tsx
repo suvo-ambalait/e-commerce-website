@@ -50,7 +50,7 @@ export function OrderDetailView({
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="rounded-lg border border-border bg-surface p-4 text-sm">
+        <div className="rounded-2xl border border-border bg-surface shadow-sm p-4 text-sm">
           <p className="text-caption uppercase tracking-wide text-ink-mute">Ship to</p>
           <p className="mt-1.5 leading-relaxed text-ink-soft">
             {order.shippingInfo.fullName}
@@ -64,7 +64,7 @@ export function OrderDetailView({
             {order.shippingInfo.phone}
           </p>
         </div>
-        <div className="rounded-lg border border-border bg-surface p-4 text-sm">
+        <div className="rounded-2xl border border-border bg-surface shadow-sm p-4 text-sm">
           <p className="text-caption uppercase tracking-wide text-ink-mute">Totals</p>
           <dl className="mt-1.5 space-y-1 text-ink-soft">
             <Row label="Subtotal" value={formatPrice(order.subtotal)} />
@@ -74,7 +74,7 @@ export function OrderDetailView({
             <Row label="Total" value={formatPrice(order.grandTotal)} strong />
           </dl>
         </div>
-        <div className="rounded-lg border border-border bg-surface p-4 text-sm">
+        <div className="rounded-2xl border border-border bg-surface shadow-sm p-4 text-sm">
           <p className="text-caption uppercase tracking-wide text-ink-mute">Fulfilment</p>
           <div className="mt-1.5 space-y-1">
             {shipments.map((s) => (

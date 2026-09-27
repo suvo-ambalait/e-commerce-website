@@ -12,12 +12,12 @@ export function ProductStockPanel({ product }: { product: Product }) {
   const [dialog, setDialog] = useState<'adjust' | 'receive' | null>(null)
 
   return (
-    <div className="rounded-lg border border-border bg-surface-sunken/50 p-4">
+    <div className="rounded-xl border border-border bg-surface-sunken/50 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-caption font-medium uppercase tracking-wide text-ink-mute">Inventory</p>
           <p className="mt-1 flex items-baseline gap-2">
-            <span className="font-serif text-2xl text-ink">{product.stock}</span>
+            <span className="font-display text-2xl font-extrabold text-ink">{product.stock}</span>
             <span className="text-caption text-ink-mute">on hand</span>
             <StockStatusBadge status={statusFor(product)} />
           </p>

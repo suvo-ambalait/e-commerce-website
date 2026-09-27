@@ -25,8 +25,8 @@ export function AdminSettings() {
     <div className="space-y-5">
       <PageHeader title="Settings" description="Store identity and marketplace economics." />
       <form onSubmit={submit} className="max-w-2xl space-y-6">
-        <fieldset className="space-y-4 rounded-lg border border-border bg-surface p-6">
-          <legend className="px-1 text-caption font-medium uppercase tracking-wide text-ink-mute">Identity</legend>
+        <fieldset className="space-y-4 rounded-2xl border border-border bg-surface shadow-sm p-6">
+          <legend className="float-left mb-1 flex w-full items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent [&+*]:clear-both"><span className="h-1.5 w-1.5 rounded-full bg-accent" />Identity</legend>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Store name">{(id) => <Input id={id} value={form.storeName} onChange={set('storeName')} />}</Field>
             <Field label="Tagline">{(id) => <Input id={id} value={form.tagline} onChange={set('tagline')} />}</Field>
@@ -38,8 +38,8 @@ export function AdminSettings() {
           </div>
         </fieldset>
 
-        <fieldset className="space-y-4 rounded-lg border border-border bg-surface p-6">
-          <legend className="px-1 text-caption font-medium uppercase tracking-wide text-ink-mute">Economics</legend>
+        <fieldset className="space-y-4 rounded-2xl border border-border bg-surface shadow-sm p-6">
+          <legend className="float-left mb-1 flex w-full items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent [&+*]:clear-both"><span className="h-1.5 w-1.5 rounded-full bg-accent" />Economics</legend>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Flat shipping rate ($, per vendor)">
               {(id) => <Input id={id} type="number" step="0.01" value={form.shippingFlatRate} onChange={set('shippingFlatRate')} />}
@@ -56,8 +56,8 @@ export function AdminSettings() {
           </div>
         </fieldset>
 
-        <fieldset className="space-y-4 rounded-lg border border-border bg-surface p-6">
-          <legend className="px-1 text-caption font-medium uppercase tracking-wide text-ink-mute">Inventory</legend>
+        <fieldset className="space-y-4 rounded-2xl border border-border bg-surface shadow-sm p-6">
+          <legend className="float-left mb-1 flex w-full items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent [&+*]:clear-both"><span className="h-1.5 w-1.5 rounded-full bg-accent" />Inventory</legend>
           <Field label="Low-stock threshold" hint="Products at or below this on-hand count are flagged Low, unless they set their own reorder point">
             {(id) => <Input id={id} type="number" step="1" min="0" value={form.lowStockThreshold} onChange={set('lowStockThreshold')} />}
           </Field>

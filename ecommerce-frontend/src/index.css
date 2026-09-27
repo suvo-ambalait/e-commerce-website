@@ -289,8 +289,8 @@ input[type='range']:focus-visible::-moz-range-thumb {
 
 /* the soft ring is opt-in, only on real form fields (see shared/ui/Field) */
 .field-focus:focus {
-  border-color: var(--ink);
-  box-shadow: 0 0 0 3px var(--field-ring);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

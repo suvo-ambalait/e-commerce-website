@@ -10,7 +10,10 @@ import { seedReviews } from '../data/reviews'
 export type ProductInput = Omit<Product, 'id' | 'slug' | 'sku'>
 
 interface CatalogContextValue {
+  /** live listings only — what the storefront shows */
   products: Product[]
+  /** every listing incl. drafts and archived — for admin tables */
+  allProducts: Product[]
   categories: Category[]
   reviews: Review[]
   getProduct: (id: string) => Product | undefined
@@ -30,11 +33,13 @@ interface CatalogContextValue {
 const CatalogContext = createContext<CatalogContextValue | null>(null)
 
 export function CatalogProvider({ children }: { children: ReactNode }) {
-  const [products, setProducts] = usePersistedState<Product[]>(storageKeys.products, seedProducts)
+  const [allProducts, setProducts] = usePersistedState<Product[]>(storageKeys.products, seedProducts)
+  const products = useMemo(() => allProducts.filter((p) => (p.status ?? 'active') === 'active'), [allProducts])
   const [categories, setCategories] = usePersistedState<Category[]>(storageKeys.categories, seedCategories)
   const [reviews, setReviews] = usePersistedState<Review[]>(storageKeys.reviews, seedReviews)
 
-  const getProduct = useCallback((id: string) => products.find((p) => p.id === id), [products])
+  // lookups search every listing so admin edit screens can open drafts / archived items
+  const getProduct = useCallback((id: string) => allProducts.find((p) => p.id === id), [allProducts])
   const getProductBySlug = useCallback((slug: string) => products.find((p) => p.slug === slug), [products])
   const productsByVendor = useCallback(
     (vendorId: string) => products.filter((p) => p.vendorId === vendorId),
@@ -57,7 +62,13 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   const addProduct = useCallback<CatalogContextValue['addProduct']>(
     (input) => {
       const id = `p-${Date.now().toString(36)}`
-      const product: Product = { ...input, id, slug: slugify(input.name) || id, sku: `SKU-${id.toUpperCase()}` }
+      const product: Product = {
+        ...input,
+        id,
+        slug: slugify(input.name) || id,
+        sku: `SKU-${id.toUpperCase()}`,
+        updatedAt: new Date().toISOString(),
+      }
       setProducts((prev) => [product, ...prev])
       return product
     },
@@ -67,13 +78,20 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   const updateProduct = useCallback<CatalogContextValue['updateProduct']>(
     (id, input) =>
       setProducts((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, ...input, id, slug: slugify(input.name) || p.slug } : p)),
+        prev.map((p) =>
+          p.id === id
+            ? { ...p, ...input, id, slug: slugify(input.name) || p.slug, updatedAt: new Date().toISOString() }
+            : p,
+        ),
       ),
     [setProducts],
   )
 
   const patchProduct = useCallback<CatalogContextValue['patchProduct']>(
-    (id, patch) => setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch, id } : p))),
+    (id, patch) =>
+      setProducts((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, ...patch, id, updatedAt: new Date().toISOString() } : p)),
+      ),
     [setProducts],
   )
 
@@ -106,6 +124,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   const value = useMemo<CatalogContextValue>(
     () => ({
       products,
+      allProducts,
       categories,
       reviews,
       getProduct,
@@ -122,7 +141,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       deleteCategory,
     }),
     [
-      products, categories, reviews, getProduct, getProductBySlug, productsByVendor, reviewsFor,
+      products, allProducts, categories, reviews, getProduct, getProductBySlug, productsByVendor, reviewsFor,
       addReview, addProduct, updateProduct, patchProduct, deleteProduct, addCategory, updateCategory, deleteCategory,
     ],
   )

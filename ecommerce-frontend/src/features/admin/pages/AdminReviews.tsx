@@ -1,47 +1,68 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { PageHeader, DataTable, StatCard, Toolbar, type Column } from '../components/primitives'
-import { Input, Rating, Select } from '@/shared/ui'
+import { LuExternalLink, LuFlag, LuMessageSquareQuote, LuStar, LuThumbsDown } from 'react-icons/lu'
+import { PageHeader, DataTable, StatCard, StatGrid, FadeItem, type Column } from '../components/primitives'
+import {
+  ColumnsMenu,
+  DensityToggle,
+  ExportButton,
+  FilterField,
+  FilterMenu,
+  TableSearch,
+  TableTabs,
+  TableToolbar,
+  downloadCsv,
+  useTablePrefs,
+} from '../components/TableKit'
+import { Rating, Select } from '@/shared/ui'
 import { formatDate } from '@/shared/lib/format'
 import { useToast } from '@/shared/ui/Toast'
 import { useCatalog } from '@/features/catalog/context/CatalogContext'
 import { useVendors } from '@/features/vendor/context/VendorContext'
 import type { Review } from '@/shared/types'
 
+type Tab = 'all' | '5' | '4' | 'low'
+
 export function AdminReviews() {
-  const { reviews, products } = useCatalog()
+  const { reviews, allProducts } = useCatalog()
   const { vendors, getVendor } = useVendors()
   const { notify } = useToast()
   const [search, setSearch] = useState('')
+  const [tab, setTab] = useState<Tab>('all')
   const [vendorId, setVendorId] = useState('')
-  const [minRating, setMinRating] = useState(0)
+  const [prefs, setPrefs] = useTablePrefs('admin-reviews')
 
-  const productMap = useMemo(() => new Map(products.map((p) => [p.id, p])), [products])
+  const productMap = useMemo(() => new Map(allProducts.map((p) => [p.id, p])), [allProducts])
 
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase()
     return reviews.filter((r) => {
       const product = productMap.get(r.productId)
-      if (q && !r.comment.toLowerCase().includes(q) && !r.author.toLowerCase().includes(q) && !(product?.name.toLowerCase().includes(q))) return false
+      if (tab === '5' && r.rating !== 5) return false
+      if (tab === '4' && r.rating !== 4) return false
+      if (tab === 'low' && r.rating > 3) return false
       if (vendorId && product?.vendorId !== vendorId) return false
-      if (minRating && r.rating < minRating) return false
+      if (q && !`${r.title} ${r.comment} ${r.author} ${product?.name ?? ''}`.toLowerCase().includes(q)) return false
       return true
     })
-  }, [reviews, productMap, search, vendorId, minRating])
+  }, [reviews, productMap, search, tab, vendorId])
 
   const avg = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0
+  const n = (f: (r: Review) => boolean) => reviews.filter(f).length
 
   const columns: Column<Review>[] = [
     {
       header: 'Product',
+      id: 'product',
+      sortValue: (r) => productMap.get(r.productId)?.name ?? '',
       cell: (r) => {
         const p = productMap.get(r.productId)
         return p ? (
-          <Link to={`/product/${p.id}`} className="flex items-center gap-2 font-medium text-ink hover:text-accent">
-            <img src={p.images[0]} alt="" className="h-9 w-9 rounded-sm object-cover" />
+          <Link to={`/admin/products/${p.id}/edit`} className="group flex items-center gap-3">
+            <img src={p.images[0]} alt="" className="h-11 w-11 shrink-0 rounded-xl bg-surface-sunken object-cover" />
             <span className="min-w-0">
-              <span className="block truncate">{p.name}</span>
-              <span className="block text-caption font-normal text-ink-mute">{getVendor(p.vendorId)?.name}</span>
+              <span className="block max-w-44 truncate font-display font-bold text-ink group-hover:text-accent">{p.name}</span>
+              <span className="block max-w-44 truncate text-[11px] text-ink-mute">{getVendor(p.vendorId)?.name}</span>
             </span>
           </Link>
         ) : (
@@ -49,67 +70,136 @@ export function AdminReviews() {
         )
       },
     },
-    { header: 'Rating', cell: (r) => <Rating value={r.rating} /> },
+    {
+      header: 'Rating',
+      id: 'rating',
+      sortValue: (r) => r.rating,
+      cell: (r) => <Rating value={r.rating} />,
+    },
     {
       header: 'Review',
+      id: 'review',
+      hideBelow: 'md',
       cell: (r) => (
-        <div className="max-w-md">
-          <p className="text-sm text-ink">{r.title}</p>
+        <div className="max-w-sm">
+          <p className="truncate font-semibold text-ink">{r.title}</p>
           <p className="line-clamp-2 text-caption text-ink-mute">{r.comment}</p>
         </div>
       ),
-      hideBelow: 'md',
     },
-    { header: 'By', cell: (r) => r.author, hideBelow: 'sm' },
-    { header: 'Date', cell: (r) => formatDate(r.date), hideBelow: 'lg' },
     {
-      header: '',
-      className: 'text-right',
-      cell: () => (
-        <button
-          type="button"
-          onClick={() => notify('Review flagged for follow-up')}
-          className="text-caption text-ink-mute hover:text-danger"
-        >
-          Flag
-        </button>
-      ),
+      header: 'By',
+      id: 'author',
+      hideBelow: 'lg',
+      sortValue: (r) => r.author,
+      cell: (r) => <span className="whitespace-nowrap text-ink-soft">{r.author}</span>,
+    },
+    {
+      header: 'Date',
+      id: 'date',
+      hideBelow: 'sm',
+      sortValue: (r) => r.date,
+      cell: (r) => <span className="whitespace-nowrap text-ink-mute">{formatDate(r.date)}</span>,
     },
   ]
 
   return (
-    <div className="space-y-5">
-      <PageHeader title="Reviews" description={`${reviews.length} across the marketplace`} />
+    <div className="space-y-4">
+      <PageHeader
+        title="Reviews"
+        description={`${reviews.length} reviews across the marketplace`}
+        action={
+          <ExportButton
+            onClick={() =>
+              downloadCsv(
+                'reviews.csv',
+                ['product', 'rating', 'title', 'comment', 'author', 'date'],
+                rows.map((r) => [productMap.get(r.productId)?.name ?? '', r.rating, r.title, r.comment, r.author, r.date.slice(0, 10)]),
+              )
+            }
+          />
+        }
+      />
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Average rating" value={avg.toFixed(2)} />
-        <StatCard label="5-star" value={String(reviews.filter((r) => r.rating === 5).length)} />
-        <StatCard label="3-star or below" value={String(reviews.filter((r) => r.rating <= 3).length)} />
-      </div>
+      <StatGrid>
+        <FadeItem>
+          <StatCard label="Average rating" value={avg.toFixed(2)} icon={LuStar} hint={`from ${reviews.length} reviews`} />
+        </FadeItem>
+        <FadeItem>
+          <StatCard label="5-star" value={String(n((r) => r.rating === 5))} icon={LuMessageSquareQuote} hint="glowing" />
+        </FadeItem>
+        <FadeItem>
+          <StatCard label="4-star" value={String(n((r) => r.rating === 4))} icon={LuStar} hint="happy" />
+        </FadeItem>
+        <FadeItem>
+          <StatCard
+            label="3-star or below"
+            value={String(n((r) => r.rating <= 3))}
+            icon={LuThumbsDown}
+            tone={n((r) => r.rating <= 3) ? 'warning' : 'default'}
+            hint="worth a follow-up"
+          />
+        </FadeItem>
+      </StatGrid>
 
-      <Toolbar>
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search reviews…" className="h-9 max-w-xs" />
-        <Select
-          size="sm"
-          value={vendorId}
-          onChange={setVendorId}
-          options={[{ value: '', label: 'All vendors' }, ...vendors.map((v) => ({ value: v.id, label: v.name }))]}
-          className="w-44"
-        />
-        <Select
-          size="sm"
-          value={String(minRating)}
-          onChange={(v) => setMinRating(Number(v))}
-          options={[
-            { value: '0', label: 'Any rating' },
-            { value: '4', label: '4+ only' },
-            { value: '5', label: '5 only' },
-          ]}
-          className="w-36"
-        />
-      </Toolbar>
-
-      <DataTable rows={rows} columns={columns} keyOf={(r) => r.id} empty="No reviews match." />
+      <DataTable
+        rows={rows}
+        columns={columns}
+        keyOf={(r) => r.id}
+        empty="No reviews match."
+        toolbar={
+          <TableToolbar
+            end={
+              <>
+                <DensityToggle value={prefs.density} onChange={(density) => setPrefs((p) => ({ ...p, density }))} />
+                <ColumnsMenu
+                  options={[
+                    { id: 'review', label: 'Review' },
+                    { id: 'author', label: 'By' },
+                    { id: 'date', label: 'Date' },
+                  ]}
+                  hidden={prefs.hidden}
+                  onChange={(hidden) => setPrefs((p) => ({ ...p, hidden }))}
+                />
+                <FilterMenu count={vendorId ? 1 : 0} onClear={() => setVendorId('')}>
+                  <FilterField label="Maker">
+                    <Select
+                      size="sm"
+                      value={vendorId}
+                      onChange={setVendorId}
+                      options={[{ value: '', label: 'All makers' }, ...vendors.map((v) => ({ value: v.id, label: v.name }))]}
+                    />
+                  </FilterField>
+                </FilterMenu>
+              </>
+            }
+          >
+            <TableSearch value={search} onChange={setSearch} placeholder="Search reviews" />
+            <TableTabs
+              value={tab}
+              onChange={setTab}
+              tabs={[
+                { value: 'all', label: 'All', count: reviews.length },
+                { value: '5', label: '5★', count: n((r) => r.rating === 5) },
+                { value: '4', label: '4★', count: n((r) => r.rating === 4) },
+                { value: 'low', label: '3★ & below', count: n((r) => r.rating <= 3) },
+              ]}
+            />
+          </TableToolbar>
+        }
+        density={prefs.density}
+        hiddenColumns={prefs.hidden}
+        defaultSort={{ id: 'date', dir: 'desc' }}
+        rowActions={[
+          {
+            label: 'View on store',
+            icon: LuExternalLink,
+            onClick: (r) => window.open(`/product/${r.productId}`, '_blank', 'noopener'),
+            hidden: (r) => !productMap.has(r.productId),
+          },
+          { label: 'Flag for follow-up', icon: LuFlag, onClick: () => notify('Review flagged for follow-up') },
+        ]}
+      />
     </div>
   )
 }

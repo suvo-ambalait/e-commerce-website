@@ -1,6 +1,7 @@
-import { Badge } from '@/shared/ui'
-import { statusLabel, statusTone, type StockStatus } from '../lib/status'
+import { StockPill } from '@/features/admin/components/TableKit'
+import type { StockStatus } from '../lib/status'
 
-export function StockStatusBadge({ status }: { status: StockStatus }) {
-  return <Badge tone={statusTone[status]}>{statusLabel[status]}</Badge>
+/** Stock state as a coloured pill — pass `stock` to show the unit count. */
+export function StockStatusBadge({ status, stock }: { status: StockStatus; stock?: number }) {
+  return <StockPill status={status} stock={stock} />
 }

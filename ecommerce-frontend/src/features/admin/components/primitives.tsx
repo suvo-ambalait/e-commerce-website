@@ -1,7 +1,9 @@
-import { useEffect, useState, type ComponentType, type ReactNode, type SVGProps } from 'react'
+import type { ComponentType, ReactNode, SVGProps } from 'react'
 import { motion } from 'motion/react'
 import { cn } from '@/shared/lib/cn'
-import { Pagination, Sparkline } from '@/shared/ui'
+import { Sparkline } from '@/shared/ui'
+
+export { DataTable, BulkButton, type Column, type RowAction, type Density, type SortState } from './DataTable'
 
 export function PageHeader({
   title,
@@ -145,102 +147,6 @@ export function FadeItem({ children, className }: { children: ReactNode; classNa
     >
       {children}
     </motion.div>
-  )
-}
-
-export interface Column<T> {
-  header: string
-  cell: (row: T) => ReactNode
-  className?: string
-  hideBelow?: 'sm' | 'md' | 'lg'
-}
-
-const hideClass = { sm: 'hidden sm:table-cell', md: 'hidden md:table-cell', lg: 'hidden lg:table-cell' }
-
-export function DataTable<T>({
-  rows,
-  columns,
-  keyOf,
-  empty = 'Nothing here yet.',
-  pageSize = 10,
-}: {
-  rows: T[]
-  columns: Column<T>[]
-  keyOf: (row: T) => string
-  empty?: string
-  pageSize?: number
-}) {
-  const [page, setPage] = useState(1)
-  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize))
-  const current = Math.min(page, totalPages)
-
-  useEffect(() => {
-    if (page > totalPages) setPage(totalPages)
-  }, [page, totalPages])
-
-  if (rows.length === 0) {
-    return (
-      <div className="rounded-2xl border border-border bg-surface p-10 text-center text-sm text-ink-mute shadow-sm">
-        {empty}
-      </div>
-    )
-  }
-
-  const start = (current - 1) * pageSize
-  const pageRows = rows.slice(start, start + pageSize)
-
-  return (
-    <>
-      {/* table on md+, stacked cards on mobile — scrolls sideways when columns overflow */}
-      <div className="hidden overflow-x-auto rounded-2xl border border-border bg-surface shadow-sm md:block">
-        <table className="w-full min-w-3xl text-sm">
-          <thead>
-            <tr className="border-b border-border bg-surface-sunken/60 text-left text-[11px] uppercase tracking-[0.12em] text-accent">
-              {columns.map((col) => (
-                <th key={col.header} className={cn('whitespace-nowrap px-4 py-3 font-semibold', col.hideBelow && hideClass[col.hideBelow])}>
-                  {col.header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {pageRows.map((row) => (
-              <tr key={keyOf(row)} className="border-b border-border transition-colors last:border-0 hover:bg-accent-soft/40">
-                {columns.map((col) => (
-                  <td
-                    key={col.header}
-                    className={cn('px-4 py-3 text-ink-soft', col.className, col.hideBelow && hideClass[col.hideBelow])}
-                  >
-                    {col.cell(row)}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="space-y-3 md:hidden">
-        {pageRows.map((row) => (
-          <div key={keyOf(row)} className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
-            {columns.map((col) => (
-              <div key={col.header} className="flex justify-between gap-3 py-1 text-sm">
-                <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-accent">{col.header}</span>
-                <span className="text-right text-ink-soft">{col.cell(row)}</span>
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-surface px-4 py-2.5 shadow-sm">
-        <p className="text-caption text-ink-mute">
-          Showing <span className="text-ink-soft">{start + 1}–{Math.min(start + pageSize, rows.length)}</span> of{' '}
-          <span className="text-ink-soft">{rows.length}</span>
-        </p>
-        <Pagination page={current} totalPages={totalPages} onChange={setPage} alwaysShow />
-      </div>
-    </>
   )
 }
 

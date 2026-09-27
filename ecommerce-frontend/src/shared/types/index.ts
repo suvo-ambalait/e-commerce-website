@@ -63,7 +63,13 @@ export interface Product {
   tags: string[]
   featured?: boolean
   createdAt: string
+  /** listing state — undefined is treated as 'active' (older stored data) */
+  status?: ProductStatus
+  /** ISO timestamp of the last admin/vendor edit */
+  updatedAt?: string
 }
+
+export type ProductStatus = 'active' | 'draft' | 'archived'
 
 /* --------------------------- inventory ---------------------------- */
 

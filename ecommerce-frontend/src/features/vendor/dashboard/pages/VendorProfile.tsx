@@ -50,7 +50,7 @@ export function VendorProfile() {
         }
       />
 
-      <form onSubmit={submit} className="max-w-2xl space-y-5 rounded-lg border border-border bg-surface p-6">
+      <form onSubmit={submit} className="max-w-2xl space-y-5 rounded-2xl border border-border bg-surface shadow-sm p-6">
         <Field label="Tagline" required>
           {(id) => <Input id={id} required value={form.tagline} onChange={set('tagline')} />}
         </Field>

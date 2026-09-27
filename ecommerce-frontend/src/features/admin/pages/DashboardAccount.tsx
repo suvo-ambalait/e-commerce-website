@@ -9,7 +9,7 @@ export function DashboardAccount() {
     <div className="max-w-2xl space-y-6">
       <PageHeader title="Your profile" description="Applies across the dashboard and storefront." />
 
-      <div className="rounded-lg border border-border bg-surface p-5">
+      <div className="rounded-2xl border border-border bg-surface shadow-sm p-5">
         <p className="text-sm font-medium text-ink">Appearance</p>
         <div className="mt-3 flex gap-2">
           {(['light', 'dark', 'system'] as const).map((opt) => (

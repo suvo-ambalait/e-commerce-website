@@ -107,9 +107,9 @@ export function Select({
           }
         }}
         className={cn(
-          'field-focus flex w-full items-center justify-between gap-2 rounded-md border border-border-strong bg-surface text-left outline-none transition-[border-color,box-shadow] duration-[var(--dur-1)] hover:border-ink-mute disabled:cursor-not-allowed disabled:opacity-50',
-          size === 'sm' ? 'h-9 px-3 text-caption' : 'h-11 px-3.5 text-sm',
-          open && 'border-ink',
+          'field-focus flex w-full items-center justify-between gap-2 rounded-xl border border-border-strong bg-surface text-left outline-none transition-[border-color,box-shadow] duration-(--dur-1) hover:border-accent/50 disabled:cursor-not-allowed disabled:opacity-50',
+          size === 'sm' ? 'h-9 px-3 text-caption font-medium' : 'h-11 px-3.5 text-sm',
+          open && 'border-accent! ring-4 ring-accent/15',
         )}
       >
         <span className={cn('truncate', selected ? 'text-ink' : 'text-ink-mute')}>
@@ -125,7 +125,7 @@ export function Select({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.99 }}
             transition={{ duration: 0.14, ease: easeEditorial }}
-            className="absolute left-0 right-0 z-50 mt-1.5 overflow-hidden rounded-md border border-border bg-surface shadow-lg"
+            className="absolute left-0 right-0 z-50 mt-1.5 min-w-40 overflow-hidden rounded-xl border border-border bg-surface shadow-lg"
           >
             {showSearch && (
               <div className="flex items-center gap-2 border-b border-border px-3">
@@ -156,8 +156,9 @@ export function Select({
                         onMouseEnter={() => setActive(i)}
                         onClick={() => commit(opt.value)}
                         className={cn(
-                          'flex w-full items-center justify-between gap-2 rounded-sm px-2.5 py-2 text-left text-sm transition-colors',
-                          i === active ? 'bg-surface-sunken text-ink' : 'text-ink-soft',
+                          'flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors',
+                          i === active ? 'bg-accent-soft text-ink' : 'text-ink-soft',
+                          isSelected && 'font-semibold text-accent',
                         )}
                       >
                         <span className="min-w-0">

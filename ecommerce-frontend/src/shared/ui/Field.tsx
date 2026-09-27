@@ -9,11 +9,11 @@ import { LuCheck } from 'react-icons/lu'
 import { cn } from '@/shared/lib/cn'
 
 const control =
-  'field-focus w-full rounded-md border border-border-strong bg-surface px-3.5 text-sm text-ink placeholder:text-ink-mute transition-[color,border-color,box-shadow] duration-[var(--dur-1)] outline-none hover:border-ink-mute disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-surface-sunken aria-invalid:border-danger aria-invalid:shadow-[0_0_0_3px_color-mix(in_srgb,var(--danger)_16%,transparent)]'
+  'field-focus w-full rounded-xl border border-border-strong bg-surface px-3.5 text-sm text-ink placeholder:text-ink-mute transition-[color,border-color,box-shadow] duration-(--dur-1) outline-none hover:border-accent/50 disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-surface-sunken aria-invalid:border-danger aria-invalid:shadow-[0_0_0_3px_color-mix(in_srgb,var(--danger)_16%,transparent)]'
 
 export function FieldLabel({ children, htmlFor }: { children: ReactNode; htmlFor?: string }) {
   return (
-    <label htmlFor={htmlFor} className="mb-1.5 block text-caption font-medium tracking-wide text-ink-soft">
+    <label htmlFor={htmlFor} className="mb-1.5 block text-sm font-semibold text-ink">
       {children}
     </label>
   )
@@ -73,10 +73,10 @@ export function Checkbox({ label, className, checked, ...props }: CheckProps) {
         <input
           type="checkbox"
           checked={checked}
-          className="peer absolute inset-0 cursor-pointer appearance-none rounded-[5px] border border-border-strong bg-surface transition-colors checked:border-ink checked:bg-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-40"
+          className="peer absolute inset-0 cursor-pointer appearance-none rounded-[5px] border border-border-strong bg-surface transition-colors checked:border-accent! checked:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-40"
           {...props}
         />
-        <LuCheck className="pointer-events-none h-3 w-3 scale-50 text-bg opacity-0 transition-all duration-[var(--dur-1)] peer-checked:scale-100 peer-checked:opacity-100" />
+        <LuCheck className="pointer-events-none h-3 w-3 scale-50 text-on-accent opacity-0 transition-all duration-[var(--dur-1)] peer-checked:scale-100 peer-checked:opacity-100" />
       </span>
       <span className="transition-colors group-hover:text-ink">{label}</span>
     </label>
@@ -89,10 +89,10 @@ export function Radio({ label, className, ...props }: CheckProps) {
       <span className="relative inline-flex h-4.5 w-4.5 shrink-0 items-center justify-center">
         <input
           type="radio"
-          className="peer absolute inset-0 cursor-pointer appearance-none rounded-full border border-border-strong bg-surface transition-colors checked:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-40"
+          className="peer absolute inset-0 cursor-pointer appearance-none rounded-full border border-border-strong bg-surface transition-colors checked:border-accent! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-40"
           {...props}
         />
-        <span className="pointer-events-none h-2 w-2 scale-0 rounded-full bg-ink transition-transform duration-[var(--dur-1)] peer-checked:scale-100" />
+        <span className="pointer-events-none h-2 w-2 scale-0 rounded-full bg-accent transition-transform duration-[var(--dur-1)] peer-checked:scale-100" />
       </span>
       <span className="transition-colors group-hover:text-ink">{label}</span>
     </label>
@@ -124,12 +124,12 @@ export function Switch({
         onClick={() => onChange(!checked)}
         className={cn(
           'relative h-6 w-10 shrink-0 rounded-full border transition-colors duration-[var(--dur-1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-40',
-          checked ? 'border-ink bg-ink' : 'border-border-strong bg-surface-sunken',
+          checked ? 'border-accent! bg-accent' : 'border-transparent bg-border-strong',
         )}
       >
         <span
           className={cn(
-            'absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-surface shadow-sm transition-transform duration-[var(--dur-1)]',
+            'absolute left-0 top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-white shadow-sm transition-transform duration-[var(--dur-1)]',
             checked ? 'translate-x-4.5' : 'translate-x-0.5',
           )}
         />

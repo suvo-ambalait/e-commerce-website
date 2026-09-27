@@ -10,16 +10,16 @@ const base =
 
 const variants: Record<Variant, string> = {
   primary: 'bg-ink text-bg shadow-sm hover:bg-ink-soft hover:shadow-md active:shadow-sm',
-  secondary: 'border border-border-strong bg-surface text-ink hover:border-ink hover:bg-surface-sunken',
+  secondary: 'border border-border-strong bg-surface text-ink hover:border-accent hover:text-accent',
   ghost: 'text-ink-soft hover:bg-surface-sunken hover:text-ink',
   link: 'text-accent underline-offset-4 hover:underline px-0! h-auto! active:translate-y-0',
   danger: 'bg-danger text-white shadow-sm hover:opacity-90 hover:shadow-md',
 }
 
 const sizes: Record<Size, string> = {
-  sm: 'h-9 px-4 text-caption rounded-md',
-  md: 'h-11 px-6 text-sm rounded-md',
-  lg: 'h-13 px-8 text-sm rounded-md',
+  sm: 'h-9 px-4 text-caption font-semibold rounded-xl',
+  md: 'h-11 px-6 text-sm font-semibold rounded-xl',
+  lg: 'h-13 px-8 text-sm font-semibold rounded-xl',
 }
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

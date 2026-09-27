@@ -53,7 +53,7 @@ export function AdminCustomerDetail() {
       <div>
         <h3 className="mb-3 text-sm font-medium text-ink">Order history</h3>
         {theirOrders.length === 0 ? (
-          <p className="rounded-lg border border-border bg-surface p-6 text-center text-sm text-ink-mute">
+          <p className="rounded-2xl border border-border bg-surface shadow-sm p-6 text-center text-sm text-ink-mute">
             No orders yet.
           </p>
         ) : (
@@ -62,7 +62,7 @@ export function AdminCustomerDetail() {
               <Link
                 key={order.orderNumber}
                 to={`/admin/orders/${order.orderNumber}`}
-                className="block rounded-lg border border-border bg-surface p-4 transition-shadow hover:shadow-sm"
+                className="block rounded-2xl border border-border bg-surface shadow-sm p-4 transition-shadow hover:shadow-sm"
               >
                 <div className="flex items-center justify-between">
                   <div>

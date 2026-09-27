@@ -71,7 +71,7 @@ export function InventoryDetailView({
         <StatCard label="Reorder point" value={String(reorderPointFor(product))} />
       </div>
 
-      <div className="max-w-xs rounded-lg border border-border bg-surface p-4">
+      <div className="max-w-xs rounded-2xl border border-border bg-surface shadow-sm p-4">
         <Field label="Reorder point" hint="Blank uses the store default">
           {(id) => (
             <Input
@@ -89,7 +89,7 @@ export function InventoryDetailView({
         </Field>
       </div>
 
-      <div className="rounded-lg border border-border bg-surface p-5">
+      <div className="rounded-2xl border border-border bg-surface shadow-sm p-5">
         <h3 className="mb-3 text-sm font-medium text-ink">Movement history</h3>
         <StockHistory productId={product.id} />
       </div>
