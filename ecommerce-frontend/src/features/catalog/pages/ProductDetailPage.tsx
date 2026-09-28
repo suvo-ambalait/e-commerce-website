@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { motion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { LuArrowRight, LuCheck, LuLayers, LuSparkles, LuStore, LuTruck, LuZap } from 'react-icons/lu'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
 import {
@@ -16,7 +16,7 @@ import {
 } from '@/shared/ui'
 import { BagIcon, HeartIcon, TruckIcon, LeafIcon } from '@/shared/ui/icons'
 import { cn } from '@/shared/lib/cn'
-import { discountFraction, formatPercent } from '@/shared/lib/format'
+import { discountFraction, formatPercent, formatPrice } from '@/shared/lib/format'
 import { useCatalog } from '../context/CatalogContext'
 import { useCart } from '@/features/cart/context/CartContext'
 import { useWishlist } from '@/features/account/context/WishlistContext'
@@ -51,6 +51,9 @@ export function ProductDetailPage() {
   const [color, setColor] = useState(COLORS[0])
   const [size] = useState(SIZES[0])
   const [qty, setQty] = useState(1)
+  const [added, setAdded] = useState(false)
+  const addedTimer = useRef<number | undefined>(undefined)
+  useEffect(() => () => window.clearTimeout(addedTimer.current), [])
 
   useDocumentTitle(product ? `${product.name} · AmbalaEshop` : 'Product · AmbalaEshop')
 
@@ -74,9 +77,14 @@ export function ProductDetailPage() {
   const stock = statusFor(product)
   const soldOut = product.stock <= 0
 
+  const saving = product.originalPrice && product.originalPrice > product.price ? (product.originalPrice - product.price) * qty : 0
+
   const add = () => {
     addItem(product, { size, color, quantity: qty })
     notify(`${product.name} added to cart`, 'success')
+    setAdded(true)
+    window.clearTimeout(addedTimer.current)
+    addedTimer.current = window.setTimeout(() => setAdded(false), 1600)
   }
 
   const buyNow = () => {
@@ -152,64 +160,122 @@ export function ProductDetailPage() {
                 </div>
               </div>
 
-              {/* purchase actions */}
-              <div className="mt-6 space-y-3">
-                <div className="flex items-center gap-3">
-                  <QuantityStepper value={qty} onChange={setQty} max={Math.max(1, product.stock)} size="lg" className="shrink-0" />
+              {/* purchase card */}
+              <div className="mt-6 rounded-3xl border border-border bg-surface p-4 shadow-[0_14px_40px_rgba(40,20,80,0.07)] sm:p-5">
+                {/* quantity + live total + save */}
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-mute">Quantity</p>
+                    <QuantityStepper
+                      value={qty}
+                      onChange={setQty}
+                      max={Math.max(1, product.stock)}
+                      className={cn(soldOut && 'pointer-events-none opacity-50')}
+                    />
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="text-right">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-mute">Total</p>
+                      <p className="mt-1 font-display text-2xl font-extrabold leading-none tracking-[-0.03em] text-ink tabular-nums">
+                        {formatPrice(product.price * qty)}
+                      </p>
+                      {saving > 0 && (
+                        <p className="mt-1 text-caption font-semibold text-success tabular-nums">
+                          You save {formatPrice(saving)}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      aria-label={wishlisted ? 'Remove from saved items' : 'Save for later'}
+                      aria-pressed={wishlisted}
+                      title={wishlisted ? 'Saved' : 'Save for later'}
+                      onClick={() => {
+                        toggle(product.id)
+                        notify(wishlisted ? 'Removed from saved items' : 'Saved for later', 'success')
+                      }}
+                      className={cn(
+                        'flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition-[color,background-color,border-color,transform] active:scale-90',
+                        wishlisted
+                          ? 'border-accent! bg-accent-soft text-accent'
+                          : 'border-border-strong bg-surface text-ink-soft hover:border-accent! hover:text-accent',
+                      )}
+                    >
+                      <HeartIcon className={cn('h-5 w-5', wishlisted && 'fill-current')} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* actions */}
+                <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
                   <button
                     type="button"
                     onClick={add}
                     disabled={soldOut}
-                    className="group inline-flex h-13 min-w-0 flex-1 items-center justify-center gap-2.5 rounded-full bg-accent px-6 text-sm font-semibold text-on-accent shadow-[0_10px_28px_rgba(109,40,217,0.3)] transition-[background-color,transform] hover:bg-accent-hover active:translate-y-px disabled:cursor-not-allowed disabled:bg-border-strong disabled:text-ink-mute disabled:shadow-none"
-                  >
-                    <BagIcon className="h-4.5 w-4.5 shrink-0" />
-                    <span className="truncate">{soldOut ? 'Sold out' : 'Add to cart'}</span>
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={wishlisted ? 'Remove from saved items' : 'Save for later'}
-                    aria-pressed={wishlisted}
-                    onClick={() => {
-                      toggle(product.id)
-                      notify(wishlisted ? 'Removed from saved items' : 'Saved for later', 'success')
-                    }}
                     className={cn(
-                      'flex h-13 w-13 shrink-0 items-center justify-center rounded-full border transition-colors',
-                      wishlisted
-                        ? 'border-accent! bg-accent-soft text-accent'
-                        : 'border-border-strong bg-surface text-ink-soft hover:border-accent! hover:text-accent',
+                      'group relative inline-flex h-13 items-center justify-center gap-2.5 overflow-hidden rounded-2xl px-5 text-sm font-semibold text-on-accent transition-[background-color,transform,box-shadow] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-border-strong disabled:text-ink-mute disabled:shadow-none',
+                      added
+                        ? 'bg-success shadow-[0_10px_24px_rgba(34,120,60,0.25)]'
+                        : 'bg-accent shadow-[0_10px_28px_rgba(109,40,217,0.3)] hover:bg-accent-hover',
+                      soldOut && 'sm:col-span-2',
                     )}
                   >
-                    <HeartIcon className={cn('h-5 w-5', wishlisted && 'fill-current')} />
+                    <AnimatePresence mode="wait" initial={false}>
+                      <motion.span
+                        key={soldOut ? 'out' : added ? 'added' : 'add'}
+                        initial={{ y: 12, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: -12, opacity: 0 }}
+                        transition={{ duration: 0.18 }}
+                        className="inline-flex items-center gap-2.5"
+                      >
+                        {added ? <LuCheck className="h-4.5 w-4.5" /> : <BagIcon className="h-4.5 w-4.5 shrink-0" />}
+                        {soldOut ? 'Sold out' : added ? 'Added to cart' : 'Add to cart'}
+                      </motion.span>
+                    </AnimatePresence>
                   </button>
+
+                  {!soldOut && (
+                    <button
+                      type="button"
+                      onClick={buyNow}
+                      className="group inline-flex h-13 items-center justify-center gap-2 rounded-2xl bg-ink px-5 text-sm font-semibold text-bg transition-[opacity,transform] hover:opacity-90 active:scale-[0.98]"
+                    >
+                      <LuZap className="h-4 w-4 text-[#c4b5fd]" />
+                      Buy now
+                      <LuArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </button>
+                  )}
                 </div>
 
-                {!soldOut && (
-                  <button
-                    type="button"
-                    onClick={buyNow}
-                    className="inline-flex h-13 w-full items-center justify-center gap-2 rounded-full border-2 border-ink bg-ink text-sm font-semibold text-bg transition-colors hover:bg-ink-soft hover:border-ink-soft"
-                  >
-                    <LuZap className="h-4 w-4" />
-                    Buy now
-                  </button>
-                )}
+                {/* stock */}
+                <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-3.5 text-caption">
+                  <span className="flex items-center gap-2 text-ink-soft">
+                    <span className="relative flex h-2 w-2">
+                      {stock !== 'out' && (
+                        <span
+                          className={cn(
+                            'absolute inline-flex h-full w-full animate-ping rounded-full opacity-60',
+                            stock === 'low' ? 'bg-warning' : 'bg-success',
+                          )}
+                        />
+                      )}
+                      <span
+                        className={cn(
+                          'relative inline-flex h-2 w-2 rounded-full',
+                          stock === 'out' ? 'bg-danger' : stock === 'low' ? 'bg-warning' : 'bg-success',
+                        )}
+                      />
+                    </span>
+                    {stock === 'out'
+                      ? 'Out of stock right now'
+                      : stock === 'low'
+                        ? `Only ${product.stock} left — order soon`
+                        : 'In stock, ready to ship'}
+                  </span>
+                  <span className="shrink-0 text-ink-mute tabular-nums">SKU {product.sku}</span>
+                </div>
               </div>
-
-              <p className="mt-3 flex items-center gap-2 text-caption text-ink-mute">
-                <span
-                  className={cn(
-                    'h-2 w-2 rounded-full',
-                    stock === 'out' ? 'bg-danger' : stock === 'low' ? 'bg-warning' : 'bg-success',
-                  )}
-                  aria-hidden
-                />
-                {stock === 'out'
-                  ? `Out of stock right now · SKU ${product.sku}`
-                  : stock === 'low'
-                    ? `Only ${product.stock} left in stock — order soon`
-                    : `In stock · SKU ${product.sku}`}
-              </p>
 
               {vendor && (
                 <div className="mt-6 space-y-2 rounded-lg border border-border bg-surface-sunken/60 p-4 text-caption text-ink-soft">
