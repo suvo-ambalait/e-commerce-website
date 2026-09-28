@@ -36,6 +36,9 @@ import { VendorOrderDetail } from '@/features/vendor/dashboard/pages/VendorOrder
 import { VendorPayouts } from '@/features/vendor/dashboard/pages/VendorPayouts'
 import { VendorReviews } from '@/features/vendor/dashboard/pages/VendorReviews'
 import { VendorProfile } from '@/features/vendor/dashboard/pages/VendorProfile'
+import { VendorAccount } from '@/features/vendor/dashboard/pages/VendorAccount'
+import { VendorCustomers } from '@/features/vendor/dashboard/pages/VendorCustomers'
+import { VendorCustomerDetail } from '@/features/vendor/dashboard/pages/VendorCustomerDetail'
 
 import { AdminLayout } from '@/features/admin/components/AdminLayout'
 import { AdminDashboard } from '@/features/admin/pages/AdminDashboard'
@@ -102,9 +105,11 @@ export function App() {
         <Route path="inventory" element={<VendorInventoryPage />} />
         <Route path="inventory/:id" element={<VendorInventoryDetail />} />
         <Route path="reviews" element={<VendorReviews />} />
+        <Route path="customers" element={<VendorCustomers />} />
+        <Route path="customers/:email" element={<VendorCustomerDetail />} />
         <Route path="payouts" element={<VendorPayouts />} />
         <Route path="profile" element={<VendorProfile />} />
-        <Route path="account" element={<DashboardAccount />} />
+        <Route path="account" element={<VendorAccount />} />
       </Route>
 
       <Route

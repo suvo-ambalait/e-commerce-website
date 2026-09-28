@@ -48,6 +48,7 @@ export function VendorProvider({ children }: { children: ReactNode }) {
         joinedAt: new Date().toISOString(),
         status: 'pending',
         ownerEmail: input.ownerEmail,
+        ownerPhone: input.ownerPhone,
         policies: {
           shipping: 'Standard shipping, 3–5 business days.',
           returns: '30-day returns on unused items.',

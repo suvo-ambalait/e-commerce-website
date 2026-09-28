@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ComponentType, type ReactNode, type SVGProps } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
-import { LuPanelLeftClose, LuPanelLeftOpen, LuChevronsUpDown, LuCornerDownLeft, LuUser, LuSettings, LuGlobe, LuLogOut } from 'react-icons/lu'
+import { LuPanelLeftClose, LuPanelLeftOpen, LuChevronsUpDown, LuCornerDownLeft } from 'react-icons/lu'
 import { cn } from '@/shared/lib/cn'
 import { easeEditorial } from '@/shared/lib/motion'
 import { usePersistedState } from '@/shared/hooks/usePersistedState'
@@ -9,7 +9,6 @@ import { ScrollToTop } from '@/shared/layout/ScrollToTop'
 import { BrandLockup, Logo } from '@/shared/layout/Logo'
 import { Drawer, Menu, MenuLink } from '@/shared/ui'
 import { ChevronRightIcon, MenuIcon, SearchIcon } from '@/shared/ui/icons'
-import { NotificationsMenu } from './NotificationsMenu'
 
 export interface NavItem {
   label: string
@@ -26,6 +25,14 @@ export interface NavGroup {
   items: NavItem[]
 }
 
+/** One entry in the account menu that opens from the user row at the bottom of the sidebar. */
+export interface AccountLink {
+  label: string
+  to: string
+  icon: ComponentType<SVGProps<SVGSVGElement>>
+  tone?: 'danger'
+}
+
 const badgeTone = {
   accent: 'bg-accent-soft text-accent',
   warning: 'bg-warning-soft text-warning',
@@ -37,16 +44,20 @@ export function DashboardShell({
   subtitle,
   groups,
   accent,
-  basePath,
-  user = { name: 'Admin', role: 'Platform owner' },
+  user,
+  accountLinks,
+  topBarActions,
 }: {
   storageKey: string
   subtitle: string
   groups: NavGroup[]
   /** card shown above the user row in the expanded sidebar */
   accent?: ReactNode
-  basePath: string
-  user?: { name: string; role: string }
+  user: { name: string; role: string }
+  /** account menu entries — each dashboard passes its own so admins and vendors only see their links */
+  accountLinks: AccountLink[]
+  /** extra buttons in the top bar, e.g. the admin notifications bell */
+  topBarActions?: ReactNode
 }) {
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -156,30 +167,14 @@ export function DashboardShell({
     >
       {(close) => (
         <div>
-          <MenuLink to={`${basePath}/account`} onClick={close}>
-            <div className="flex items-center gap-2">
-              <LuUser className="h-4 w-4" />
-            <span>Your profile</span>
-            </div>
-          </MenuLink>
-          <MenuLink to="/vendor/dashboard/profile" onClick={close}>
-            <div className="flex items-center gap-2">
-              <LuSettings className="h-4 w-4" />
-              <span>Storefront settings</span>
-            </div>
-          </MenuLink>
-          <MenuLink to="/" onClick={close}>
-            <div className="flex items-center gap-2">
-              <LuGlobe className="h-4 w-4" />
-              <span>View storefront</span>
-            </div>
-          </MenuLink>
-          <MenuLink to="/logout" onClick={close} tone="danger">
-            <div className="flex items-center gap-2">
-              <LuLogOut className="h-4 w-4" />
-              <span>Sign out</span>
-            </div>
-          </MenuLink>
+          {accountLinks.map((link) => (
+            <MenuLink key={link.to} to={link.to} onClick={close} tone={link.tone}>
+              <div className="flex items-center gap-2">
+                <link.icon className="h-4 w-4" />
+                <span>{link.label}</span>
+              </div>
+            </MenuLink>
+          ))}
         </div>
       )}
     </Menu>
@@ -282,7 +277,7 @@ export function DashboardShell({
             >
               <SearchIcon className="h-4 w-4" />
             </button>
-            <NotificationsMenu />
+            {topBarActions}
           </div>
         </div>
 

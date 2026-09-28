@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
-import { LuExternalLink } from 'react-icons/lu'
+import { LuExternalLink, LuGlobe, LuLogOut, LuSettings, LuUser } from 'react-icons/lu'
 import { DashboardShell, type NavGroup } from './DashboardShell'
+import { NotificationsMenu } from './NotificationsMenu'
 import {
   GridIcon,
   StorefrontIcon,
@@ -65,8 +66,15 @@ export function AdminLayout() {
     <DashboardShell
       storageKey="admin"
       subtitle="Platform admin"
-      basePath="/admin"
       groups={groups}
+      user={{ name: 'Admin', role: 'Platform owner' }}
+      topBarActions={<NotificationsMenu />}
+      accountLinks={[
+        { label: 'Your profile', to: '/admin/account', icon: LuUser },
+        { label: 'Store settings', to: '/admin/settings', icon: LuSettings },
+        { label: 'View storefront', to: '/', icon: LuGlobe },
+        { label: 'Sign out', to: '/logout', icon: LuLogOut, tone: 'danger' },
+      ]}
       accent={
         <div className="rounded-2xl bg-accent-soft/70 p-3.5">
           <p className="flex items-center gap-2 text-sm font-semibold text-ink">

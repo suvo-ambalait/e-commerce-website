@@ -28,6 +28,9 @@ export interface Vendor {
   joinedAt: string
   status: VendorStatus
   ownerEmail: string
+  /** optional — older seed vendors don't have these */
+  ownerName?: string
+  ownerPhone?: string
   policies: {
     shipping: string
     returns: string

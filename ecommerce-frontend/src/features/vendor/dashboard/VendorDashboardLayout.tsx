@@ -1,5 +1,6 @@
 import { DashboardShell, type NavGroup } from '@/features/admin/components/DashboardShell'
-import { GridIcon, BoxIcon, ReceiptIcon, WalletIcon, StorefrontIcon, StarIcon, AlertIcon } from '@/features/admin/components/icons'
+import { GridIcon, BoxIcon, ReceiptIcon, WalletIcon, StorefrontIcon, StarIcon, AlertIcon, UsersIcon } from '@/features/admin/components/icons'
+import { LuGlobe, LuLogOut, LuSettings, LuUser } from 'react-icons/lu'
 import { Badge } from '@/shared/ui'
 import { useCurrentVendor } from '../lib/useCurrentVendor'
 
@@ -16,6 +17,7 @@ const groups: NavGroup[] = [
     title: 'Sales',
     items: [
       { label: 'Orders', to: '/vendor/dashboard/orders', icon: ReceiptIcon },
+      { label: 'Customers', to: '/vendor/dashboard/customers', icon: UsersIcon },
       { label: 'Reviews', to: '/vendor/dashboard/reviews', icon: StarIcon },
       { label: 'Payouts', to: '/vendor/dashboard/payouts', icon: WalletIcon },
     ],
@@ -33,9 +35,14 @@ export function VendorDashboardLayout() {
     <DashboardShell
       storageKey="vendor"
       subtitle={vendor?.name ?? 'Vendor'}
-      basePath="/vendor/dashboard"
       groups={groups}
       user={{ name: vendor?.name ?? 'Vendor', role: 'Shop owner' }}
+      accountLinks={[
+        { label: 'Your profile', to: '/vendor/dashboard/account', icon: LuUser },
+        { label: 'Storefront settings', to: '/vendor/dashboard/profile', icon: LuSettings },
+        { label: 'View your shop', to: vendor ? `/vendor/${vendor.slug}` : '/', icon: LuGlobe },
+        { label: 'Sign out', to: '/logout', icon: LuLogOut, tone: 'danger' },
+      ]}
       accent={
         vendor && vendor.status !== 'active' ? (
           <div className="rounded-2xl bg-warning-soft px-3.5 py-3 text-caption text-warning">
