@@ -220,7 +220,7 @@ export const defaultContent: SiteContent = {
   ],
   pages: {
     'shipping-returns': {
-      title: 'Shipping & returns',
+      title: 'Delivery & returns',
       intro: 'Every shop on AmbalaEshop packs and sends its own parcel. Here is how delivery, cash on delivery and returns work.',
       sections: [
         { heading: 'Delivery areas and times', body: 'Inside Dhaka usually arrives in 1–2 days. Dhaka suburbs take 2–3 days, and the rest of Bangladesh 3–5 days. Each shop adds its own packing time, shown on the product page.' },
@@ -238,7 +238,7 @@ export const defaultContent: SiteContent = {
         { heading: 'Why did my order arrive in separate parcels?', body: 'Each shop ships its own items directly, so an order from three shops arrives as three parcels.' },
         { heading: 'Which payment methods can I use?', body: 'Cash on delivery, bKash, Nagad and debit or credit cards.' },
         { heading: 'How do I track my order?', body: 'Open “Track an order” and enter your order number and email, or see it in your account.' },
-        { heading: 'How do I return something?', body: 'Go to your order in your account and choose “Request a return” on the parcel. See Shipping & returns for the full policy.' },
+        { heading: 'How do I return something?', body: 'Go to your order in your account and choose “Request a return” on the parcel. See Delivery & returns for the full policy.' },
         { heading: 'How can I sell on AmbalaEshop?', body: 'Apply through “Sell on AmbalaEshop”. We review every application, usually within a week.' },
       ],
       updatedAt: today,

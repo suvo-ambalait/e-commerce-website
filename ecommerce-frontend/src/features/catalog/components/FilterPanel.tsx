@@ -141,7 +141,7 @@ export function FilterPanel({
         )}
 
         {!hideVendors && (
-          <Group title="Maker">
+          <Group title="Shop">
             {vendorsInPool.map((v) => (
               <CheckRow
                 key={v.id}

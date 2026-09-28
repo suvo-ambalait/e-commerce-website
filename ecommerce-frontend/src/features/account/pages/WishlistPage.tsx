@@ -15,7 +15,7 @@ export function WishlistPage() {
   return (
     <AccountCard
       title="Saved items"
-      subtitle={saved.length ? `${saved.length} ${saved.length > 1 ? 'pieces' : 'piece'} saved for later` : undefined}
+      subtitle={saved.length ? `${saved.length} ${saved.length > 1 ? 'products' : 'product'} saved for later` : undefined}
       aside={
         saved.length > 0 && (
           <Button
@@ -34,7 +34,7 @@ export function WishlistPage() {
         <EmptyState
           icon={<HeartIcon />}
           title="Nothing saved yet"
-          description="Tap the heart on any piece to keep it here for later."
+          description="Tap the heart on any product to save it here for later."
           action={<ButtonLink to="/shop">Browse the shop</ButtonLink>}
         />
       ) : (

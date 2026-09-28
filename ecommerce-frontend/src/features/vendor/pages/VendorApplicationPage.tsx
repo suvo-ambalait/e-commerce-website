@@ -63,11 +63,11 @@ function statusCopy(v: Vendor) {
     return { description: 'Your shop is live. Customers can find and buy from it now.', tone: 'success' as const }
   if (v.status === 'suspended')
     return {
-      description: 'We couldn’t approve your shop this time. See the note below for what to do next.',
+      description: 'Sorry, we could not approve your shop this time. See below for what to do next.',
       tone: 'danger' as const,
     }
   return {
-    description: 'We’ve received your application. A curator usually reviews it within a week, and we’ll email you either way.',
+    description: 'We got your application. Our team will check it within 7 days and email you the result.',
     tone: 'warning' as const,
   }
 }
@@ -77,14 +77,14 @@ function StatusView({ vendor }: { vendor: Vendor }) {
   const steps = [
     { title: 'Application sent', text: formatDateLong(vendor.joinedAt), done: true },
     {
-      title: 'Curator review',
-      text: vendor.status === 'pending' ? 'In progress — usually within a week' : 'Done',
+      title: 'Our team checks your shop',
+      text: vendor.status === 'pending' ? 'In progress — takes up to 7 days' : 'Done',
       done: vendor.status !== 'pending',
       current: vendor.status === 'pending',
     },
     {
       title: rejected ? 'Not approved' : 'Shop goes live',
-      text: vendor.status === 'active' ? 'Your storefront is public' : rejected ? 'Contact us to talk it through' : 'After approval',
+      text: vendor.status === 'active' ? 'Customers can see your shop' : rejected ? 'Contact us to talk about it' : 'After approval',
       done: vendor.status === 'active',
       failed: rejected,
     },
@@ -133,13 +133,13 @@ function StatusView({ vendor }: { vendor: Vendor }) {
           )}
           {vendor.status === 'pending' && (
             <p className="text-sm text-ink-soft">
-              You don’t have to wait. Set up your storefront, add products and add your payout details now. Everything goes live the
+              You don’t have to wait. Set up your shop page, add products and add your payment details now. Everything goes live the
               moment you’re approved.
             </p>
           )}
           {rejected && (
             <p className="text-sm text-ink-soft">
-              This is usually about product photos, materials or missing details. Contact us and we’ll tell you what to change before
+              This is usually because of unclear product photos or missing details. Contact us and we’ll tell you what to change before
               you apply again.
             </p>
           )}

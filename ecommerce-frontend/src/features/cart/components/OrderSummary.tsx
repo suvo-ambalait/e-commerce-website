@@ -37,7 +37,7 @@ export function OrderSummary({
           />
         )}
         <Row
-          label={`Shipping · ${parcels} ${parcels === 1 ? 'parcel' : 'parcels'}`}
+          label={`Delivery · ${parcels} ${parcels === 1 ? 'parcel' : 'parcels'}`}
           value={totals.shipping === 0 ? 'Free' : formatPrice(totals.shipping)}
         />
         <Row label="Tax (est.)" value={formatPrice(totals.tax)} />
@@ -50,7 +50,7 @@ export function OrderSummary({
         </span>
       </div>
       <p className="mt-3 text-caption text-[#8a849c]">
-        Shipping is calculated per maker — each shop sends its own parcel.
+        Each shop sends its own parcel, so delivery is charged per shop.
       </p>
 
       {showPromo && (

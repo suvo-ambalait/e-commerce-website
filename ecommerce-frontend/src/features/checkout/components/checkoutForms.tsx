@@ -29,7 +29,7 @@ export interface WalletInfo {
 export const emptyWallet: WalletInfo = { number: '', transactionId: '' }
 
 export const paymentMethods: { value: PaymentMethod; label: string; hint: string; icon: typeof LuBanknote }[] = [
-  { value: 'cod', label: 'Cash on delivery', hint: 'Pay the courier when it arrives', icon: LuBanknote },
+  { value: 'cod', label: 'Cash on delivery', hint: 'Pay in cash when your parcel arrives', icon: LuBanknote },
   { value: 'bkash', label: 'bKash', hint: 'Send money, then enter the transaction ID', icon: LuSmartphone },
   { value: 'nagad', label: 'Nagad', hint: 'Send money, then enter the transaction ID', icon: LuWallet },
   { value: 'card', label: 'Debit / credit card', hint: 'Visa, Mastercard, Amex', icon: LuCreditCard },
@@ -208,7 +208,7 @@ export function ShippingForm({
             <Field label="Full name" required>
               {(id) => <Input id={id} required value={value.fullName} onChange={set('fullName')} autoComplete="name" />}
             </Field>
-            <Field label="Phone" required hint="The courier will call this number">
+            <Field label="Phone" required hint="The delivery person will call this number">
               {(id) => (
                 <Input id={id} required type="tel" value={value.phone} onChange={set('phone')} autoComplete="tel" placeholder="+880 1712 345678" />
               )}
@@ -348,7 +348,7 @@ export function PaymentForm({
 
         {method === 'cod' && (
           <p className="mt-4 rounded-xl border border-border bg-surface-sunken/60 px-4 py-3 text-sm text-ink-soft">
-            Pay each shop’s parcel in cash when the courier hands it over. Please keep the exact amount ready.
+            Pay in cash to the delivery person when each parcel arrives. Please keep the exact amount ready.
           </p>
         )}
 

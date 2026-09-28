@@ -152,7 +152,7 @@ export function SellPrompt() {
       </span>
       <span className="min-w-0 flex-1 text-sm text-ink-soft">Want to sell on AmbalaEshop?</span>
       <span className="flex shrink-0 items-center gap-1 text-sm font-semibold text-accent">
-        Apply for a shop
+        Apply now
         <ArrowRightIcon className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
       </span>
     </Link>

@@ -23,7 +23,7 @@ export function LogoutPage() {
           </span>
           <h1 className="mt-5 font-display! text-3xl font-extrabold! tracking-[-0.03em]! text-ink">You’re signed out</h1>
           <p className="mt-2 max-w-sm text-sm text-ink-soft">
-            Thanks for visiting AmbalaEshop. Your cart and saved items stay on this device.
+            Thank you for shopping with AmbalaEshop. Your cart and saved items are still saved on this device.
           </p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <Link

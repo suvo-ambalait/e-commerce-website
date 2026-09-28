@@ -7,7 +7,7 @@ import { formatDateLong } from '@/shared/lib/format'
 import { contentStore, type PolicySlug } from '@/features/marketplace/stores'
 
 const policyNav: { slug: PolicySlug; label: string; icon: typeof LuTruck }[] = [
-  { slug: 'shipping-returns', label: 'Shipping & returns', icon: LuTruck },
+  { slug: 'shipping-returns', label: 'Delivery & returns', icon: LuTruck },
   { slug: 'faq', label: 'FAQ', icon: LuMessageCircleQuestion },
   { slug: 'terms', label: 'Terms of service', icon: LuFileText },
   { slug: 'privacy', label: 'Privacy policy', icon: LuShieldCheck },

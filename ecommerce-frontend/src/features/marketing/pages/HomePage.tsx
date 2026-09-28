@@ -9,7 +9,7 @@ import { Newsletter } from '../components/Newsletter'
 import { PromoBanners } from '../components/PromoBanners'
 
 export function HomePage() {
-  useDocumentTitle('AmbalaEshop — Considered design, many makers')
+  useDocumentTitle('AmbalaEshop — Online shopping in Bangladesh')
   return (
     <>
       <Hero />

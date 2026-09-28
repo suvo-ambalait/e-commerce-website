@@ -1,6 +1,6 @@
 export const primaryNav: { label: string; to: string; highlight?: boolean }[] = [
-  { label: 'Shop all', to: '/shop' },
-  { label: 'Makers', to: '/vendors' },
+  { label: 'All products', to: '/shop' },
+  { label: 'Shops', to: '/vendors' },
   { label: 'Sale', to: '/deals', highlight: true },
-  { label: 'Journal', to: '/about' },
+  { label: 'About us', to: '/about' },
 ]

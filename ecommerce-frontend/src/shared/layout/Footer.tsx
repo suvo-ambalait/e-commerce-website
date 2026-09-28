@@ -12,25 +12,26 @@ const columns: { title: string; links: FooterLink[] }[] = [
     title: 'Shop',
     links: [
       { label: 'All products', to: '/shop' },
-      { label: 'New this week', to: '/shop?sort=new' },
+      { label: 'New products', to: '/shop?sort=new' },
       { label: 'On sale', to: '/deals', badge: 'Sale' },
       { label: 'Gift ideas', to: '/shop' },
       { label: 'Customer reviews', to: '/reviews' },
     ],
   },
   {
-    title: 'Makers',
+    title: 'Sellers',
     links: [
-      { label: 'Directory', to: '/vendors' },
-      { label: 'Apply to sell', to: '/vendor/signup' },
-      { label: 'Our standards', to: '/about' },
+      { label: 'All shops', to: '/vendors' },
+      { label: 'Sell on AmbalaEshop', to: '/vendor/signup' },
+      { label: 'Check my application', to: '/vendor/application' },
+      { label: 'About us', to: '/about' },
     ],
   },
   {
-    title: 'Support',
+    title: 'Help',
     links: [
-      { label: 'Contact', to: '/contact' },
-      { label: 'Shipping & returns', to: '/shipping-returns' },
+      { label: 'Contact us', to: '/contact' },
+      { label: 'Delivery & returns', to: '/shipping-returns' },
       { label: 'FAQ', to: '/faq' },
       { label: 'Track an order', to: '/track-order' },
     ],
@@ -62,13 +63,13 @@ export function Footer() {
           <div className="relative flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/80">
-                The {settings.storeName} letter
+                {settings.storeName} newsletter
               </p>
               {/* `!` beats the global unlayered h2 font rule in index.css */}
               <h2 className="mt-2 font-display! text-[clamp(1.6rem,1.2rem+1.8vw,2.4rem)] font-extrabold! leading-[1.05] tracking-[-0.035em]! text-white">
-                Stories from the shops,
+                New products and offers,
                 <br />
-                <em className="font-medium text-white/90">straight to your inbox.</em>
+                <em className="font-medium text-white/90">sent to your email.</em>
               </h2>
             </div>
 
@@ -79,7 +80,7 @@ export function Footer() {
               {done ? (
                 <p className="mt-2 flex h-13 items-center gap-2.5 rounded-full bg-white/15 px-5 text-sm font-medium text-white">
                   <CheckIcon className="h-4 w-4" />
-                  Thanks — check your inbox to confirm.
+                  Thank you! Please check your email.
                 </p>
               ) : (
                 <div className="mt-2 flex h-13 items-center gap-2 rounded-full bg-white p-1.5 pl-5 shadow-[0_12px_30px_rgba(20,8,50,0.3)]">
@@ -112,8 +113,8 @@ export function Footer() {
               <BrandLockup onDark className="text-2xl" />
             </Link>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-[#b8b3c7]">
-              {settings.tagline}. One cart across many independent shops — we settle up with each maker so you
-              don’t have to.
+              {settings.tagline}. Buy from many shops in one cart and pay once — with cash on delivery, bKash,
+              Nagad or card.
             </p>
 
             <p className="mt-7 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8a849c]">Follow along</p>
@@ -159,7 +160,7 @@ export function Footer() {
       <div className="border-t border-white/10!">
         <div className="container-page flex flex-col items-center justify-between gap-3 py-6 text-caption text-[#8a849c] sm:flex-row">
           <p>
-            © {new Date().getFullYear()} {settings.storeName}. A demonstration marketplace.
+            © {new Date().getFullYear()} {settings.storeName}. All rights reserved.
           </p>
           <div className="flex gap-5">
             <Link to="/privacy" className="transition-colors hover:text-white">

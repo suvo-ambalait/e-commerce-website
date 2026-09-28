@@ -20,13 +20,13 @@ export function SellCta() {
       <div className="relative">
         <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#c4b5fd]">
           <span className="h-1.5 w-1.5 rounded-full bg-[#a78bfa]" />
-          For makers
+          For sellers
         </p>
         {/* `!` beats the global unlayered h2 font rule in index.css */}
         <h2 className="mt-3 font-display! text-[clamp(1.75rem,1.3rem+1.8vw,2.5rem)] font-extrabold! leading-[1.05] tracking-[-0.035em]! text-white">
-          Make something <em className="font-medium text-[#c4b5fd]">worth keeping?</em>
+          Want to sell <em className="font-medium text-[#c4b5fd]">online?</em>
         </h2>
-        <p className="mt-2 text-sm text-[#b8b3c7]">Apply to open a shop on AmbalaEshop — we reply within a week.</p>
+        <p className="mt-2 text-sm text-[#b8b3c7]">Open your shop on AmbalaEshop. Apply today and we will reply within 7 days.</p>
       </div>
 
       <Link

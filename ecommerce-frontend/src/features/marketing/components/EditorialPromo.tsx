@@ -6,7 +6,7 @@ import { ArrowRightIcon } from '@/shared/ui/icons'
 import { fadeUp, revealOnScroll } from '@/shared/lib/motion'
 import { imageFor } from '@/shared/lib/image'
 
-const questions = ['Where the material comes from', 'Who assembles it', 'What happens when a part wears out']
+const questions = ['Is the product what the photos show?', 'Is the quality good?', 'Does the shop deliver on time?']
 
 /** Dark feature panel — fixed colours so it reads as a dark block in both themes. */
 export function EditorialPromo() {
@@ -27,17 +27,17 @@ export function EditorialPromo() {
           <div className="relative flex flex-col justify-center px-5 py-8 sm:px-10 sm:py-12 lg:px-12 lg:py-14">
             <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#c4b5fd]">
               <span className="h-1.5 w-1.5 rounded-full bg-[#a78bfa]" />
-              The AmbalaEshop letter
+              Our promise
             </p>
             {/* `!` beats the global unlayered h2 font rule in index.css */}
             <h2 className="mt-4 font-display! text-[clamp(2rem,1.3rem+2.8vw,3.25rem)] font-extrabold! leading-[1.02] tracking-[-0.04em]! text-white">
-              Made to be repaired,
+              Every shop is checked
               <br />
-              <em className="font-medium text-[#c4b5fd]">not replaced</em>
+              <em className="font-medium text-[#c4b5fd]">before it can sell</em>
             </h2>
             <p className="mt-5 max-w-md text-sm leading-relaxed text-[#b8b3c7]">
-              We ask every shop the same questions before they join. The answers live on each maker’s page —
-              read them before you buy.
+              Before a shop can sell on AmbalaEshop, our team checks these three things. You can also read
+              real customer reviews on every shop’s page.
             </p>
 
             <ol className="mt-6 max-w-md divide-y divide-white/10! border-y border-white/10!">
@@ -55,7 +55,7 @@ export function EditorialPromo() {
               to="/about"
               className="group mt-8 inline-flex h-12 items-center gap-3 self-start rounded-full bg-[#6d28d9] pl-6 pr-2 text-sm font-semibold text-white shadow-[0_10px_28px_rgba(109,40,217,0.45)] transition-colors hover:bg-[#7c3aed]"
             >
-              Read our standards
+              Learn more about us
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#6d28d9]">
                 <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </span>
@@ -66,7 +66,7 @@ export function EditorialPromo() {
           <div className="relative min-h-72 overflow-hidden rounded-2xl lg:min-h-120">
             <img
               src={imageFor('Studio', 'promo-workshop', { w: 1200, h: 1200 })}
-              alt="A maker's showroom with repairable furniture"
+              alt="A seller’s shop with furniture on display"
               loading="lazy"
               className="absolute inset-0 h-full w-full object-cover"
             />
@@ -75,8 +75,8 @@ export function EditorialPromo() {
                 <LuWrench className="h-5 w-5" aria-hidden />
               </span>
               <span className="min-w-0">
-                <span className="block text-sm font-semibold">Repair info on every maker page</span>
-                <span className="block text-caption text-[#57526a]">Materials, assembly and spare parts</span>
+                <span className="block text-sm font-semibold">Real reviews on every shop</span>
+                <span className="block text-caption text-[#57526a]">From customers who bought there</span>
               </span>
             </div>
           </div>

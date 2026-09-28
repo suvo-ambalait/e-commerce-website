@@ -35,7 +35,7 @@ export function ParcelCard({ shipment, footer }: { shipment: Shipment; footer?: 
       {cancelled ? (
         <p className="flex items-center gap-2 rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm font-medium text-danger">
           <LuX className="h-4 w-4" />
-          This parcel was cancelled. You won’t be charged for it.
+          This parcel was cancelled. You will not pay for it.
         </p>
       ) : (
         <ol className="grid grid-cols-3" aria-label="Delivery progress">

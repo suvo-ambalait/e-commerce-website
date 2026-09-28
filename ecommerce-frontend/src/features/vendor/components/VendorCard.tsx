@@ -64,7 +64,7 @@ export function VendorCard({
 
         <div className="mt-auto flex items-center justify-between gap-3 pt-5 text-caption">
           <span className="text-ink-mute">
-            {productCount != null && `${productCount} ${productCount === 1 ? 'piece' : 'pieces'}`}
+            {productCount != null && `${productCount} ${productCount === 1 ? 'product' : 'products'}`}
           </span>
           <span className="flex items-center gap-1 font-semibold text-accent">
             Visit shop

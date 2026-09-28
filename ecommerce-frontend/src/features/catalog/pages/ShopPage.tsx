@@ -61,11 +61,11 @@ export function ShopPage() {
           <div>
             {/* `!` beats the global unlayered h1 font rule in index.css */}
             <h1 className="font-display! text-[clamp(2.25rem,1.6rem+2.6vw,3.5rem)] font-extrabold! leading-none tracking-[-0.04em]! text-ink">
-              Shop <em className="font-medium text-accent">{categoryParam ?? 'all'}</em>
+              {categoryParam ? <em className="font-medium text-accent">{categoryParam}</em> : <>All <em className="font-medium text-accent">products</em></>}
             </h1>
             <p className="mt-2 text-sm text-ink-mute">
-              {query.results.length} {pluralize(query.results.length, 'piece')} from {makerCount}{' '}
-              {pluralize(makerCount, 'maker')}
+              {query.results.length} {pluralize(query.results.length, 'product')} from {makerCount}{' '}
+              {pluralize(makerCount, 'shop')}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -116,8 +116,8 @@ export function ShopPage() {
               </>
             ) : (
               <EmptyState
-                title="Nothing matches those filters"
-                description="Try widening the price range or clearing a category."
+                title="No products found"
+                description="Try a higher price limit or remove some filters."
                 action={
                   <Button variant="secondary" onClick={query.reset}>
                     Clear filters

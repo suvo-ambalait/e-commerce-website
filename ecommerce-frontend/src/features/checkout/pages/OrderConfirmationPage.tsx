@@ -44,9 +44,9 @@ export function OrderConfirmationPage() {
 
         <h1 className="mt-6 text-center text-3xl text-ink">Order confirmed</h1>
         <p className="mt-2 text-center text-sm text-ink-soft">
-          {order.orderNumber} · a receipt is on its way to {order.email}. Each maker packs and ships
-          their own parcel, so expect {order.shipments.length}{' '}
-          {order.shipments.length === 1 ? 'delivery' : 'separate deliveries'}.
+          Your order number is {order.orderNumber}. We sent the details to {order.email}. Each shop sends
+          its own parcel, so you will get {order.shipments.length}{' '}
+          {order.shipments.length === 1 ? 'parcel' : 'separate parcels'}.
         </p>
         {order.payment && (
           <p className="mx-auto mt-4 w-fit rounded-full bg-surface-sunken px-4 py-1.5 text-center text-caption font-semibold text-ink-soft">

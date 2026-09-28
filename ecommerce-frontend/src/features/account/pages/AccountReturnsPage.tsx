@@ -10,10 +10,10 @@ import { AccountCard } from '../components/AccountLayout'
 import { useCustomer } from '../lib/useCustomer'
 
 const nextStep: Record<string, string> = {
-  Requested: 'We’ve passed your request to the shop. Expect a reply within 2 working days.',
-  Approved: 'Approved. Hand the parcel to the courier when they call, or follow the emailed instructions.',
-  Rejected: 'This request was declined. See the note from the shop.',
-  Refunded: 'Refunded to your original payment method. It can take 5–7 working days to show.',
+  Requested: 'We sent your request to the shop. You will get a reply within 2 working days.',
+  Approved: 'Approved. The courier will call you to collect the parcel. Please keep it ready.',
+  Rejected: 'Sorry, this request was not accepted. Please read the note from the shop.',
+  Refunded: 'Your money has been sent back the same way you paid. It can take 5–7 working days to arrive.',
 }
 
 export function AccountReturnsPage() {

@@ -6,9 +6,9 @@ import { fadeUp, revealOnScroll } from '@/shared/lib/motion'
 import { imageFor } from '@/shared/lib/image'
 
 const perks = [
-  'New arrivals before they reach the shop',
-  'Shop restock alerts for your saved pieces',
-  'First access to limited runs',
+  'Hear about new products first',
+  'Know when saved items are back in stock',
+  'Get special offers and discount codes',
 ]
 
 /** Light violet panel — the white-theme counterpart to the dark EditorialPromo above it. */
@@ -41,13 +41,13 @@ export function Newsletter() {
             </p>
             {/* `!` beats the global unlayered h2 font rule in index.css */}
             <h2 className="mt-4 font-display! text-[clamp(2rem,1.3rem+2.8vw,3.25rem)] font-extrabold! leading-[1.02] tracking-[-0.04em]! text-ink">
-              New work,
+              Get offers
               <br />
-              <em className="font-medium text-accent">one email a week</em>
+              <em className="font-medium text-accent">by email</em>
             </h2>
             <p className="mt-5 max-w-md text-sm leading-relaxed text-ink-soft">
-              A short Friday note when shops release something, restock a favourite, or open a limited run.
-              Nothing else.
+              One short email every week with new products, offers and discount codes. We never send
+              anything else.
             </p>
 
             <ul className="mt-6 space-y-3">
@@ -66,7 +66,7 @@ export function Newsletter() {
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-success-soft text-success">
                   <CheckIcon className="h-3.5 w-3.5" />
                 </span>
-                You’re on the list — see you Friday.
+                Thank you! You will get our next email.
               </div>
             ) : (
               <>
@@ -94,7 +94,7 @@ export function Newsletter() {
                     <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                   </button>
                 </form>
-                <p className="mt-3 pl-4 text-[0.7rem] text-ink-mute">No spam. Unsubscribe in one click.</p>
+                <p className="mt-3 pl-4 text-[0.7rem] text-ink-mute">No spam. You can stop the emails any time.</p>
               </>
             )}
           </div>
@@ -103,7 +103,7 @@ export function Newsletter() {
           <div className="relative hidden min-h-120 overflow-hidden rounded-2xl lg:block">
             <img
               src={imageFor('Studio', 'newsletter-panel', { w: 900, h: 1100 })}
-              alt="Inside a maker's studio"
+              alt="Inside a seller’s workshop"
               loading="lazy"
               className="absolute inset-0 h-full w-full object-cover"
             />

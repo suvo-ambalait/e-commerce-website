@@ -57,29 +57,29 @@ export function VendorSignupPage() {
   }
 
   const steps = [
-    { title: 'Apply', text: 'Tell us about your shop — takes about five minutes.' },
-    { title: 'Curator review', text: 'We check materials, making and repairability. Usually within a week.' },
-    { title: 'Go live', text: 'Add products and payouts while you wait; your storefront opens once approved.' },
+    { title: 'Apply', text: 'Fill in this form about your shop. It takes about 5 minutes.' },
+    { title: 'We check your shop', text: 'Our team checks your details and products. This takes up to 7 days.' },
+    { title: 'Start selling', text: 'Add products and payment details while you wait. Your shop opens once approved.' },
   ]
 
   return (
     <Section size="sm" className="bg-surface-sunken/50">
       <Container>
         <PageHeader
-          crumbs={[{ label: 'Home', to: '/' }, { label: 'Makers', to: '/vendors' }, { label: 'Apply to sell' }]}
+          crumbs={[{ label: 'Home', to: '/' }, { label: 'Shops', to: '/vendors' }, { label: 'Apply to sell' }]}
           eyebrow="Apply to sell"
           title={
             <>
               Open a shop <em>on AmbalaEshop</em>
             </>
           }
-          description="Tell us about your shop. Your storefront goes live once a curator has reviewed it — usually within a week. In the meantime you can add products and set up payouts."
+          description="Tell us about your shop. Our team will check it within 7 days. While you wait, you can add your products and payment details."
         />
 
         <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[1.5fr_1fr] lg:items-start">
           {/* form */}
           <form onSubmit={submit} className="space-y-5">
-            <Panel icon={<LuStore className="h-4 w-4" />} title="Your Shop Details">
+            <Panel icon={<LuStore className="h-4 w-4" />} title="Your shop details">
               <div className="grid gap-4">
                 <BoxInput
                   label="Shop name"
@@ -106,7 +106,7 @@ export function VendorSignupPage() {
                   placeholder="e.g. +880 1712 345678"
                 />
                 <BoxInput
-                  label="Tagline"
+                  label="Short description (one line)"
                   icon={<LuStore className="h-4 w-4" />}
                   required
                   value={form.tagline}
@@ -116,12 +116,12 @@ export function VendorSignupPage() {
                
                 <BoxInput
                   label="Address / location"
-                  hint="City, country — shown on your storefront"
+                  hint="Area and city — shown on your shop page"
                   icon={<LuMapPin className="h-4 w-4" />}
                   required
                   value={form.location}
                   onChange={set('location')}
-                  placeholder="Dhaka, BD"
+                  placeholder="Mirpur, Dhaka"
                 />
 
                 <label className="block">
@@ -139,7 +139,7 @@ export function VendorSignupPage() {
                     maxLength={BIO_MAX}
                     value={form.bio}
                     onChange={set('bio')}
-                    placeholder="Materials, process, who’s behind it."
+                    placeholder="What do you sell? How are your products made? Who runs the shop?"
                     className="w-full resize-none rounded-xl border border-border-strong bg-surface px-4 py-3 text-sm leading-relaxed text-ink outline-none transition-[border-color,box-shadow] placeholder:text-ink-mute focus:border-accent! focus:ring-4 focus:ring-accent/15"
                   />
                 </label>
@@ -242,10 +242,10 @@ export function VendorSignupPage() {
                     </span>
                   </div>
                   <p className="mt-1.5 line-clamp-2 text-caption leading-relaxed text-ink-soft">
-                    {form.tagline || 'Your one-line tagline appears here.'}
+                    {form.tagline || 'Your one-line description will show here.'}
                   </p>
                   <p className="mt-3 line-clamp-4 whitespace-pre-line text-caption leading-relaxed text-ink-mute">
-                    {form.bio || 'A short description of your shop — materials, process, who’s behind it.'}
+                    {form.bio || 'A short description of your shop will show here.'}
                   </p>
                   <ul className="mt-4 space-y-1.5 border-t border-border pt-3 text-caption">
                     <li className="flex min-w-0 items-center gap-2 text-ink-soft">
@@ -258,7 +258,7 @@ export function VendorSignupPage() {
                     </li>
                   </ul>
                   <div className="mt-4 flex items-center justify-between text-caption">
-                    <span className="text-ink-mute">0 pieces</span>
+                    <span className="text-ink-mute">0 products</span>
                     <span className="flex items-center gap-1 font-semibold text-accent">
                       Visit shop
                       <ArrowRightIcon className="h-3.5 w-3.5" />
@@ -288,9 +288,9 @@ export function VendorSignupPage() {
 
               <ul className="relative mt-6 space-y-2 border-t border-white/10! pt-5 text-sm">
                 {[
-                  `${Math.round(settings.commissionRate * 100)}% flat commission — you set your prices`,
-                  'Weekly payouts to your bank',
-                  'Your name on every piece and receipt',
+                  `Only ${Math.round(settings.commissionRate * 100)}% commission per sale. You set your own prices.`,
+                  'Get paid to your bank, bKash, Nagad or Rocket',
+                  'Your shop name on every product and receipt',
                 ].map((perk) => (
                   <li key={perk} className="flex items-start gap-2.5 text-[#d4cfe3]">
                     <span className="mt-0.5 flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-[#6d28d9]/40 text-[#c4b5fd]">

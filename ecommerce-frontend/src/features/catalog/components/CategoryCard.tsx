@@ -32,7 +32,7 @@ export function CategoryCard({
             {category.name}
           </p>
           <p className="text-caption text-ink-mute">
-            {count} {count === 1 ? 'piece' : 'pieces'}
+            {count} {count === 1 ? 'product' : 'products'}
           </p>
         </div>
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border-strong text-ink transition-colors duration-300 group-hover:border-accent group-hover:bg-accent group-hover:text-on-accent">

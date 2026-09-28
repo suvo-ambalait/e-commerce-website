@@ -16,15 +16,14 @@ export function CategoriesPage() {
 
         <p className="mt-6 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">
           <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-          {categories.length} departments
+          {categories.length} categories
         </p>
         {/* `!` beats the global unlayered h1 font rule in index.css */}
         <h1 className="mt-3 font-display! text-[clamp(2.25rem,1.5rem+3vw,3.75rem)] font-extrabold! leading-none tracking-[-0.04em]! text-ink">
-          Every <span className="font-medium italic text-accent">category</span>
+          All <span className="font-medium italic text-accent">categories</span>
         </h1>
         <p className="mt-3 max-w-lg text-sm text-ink-soft">
-          Each department is stocked by several shops. Follow one through to the shop to filter by maker,
-          price and material.
+          Pick a category to see its products. You can then filter by shop, price and more.
         </p>
 
         <motion.div

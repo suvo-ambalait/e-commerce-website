@@ -47,7 +47,7 @@ export function ShipmentList({
             </ul>
             {totals && (
               <p className="mt-3 border-t border-border pt-2.5 text-caption text-ink-mute">
-                Shipping{' '}
+                Delivery{' '}
                 <span className={totals.shipping === 0 ? 'font-semibold text-accent' : 'font-semibold text-ink'}>
                   {totals.shipping === 0 ? 'free' : formatPrice(totals.shipping)}
                 </span>{' '}

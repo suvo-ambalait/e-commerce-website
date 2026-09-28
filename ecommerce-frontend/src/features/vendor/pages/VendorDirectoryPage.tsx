@@ -11,7 +11,7 @@ import { VendorCard } from '../components/VendorCard'
 import { SellCta } from '@/features/marketing/components/SellCta'
 
 export function VendorDirectoryPage() {
-  useDocumentTitle('Makers · AmbalaEshop')
+  useDocumentTitle('Shops · AmbalaEshop')
   const { activeVendors } = useVendors()
   const { productsByVendor } = useCatalog()
 
@@ -22,8 +22,8 @@ export function VendorDirectoryPage() {
     : 0
 
   const stats = [
-    { icon: LuStore, value: activeVendors.length, label: 'Independent shops' },
-    { icon: LuPackage, value: pieces, label: 'Pieces in the shop' },
+    { icon: LuStore, value: activeVendors.length, label: 'Shops' },
+    { icon: LuPackage, value: pieces, label: 'Products' },
     { icon: LuGlobe, value: countries, label: 'Countries' },
     { icon: LuStar, value: avgRating.toFixed(1), label: 'Average rating' },
   ]
@@ -33,14 +33,14 @@ export function VendorDirectoryPage() {
       <Section size="sm" className="bg-surface-sunken/50">
         <Container>
           <PageHeader
-            crumbs={[{ label: 'Home', to: '/' }, { label: 'Makers' }]}
-            eyebrow="The makers"
+            crumbs={[{ label: 'Home', to: '/' }, { label: 'Shops' }]}
+            eyebrow="Our sellers"
             title={
               <>
-                Shops behind <em>every piece</em>
+                All shops on <em>AmbalaEshop</em>
               </>
             }
-            description={`${activeVendors.length} independent shops sell on AmbalaEshop. Each keeps its own storefront, sets its own prices, and ships its own work.`}
+            description={`${activeVendors.length} checked shops sell on AmbalaEshop. Each shop has its own page, sets its own prices and sends its own parcels.`}
             action={
               <Link
                 to="/vendor/signup"

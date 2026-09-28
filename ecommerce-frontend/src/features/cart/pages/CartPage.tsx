@@ -34,15 +34,15 @@ export function CartPage() {
             <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-accent-soft text-accent">
               <BagIcon className="h-7 w-7" />
             </span>
-            <p className="mt-5 font-display text-xl font-bold text-ink">Nothing in the cart yet</p>
+            <p className="mt-5 font-display text-xl font-bold text-ink">Your cart is empty</p>
             <p className="mt-2 max-w-sm text-sm text-ink-soft">
-              When you add pieces from a few different makers, they’ll be grouped here by shop.
+              Add products to your cart. Items from different shops are shown here shop by shop.
             </p>
             <Link
               to="/shop"
               className="mt-6 inline-flex h-12 items-center gap-2 rounded-full bg-accent px-6 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover"
             >
-              Start browsing
+              Start shopping
               <ArrowRightIcon className="h-4 w-4" />
             </Link>
           </div>
@@ -61,7 +61,7 @@ export function CartPage() {
               Your <em>cart</em>
             </>
           }
-          subtitle={`${totalItems} ${pluralize(totalItems, 'item')} from ${groups.length} ${pluralize(groups.length, 'maker')}`}
+          subtitle={`${totalItems} ${pluralize(totalItems, 'item')} from ${groups.length} ${pluralize(groups.length, 'shop')}`}
           steps={<CheckoutSteps current="cart" />}
         />
 
@@ -82,7 +82,7 @@ export function CartPage() {
                 >
                   <span className="flex items-center gap-2">
                     <LuLock className="h-4 w-4" />
-                    Secure checkout
+                    Go to checkout
                   </span>
                   <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#6d28d9]">
                     <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

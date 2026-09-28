@@ -70,7 +70,7 @@ export function ReturnRequestModal({
       <form onSubmit={submit} className="space-y-4">
         {isCancel ? (
           <p className="text-sm text-ink-soft">
-            The shop hasn’t shipped this parcel yet, so it can be cancelled. Anything you paid for it is refunded in full.
+            The shop has not sent this parcel yet, so you can cancel it. If you already paid, you will get all your money back.
           </p>
         ) : (
           <div>
@@ -99,7 +99,7 @@ export function ReturnRequestModal({
           )}
         </Field>
 
-        <Field label="Anything else we should know?" hint={isCancel ? undefined : 'Photos help. You can send them by reply to our email.'}>
+        <Field label="Anything else we should know?" hint={isCancel ? undefined : 'Photos help us solve it faster. You can send them in reply to our email.'}>
           {(id) => <Textarea id={id} rows={3} value={details} onChange={(e) => setDetails(e.target.value)} />}
         </Field>
 

@@ -18,7 +18,7 @@ export function CategoryStrip() {
               Shop by <em>category</em>
             </>
           }
-          description="Everything for a calmer, better-made home — find your corner."
+          description="Find what you need, from home and kitchen items to clothes and gifts."
           action={{ to: '/categories', label: 'All categories' }}
         />
 

@@ -82,7 +82,7 @@ export function ProductCard({
             {isNew && !soldOut && (
               <span className="flex items-center gap-1.5 rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold text-ink shadow-sm">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                New in
+                New
               </span>
             )}
             {off > 0 && (

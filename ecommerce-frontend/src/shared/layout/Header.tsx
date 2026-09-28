@@ -37,7 +37,7 @@ export function Header() {
         <div className="container-page grid h-9 grid-cols-1 items-center text-[11px] md:grid-cols-[1fr_auto_1fr]">
           <span className="hidden items-center gap-1.5 text-[#b8b3c7] md:flex">
             <StoreIcon className="h-3.5 w-3.5" aria-hidden />
-            Ships from the shop
+            Delivery all over Bangladesh
           </span>
           {/* admins edit this text on the Site content page; falls back to the free-shipping line */}
           {content.announcement.on && content.announcement.text ? (
@@ -49,8 +49,8 @@ export function Header() {
             </Link>
           ) : (
             <p className="truncate text-center font-semibold uppercase tracking-[0.14em]">
-              Free shipping over {formatPriceWhole(settings.freeShippingThreshold)}
-              <span className="hidden text-[#a78bfa] sm:inline"> · Independent makers, one checkout</span>
+              Free delivery over {formatPriceWhole(settings.freeShippingThreshold)}
+              <span className="hidden text-[#a78bfa] sm:inline"> · Many shops, one checkout</span>
             </p>
           )}
           <span className="hidden items-center justify-end gap-5 text-[#b8b3c7] md:flex">
@@ -108,7 +108,7 @@ export function Header() {
               className="mr-1 hidden h-10 w-52 items-center gap-2.5 rounded-full border border-border-strong bg-surface px-4 text-sm text-ink-mute transition-colors hover:border-accent md:flex lg:hidden xl:flex xl:w-64"
             >
               <SearchIcon className="h-4 w-4 shrink-0" />
-              <span className="truncate">Search products or makers</span>
+              <span className="truncate">Search products or shops</span>
             </button>
             <button
               type="button"

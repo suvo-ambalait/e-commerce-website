@@ -38,14 +38,14 @@ export function VendorStorefrontPage() {
   const [shopSettings] = shopSettingsStore.useStore()
   const holiday = vendor ? shopSettings[vendor.id]?.holiday : undefined
 
-  useDocumentTitle(vendor ? `${vendor.name} · AmbalaEshop` : 'Maker · AmbalaEshop')
+  useDocumentTitle(vendor ? `${vendor.name} · AmbalaEshop` : 'Shop · AmbalaEshop')
 
   if (!vendor) {
     return (
       <Container size="narrow" className="py-24 text-center">
-        <h1 className="text-2xl text-ink">We can’t find that maker</h1>
+        <h1 className="text-2xl text-ink">We can’t find this shop</h1>
         <ButtonLink to="/vendors" variant="secondary" className="mt-5">
-          Back to directory
+          See all shops
         </ButtonLink>
       </Container>
     )
@@ -67,7 +67,7 @@ export function VendorStorefrontPage() {
         />
         <div className="mt-3">
           <Breadcrumbs
-            items={[{ label: 'Home', to: '/' }, { label: 'Makers', to: '/vendors' }, { label: vendor.name }]}
+            items={[{ label: 'Home', to: '/' }, { label: 'Shops', to: '/vendors' }, { label: vendor.name }]}
           />
           <h1 className="mt-1 font-serif text-3xl text-ink">{vendor.name}</h1>
           <p className="mt-0.5 text-sm text-ink-soft">{vendor.tagline}</p>
@@ -112,7 +112,7 @@ export function VendorStorefrontPage() {
       <Section size="sm">
         <Container>
           <div className="flex flex-wrap items-end justify-between gap-3">
-            <h2 className="text-xl text-ink">{products.length} pieces</h2>
+            <h2 className="text-xl text-ink">{products.length} products</h2>
             <div className="flex items-center gap-2">
               {!isDesktop && products.length > 0 && (
                 <Button variant="secondary" size="sm" onClick={() => setDrawerOpen(true)}>
@@ -143,7 +143,7 @@ export function VendorStorefrontPage() {
                   <Pagination page={query.page} totalPages={query.totalPages} onChange={query.setPage} className="mt-12" />
                 </>
               ) : (
-                <EmptyState title="No pieces match" description="Clear a filter to see this maker’s full range." />
+                <EmptyState title="No products found" description="Remove a filter to see all of this shop’s products." />
               )}
             </div>
           </div>

@@ -49,7 +49,7 @@ export function SearchPage() {
       <Container>
         <h1 className="text-3xl text-ink">Search</h1>
         <form onSubmit={submit} className="mt-4 flex max-w-xl gap-2">
-          <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Makers, materials, pieces…" autoFocus />
+          <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Search products or shops…" autoFocus />
           <Button type="submit" className="shrink-0">
             Search
           </Button>
@@ -64,14 +64,14 @@ export function SearchPage() {
         {query && productHits.length === 0 && vendorHits.length === 0 && (
           <EmptyState
             className="mt-10"
-            title={`Nothing for “${query}”`}
-            description="Try a material (‘brass’, ‘linen’), a room, or a maker’s name."
+            title={`No results for “${query}”`}
+            description="Check the spelling, or try a simpler word like ‘bag’, ‘lamp’ or a shop’s name."
           />
         )}
 
         {vendorHits.length > 0 && (
           <div className="mt-10">
-            <h2 className="text-caption font-medium uppercase tracking-wide text-ink-mute">Makers</h2>
+            <h2 className="text-caption font-medium uppercase tracking-wide text-ink-mute">Shops</h2>
             <div className="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2">
               {vendorHits.map((v) => (
                 <VendorCard key={v.id} vendor={v} />
@@ -82,7 +82,7 @@ export function SearchPage() {
 
         {productHits.length > 0 && (
           <div className="mt-10">
-            <h2 className="text-caption font-medium uppercase tracking-wide text-ink-mute">Pieces</h2>
+            <h2 className="text-caption font-medium uppercase tracking-wide text-ink-mute">Products</h2>
             <ProductGrid products={productHits} className="mt-4" />
           </div>
         )}

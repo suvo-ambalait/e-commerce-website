@@ -52,24 +52,23 @@ export function DealsPage() {
             <div className="max-w-xl">
               <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/80">
                 <SparkIcon className="h-3.5 w-3.5" />
-                Shop markdowns
+                Special offers
               </p>
               {/* `!` beats the global unlayered h1 font rule in index.css */}
               <h1 className="mt-3 font-display! text-[clamp(2.5rem,1.6rem+3.6vw,4.5rem)] font-extrabold! leading-[0.95] tracking-[-0.045em]! text-white">
                 On sale <em className="font-medium text-white/90">now.</em>
               </h1>
               <p className="mt-4 text-sm leading-relaxed text-white/80">
-                Pieces marked down by their makers — mostly last-of-a-run and seconds. Once they’re gone, they’re
-                gone.
+                Products on discount from our shops. Stock is limited, so buy before they sell out.
               </p>
             </div>
 
             {deals.length > 0 && (
               <dl className="flex gap-3">
                 {[
-                  { value: `${maxOff}%`, label: 'Biggest markdown' },
-                  { value: String(deals.length), label: pluralize(deals.length, 'Piece') + ' on sale' },
-                  { value: formatPriceWhole(saved), label: 'Total off list' },
+                  { value: `${maxOff}%`, label: 'Biggest discount' },
+                  { value: String(deals.length), label: pluralize(deals.length, 'Product') + ' on sale' },
+                  { value: formatPriceWhole(saved), label: 'Total you save' },
                 ].map((s) => (
                   <div key={s.label} className="min-w-24 rounded-2xl bg-white/12 px-4 py-3 backdrop-blur-sm">
                     <dd className="font-display text-2xl font-extrabold leading-none tracking-[-0.03em] tabular-nums">
@@ -128,7 +127,7 @@ export function DealsPage() {
               to="/shop"
               className="mt-6 inline-flex h-12 items-center gap-2 rounded-full bg-accent px-6 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover"
             >
-              Shop everything
+              See all products
               <ArrowRightIcon className="h-4 w-4" />
             </Link>
           </div>

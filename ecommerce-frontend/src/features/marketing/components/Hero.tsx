@@ -1,13 +1,12 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { ArrowRightIcon, TruckIcon, PlusIcon } from '@/shared/ui/icons'
-import { LuRotateCcw, LuLock, LuShirt } from 'react-icons/lu'
+import { ArrowRightIcon, PlusIcon } from '@/shared/ui/icons'
+import { LuBanknote, LuRotateCcw, LuShirt, LuSmartphone } from 'react-icons/lu'
 import { easeEditorial } from '@/shared/lib/motion'
 import { imageFor } from '@/shared/lib/image'
-import { discountFraction, formatPrice, formatPriceWhole } from '@/shared/lib/format'
+import { discountFraction, formatPrice } from '@/shared/lib/format'
 import { useCatalog } from '@/features/catalog/context/CatalogContext'
 import { useCart } from '@/features/cart/context/CartContext'
-import { useSettings } from '@/features/admin/context/SettingsContext'
 import { useToast } from '@/shared/ui/Toast'
 
 const rise = (delay: number) => ({
@@ -18,7 +17,6 @@ const rise = (delay: number) => ({
 
 export function Hero() {
   const { products } = useCatalog()
-  const { settings } = useSettings()
   const { addItem } = useCart()
   const { notify } = useToast()
 
@@ -39,9 +37,9 @@ export function Hero() {
   }
 
   const perks = [
-    { icon: TruckIcon, label: `Free shipping over ${formatPriceWhole(settings.freeShippingThreshold)}` },
-    { icon: LuRotateCcw, label: '30-day free returns' },
-    { icon: LuLock, label: 'Secure checkout' },
+    { icon: LuBanknote, label: 'Cash on delivery' },
+    { icon: LuRotateCcw, label: 'Easy 7-day returns' },
+    { icon: LuSmartphone, label: 'bKash & Nagad accepted' },
   ]
 
   return (
@@ -54,7 +52,7 @@ export function Hero() {
             className="flex items-center gap-2.5 self-start rounded-full border border-accent/20 bg-accent-soft py-2 pl-2 pr-3.5 text-[13px] font-medium text-ink-soft"
           >
             <span className="rounded-full bg-accent px-2.5 py-1 text-xs font-semibold text-on-accent">New</span>
-            Autumn / Winter collection just landed
+            New products added this week
           </motion.div>
 
           <motion.h1
@@ -62,14 +60,14 @@ export function Hero() {
             // `!` beats the global unlayered `h1` font rule in index.css
             className="m-0 font-display! text-[clamp(3.25rem,2rem+5vw,6.5rem)] font-extrabold! leading-[0.92] tracking-[-0.045em]! text-ink"
           >
-            Made for
+            Shop from
             <br />
-            after <span className="font-medium italic text-accent">dark.</span>
+            <span className="font-medium italic text-accent">local sellers.</span>
           </motion.h1>
 
           <motion.p {...rise(0.16)} className="m-0 max-w-[500px] text-lg leading-relaxed text-ink-soft md:text-[19px]">
-            Considered essentials in deep tones and clean lines — built to layer, made to last, and ready to
-            ship today.
+            Good quality products from trusted shops across Bangladesh. Order from many shops in one
+            cart and pay cash when your parcel arrives.
           </motion.p>
 
           <motion.div {...rise(0.24)} className="flex flex-wrap items-center gap-3">
@@ -77,14 +75,14 @@ export function Hero() {
               to="/shop"
               className="group inline-flex h-14 items-center gap-3 rounded-full bg-accent px-7 text-base font-semibold text-on-accent shadow-md transition-colors hover:bg-accent-hover"
             >
-              Shop new arrivals
+              Start shopping
               <ArrowRightIcon className="h-[18px] w-[18px] transition-transform group-hover:translate-x-0.5" />
             </Link>
             <Link
               to="/categories"
               className="inline-flex h-14 items-center rounded-full bg-ink px-7 text-base font-semibold text-bg transition-opacity hover:opacity-90"
             >
-              Explore lookbook
+              See categories
             </Link>
           </motion.div>
 
@@ -117,7 +115,7 @@ export function Hero() {
             <div className="absolute inset-x-6 bottom-0 top-6 overflow-hidden rounded-t-3xl bg-accent-soft sm:inset-x-10 sm:top-10">
               <img
                 src={imageFor('Textiles', 'hero-a', { w: 960, h: 1180 })}
-                alt="Layered textiles in deep autumn tones"
+                alt="Colourful handmade textiles"
                 className="h-full w-full object-cover"
               />
             </div>
@@ -158,7 +156,7 @@ export function Hero() {
                 )}
               </Link>
               <div className="flex min-w-0 grow flex-col gap-1">
-                <span className="text-xs font-semibold tracking-[0.04em] text-[#c4b5fd]">BESTSELLER</span>
+                <span className="text-xs font-semibold tracking-[0.04em] text-[#c4b5fd]">BEST SELLER</span>
                 <Link to={`/product/${bestseller.id}`} className="truncate text-base font-semibold hover:underline">
                   {bestseller.name}
                 </Link>

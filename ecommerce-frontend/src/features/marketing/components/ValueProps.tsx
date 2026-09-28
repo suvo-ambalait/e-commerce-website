@@ -7,22 +7,22 @@ const items = [
   {
     icon: StoreIcon,
     title: 'One cart, many shops',
-    body: 'Buy from six makers at once. We split the order and settle up with each of them.',
+    body: 'Buy from many shops in one order. You pay once, and we handle the rest with each shop.',
   },
   {
     icon: TruckIcon,
-    title: 'Shipped by the maker',
-    body: 'Pieces come straight from the workshop, packed by the people who made them.',
+    title: 'Home delivery',
+    body: 'Delivery all over Bangladesh. Inside Dhaka in 1–2 days, outside Dhaka in 3–5 days.',
   },
   {
     icon: LeafIcon,
-    title: 'Material transparency',
-    body: 'Every listing states what it’s made of and where that material came from.',
+    title: 'Cash on delivery',
+    body: 'Pay in cash when your parcel arrives. You can also pay with bKash, Nagad or card.',
   },
   {
     icon: SparkIcon,
-    title: '30-day returns',
-    body: 'Stock items can go back within 30 days. Custom work is agreed up front.',
+    title: 'Easy 7-day returns',
+    body: 'Not happy with a product? Ask for a return within 7 days of delivery.',
   },
 ]
 

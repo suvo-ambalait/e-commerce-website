@@ -21,10 +21,10 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
   const single = shipments.length === 1 ? shipments[0] : undefined
   const progress = allFree ? 1 : single ? Math.min(1, single.subtotal / freeShippingThreshold) : freeCount / shipments.length
   const shippingMessage = allFree
-    ? 'You’ve unlocked free shipping.'
+    ? 'You get free delivery!'
     : single
-      ? `Add ${formatPrice(freeShippingThreshold - single.subtotal)} more for free shipping.`
-      : `Free shipping on ${freeCount} of ${shipments.length} shops. Each ships free over ${formatPriceWhole(freeShippingThreshold)}.`
+      ? `Add ${formatPrice(freeShippingThreshold - single.subtotal)} more to get free delivery.`
+      : `Free delivery from ${freeCount} of ${shipments.length} shops. Each shop delivers free over ${formatPriceWhole(freeShippingThreshold)}.`
   const payable = subtotal + totals.shipping
 
   const header = (
@@ -56,13 +56,13 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
             <BagIcon className="h-7 w-7" />
           </span>
           <p className="font-display text-lg font-bold text-ink">Your cart is empty</p>
-          <p className="-mt-2 text-sm text-ink-soft">Pieces you add will show up here.</p>
+          <p className="-mt-2 text-sm text-ink-soft">Products you add will show here.</p>
           <button
             type="button"
             onClick={onClose}
             className="mt-2 h-11 rounded-full bg-accent px-6 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover"
           >
-            Keep browsing
+            Continue shopping
           </button>
         </div>
       ) : (
@@ -145,7 +145,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                 <dd className="font-bold text-ink tabular-nums">{formatPrice(subtotal)}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-ink-soft">Shipping</dt>
+                <dt className="text-ink-soft">Delivery</dt>
                 <dd className={cn('font-semibold tabular-nums', totals.shipping === 0 ? 'text-accent' : 'text-ink')}>
                   {totals.shipping === 0 ? 'Free' : formatPrice(totals.shipping)}
                 </dd>

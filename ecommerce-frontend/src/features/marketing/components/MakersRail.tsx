@@ -14,14 +14,14 @@ export function MakersRail() {
     <Section className="bg-surface-sunken/60">
       <Container>
         <DisplayHeading
-          eyebrow="The makers"
+          eyebrow="Our sellers"
           title={
             <>
-              Shops you’re <em>buying from</em>
+              Shops you can <em>trust</em>
             </>
           }
-          description="Every product on AmbalaEshop is made by one of these independent workshops. Their name is on the piece, and on your receipt."
-          action={{ to: '/vendors', label: 'Full directory' }}
+          description="Every product on AmbalaEshop comes from one of these checked local shops. You can see the shop’s name on each product and on your receipt."
+          action={{ to: '/vendors', label: 'See all shops' }}
         />
         <motion.div
           variants={stagger}

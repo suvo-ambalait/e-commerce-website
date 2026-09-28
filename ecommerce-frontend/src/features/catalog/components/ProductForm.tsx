@@ -208,7 +208,7 @@ export function ProductForm({ product, vendorId, lockVendor, onSubmit, onCancel 
                 />
               )}
             </Field>
-            <Field label="Maker">
+            <Field label="Shop">
               {(id) => (
                 <Select
                   id={id}

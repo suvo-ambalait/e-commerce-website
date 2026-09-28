@@ -155,14 +155,14 @@ export function CheckoutPage() {
               </>
             ) : (
               <>
-                Secure <em>payment</em>
+                Choose <em>payment</em>
               </>
             )
           }
           subtitle={
             step === 'details'
-              ? 'Where should the makers send your parcels?'
-              : 'Check your order, then pay once — we settle up with each shop.'
+              ? 'Where should we deliver your order?'
+              : 'Check your order and choose how you want to pay.'
           }
           steps={<CheckoutSteps current={step} onStepClick={goTo} />}
         />
@@ -206,7 +206,7 @@ export function CheckoutPage() {
                     <>
                       <CheckoutPanel
                         icon={<LuMapPin className="h-4 w-4" />}
-                        title="Shipping to"
+                        title="Delivering to"
                         action={
                           <button
                             type="button"

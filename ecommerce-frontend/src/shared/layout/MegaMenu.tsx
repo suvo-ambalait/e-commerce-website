@@ -10,7 +10,7 @@ import type { Category } from '@/shared/types'
 import { ArrowRightIcon, ChevronDownIcon } from '@/shared/ui/icons'
 
 const quickLinks = [
-  { label: 'New this week', to: '/shop?sort=new' },
+  { label: 'New products', to: '/shop?sort=new' },
   { label: 'On sale', to: '/deals', accent: true },
   { label: 'Gift ideas', to: '/shop' },
 ]
@@ -127,7 +127,7 @@ export function MegaMenu({ categories }: { categories: Category[] }) {
                     Shop <em className="font-medium">everything</em>
                   </p>
                   <p className="mt-2 text-caption leading-relaxed text-white/80">
-                    All {categories.length} categories, one cart, one checkout.
+                    {categories.length} categories, many shops, one checkout.
                   </p>
                   <Link
                     to="/shop"

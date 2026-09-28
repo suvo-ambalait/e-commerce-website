@@ -142,7 +142,7 @@ export function ContactPage() {
               <ul className="mt-3 space-y-2 text-sm">
                 {[
                   { to: '/track-order', label: 'Track an order' },
-                  { to: '/shipping-returns', label: 'Shipping & returns' },
+                  { to: '/shipping-returns', label: 'Delivery & returns' },
                   { to: '/faq', label: 'Frequently asked questions' },
                 ].map((l) => (
                   <li key={l.to}>

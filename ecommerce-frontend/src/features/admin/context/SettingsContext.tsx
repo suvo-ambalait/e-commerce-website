@@ -29,7 +29,7 @@ interface SettingsContextValue {
 
 const defaultSettings: StoreSettings = {
   storeName: 'AmbalaEshop',
-  tagline: 'Considered design, many makers',
+  tagline: 'Shop from trusted local sellers',
   contactEmail: 'hello@ambalaeshop.example',
   contactPhone: '+1 (555) 240-1998',
   contactAddress: '14 Rue des Artisans, Studio 3 · Brooklyn, NY',
@@ -54,12 +54,14 @@ const defaultSettings: StoreSettings = {
  */
 const LEGACY_STORE_NAME = 'MorerDokan'
 const LEGACY_CONTACT_EMAIL = 'hello@morerdokan.example'
+const LEGACY_TAGLINE = 'Considered design, many makers'
 
 function migrateLegacyBrand(s: StoreSettings): StoreSettings {
   return {
     ...s,
     storeName: s.storeName === LEGACY_STORE_NAME ? defaultSettings.storeName : s.storeName,
     contactEmail: s.contactEmail === LEGACY_CONTACT_EMAIL ? defaultSettings.contactEmail : s.contactEmail,
+    tagline: s.tagline === LEGACY_TAGLINE ? defaultSettings.tagline : s.tagline,
   }
 }
 

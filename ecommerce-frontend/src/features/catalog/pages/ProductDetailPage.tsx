@@ -57,7 +57,7 @@ export function ProductDetailPage() {
   if (!product) {
     return (
       <Container size="narrow" className="py-24 text-center">
-        <h1 className="text-2xl text-ink">This piece is no longer listed</h1>
+        <h1 className="text-2xl text-ink">This product is no longer for sale</h1>
         <ButtonLink to="/shop" variant="secondary" className="mt-5">
           Back to shop
         </ButtonLink>
@@ -124,9 +124,9 @@ export function ProductDetailPage() {
 
               <div className="mt-7">
                 <p className="text-sm text-ink-soft">
-                  Finish: <span className="font-semibold text-ink">{color}</span>
+                  Colour: <span className="font-semibold text-ink">{color}</span>
                 </p>
-                <div className="mt-2.5 flex flex-wrap gap-2" role="radiogroup" aria-label="Finish">
+                <div className="mt-2.5 flex flex-wrap gap-2" role="radiogroup" aria-label="Colour">
                   {COLORS.map((c) => {
                     const selected = color === c
                     return (
@@ -205,9 +205,9 @@ export function ProductDetailPage() {
                   aria-hidden
                 />
                 {stock === 'out'
-                  ? `Currently sold out · SKU ${product.sku}`
+                  ? `Out of stock right now · SKU ${product.sku}`
                   : stock === 'low'
-                    ? `Only ${product.stock} left — made in small batches`
+                    ? `Only ${product.stock} left in stock — order soon`
                     : `In stock · SKU ${product.sku}`}
               </p>
 
@@ -247,7 +247,7 @@ export function ProductDetailPage() {
                     },
                     {
                       id: 'about-maker',
-                      label: 'The maker',
+                      label: 'The seller',
                       icon: LuStore,
                       content: vendor ? (
                         <div>
@@ -289,10 +289,10 @@ export function ProductDetailPage() {
                       content: (
                         <ul className="space-y-2.5">
                           {[
-                            'Dust with a soft, dry cloth.',
-                            'Keep out of direct sun and away from heat sources.',
-                            'Re-oil timber once a year with a food-safe hardwax oil, where it applies.',
-                            'Ask the shop before washing or cleaning with anything stronger.',
+                            'Clean with a soft, dry cloth.',
+                            'Keep away from strong sunlight, heat and water.',
+                            'For wooden items, apply a little oil once a year.',
+                            'Ask the shop before washing it or using any cleaner.',
                           ].map((tip) => (
                             <li key={tip} className="flex items-start gap-2.5">
                               <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-success-soft text-success">
@@ -323,7 +323,7 @@ export function ProductDetailPage() {
                           <p className="border-t border-border pt-3 text-caption text-ink-mute">
                             Cash on delivery, bKash, Nagad and card accepted.{' '}
                             <Link to="/shipping-returns" className="font-semibold text-accent hover:underline">
-                              Delivery charges & returns
+                              Delivery charges and returns
                             </Link>
                           </p>
                         </div>
@@ -338,8 +338,8 @@ export function ProductDetailPage() {
       </Section>
 
       <ReviewsSection productId={product.id} />
-      <RelatedProducts products={fromVendor} title={`More from ${vendor?.name ?? 'this maker'}`} />
-      <RelatedProducts products={related} title="Similar pieces" />
+      <RelatedProducts products={fromVendor} title={`More from ${vendor?.name ?? 'this shop'}`} />
+      <RelatedProducts products={related} title="Similar products" />
     </>
   )
 }

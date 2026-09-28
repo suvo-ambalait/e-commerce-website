@@ -24,7 +24,7 @@ interface Hit {
   aside?: string
 }
 
-const groupLabels: Record<Hit['group'], string> = { pieces: 'Pieces', makers: 'Makers', categories: 'Categories' }
+const groupLabels: Record<Hit['group'], string> = { pieces: 'Products', makers: 'Shops', categories: 'Categories' }
 
 export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const navigate = useNavigate()
@@ -98,7 +98,7 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
         image: c.image,
         title: c.name,
         subtitle: c.description,
-        aside: `${products.filter((p) => p.category === c.name).length} pieces`,
+        aside: `${products.filter((p) => p.category === c.name).length} products`,
       }))
     return [...pieces, ...makers, ...cats]
   }, [debounced, products, activeVendors, categories, getVendor])
@@ -176,7 +176,7 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={onInputKey}
-                  placeholder="Search pieces, makers and materials…"
+                  placeholder="Search products or shops…"
                   aria-label="Search"
                   role="combobox"
                   aria-expanded={shown.length > 0}

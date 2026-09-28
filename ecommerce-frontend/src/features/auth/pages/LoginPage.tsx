@@ -60,8 +60,8 @@ export function LoginPage() {
           <AuthTitle
             subtitle={
               mode === 'signin'
-                ? 'Sign in to see your orders, wishlist and saved makers.'
-                : 'One account for every shop on AmbalaEshop.'
+                ? 'Sign in to see your orders and saved items.'
+                : 'Use one account to buy from every shop on AmbalaEshop.'
             }
           >
             {mode === 'signin' ? (

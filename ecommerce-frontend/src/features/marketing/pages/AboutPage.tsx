@@ -15,24 +15,24 @@ import { DisplayHeading } from '../components/DisplayHeading'
 import { SellCta } from '../components/SellCta'
 
 const standards = [
-  { icon: LuBadgeCheck, term: 'Named makers', desc: 'Every product is attributed to one workshop. No white-label, no drop-ship.' },
-  { icon: LuLeaf, term: 'Material honesty', desc: 'Listings state the real material and its origin — “solid oak”, not “oak finish”.' },
-  { icon: LuWrench, term: 'Repairability', desc: 'We favour pieces that can be taken apart and fixed. Makers tell us how.' },
-  { icon: LuHandCoins, term: 'Fair settlement', desc: 'Shops set their own prices. We take a flat commission and pay out weekly.' },
+  { icon: LuBadgeCheck, term: 'Real shops', desc: 'We check every shop’s owner, phone number and address before it can sell.' },
+  { icon: LuLeaf, term: 'Honest product details', desc: 'Photos and descriptions must show the real product, its material and its size.' },
+  { icon: LuWrench, term: 'Good quality', desc: 'We look at the product quality and remove shops that get many complaints.' },
+  { icon: LuHandCoins, term: 'Fair prices', desc: 'Shops set their own prices. There are no hidden charges at checkout.' },
 ]
 
 const faqs = [
-  { id: 'f1', question: 'Why did my order arrive in separate parcels?', answer: 'Each maker ships their own work directly, so an order from three shops arrives as three parcels — often on different days.' },
-  { id: 'f2', question: 'How does shipping cost work?', answer: 'Shipping is calculated per shop. Cross a shop’s free-shipping threshold and their portion ships free; the rest is a flat rate.' },
-  { id: 'f3', question: 'Can I return part of an order?', answer: 'Yes. Returns are handled per shipment against that maker’s policy, shown on every product page.' },
-  { id: 'f4', question: 'I make things — can I sell here?', answer: 'We review new shops on a rolling basis. Apply through “Sell on AmbalaEshop” and we’ll be in touch within a week.' },
+  { id: 'f1', question: 'Why did my order arrive in separate parcels?', answer: 'Each shop sends its own parcel. So if you buy from three shops, you get three parcels, sometimes on different days.' },
+  { id: 'f2', question: 'How is the delivery charge calculated?', answer: 'The delivery charge depends on your area: inside Dhaka, Dhaka suburbs or outside Dhaka. It is charged for each shop’s parcel. If you buy enough from one shop, that parcel is delivered free.' },
+  { id: 'f3', question: 'Can I return part of an order?', answer: 'Yes. You can return items from one parcel within 7 days of delivery. Open the order in your account and choose “Request a return”.' },
+  { id: 'f4', question: 'I have a shop. Can I sell here?', answer: 'Yes. Apply through “Sell on AmbalaEshop”. We check every application and reply within 7 days.' },
 ]
 
 const topics = [
   { v: 'order', label: 'An order' },
   { v: 'product', label: 'A product' },
   { v: 'selling', label: 'Selling on AmbalaEshop' },
-  { v: 'press', label: 'Press' },
+  { v: 'press', label: 'Business enquiry' },
   { v: 'other', label: 'Something else' },
 ]
 
@@ -120,18 +120,18 @@ export function AboutPage() {
             </p>
             {/* `!` beats the global unlayered h1 font rule in index.css */}
             <h1 className="mt-6 font-display! text-[clamp(2.5rem,1.6rem+3.8vw,4.75rem)] font-extrabold! leading-[0.98] tracking-[-0.045em]! text-ink text-balance">
-              A shop window for workshops <em className="font-medium text-accent">that don’t have one.</em>
+              Helping local shops <em className="font-medium text-accent">sell online.</em>
             </h1>
             <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-ink-soft">
-              AmbalaEshop began in 2021 as a shared stall at a design market. The makers kept asking the same thing —
-              could we keep the table running year round, online, without turning their work into anonymous
-              inventory. This is that table.
+              AmbalaEshop started in 2021. Many good shops in Bangladesh had no website of their own. We built
+              one place where they can sell online, and where you can buy from all of them in one easy
+              checkout.
             </p>
 
             <dl className="mx-auto mt-10 grid max-w-lg grid-cols-3 gap-3">
               {[
                 { value: activeVendors.length, label: 'Shops' },
-                { value: products.length, label: 'Pieces' },
+                { value: products.length, label: 'Products' },
                 { value: 1, label: 'Checkout' },
               ].map((s) => (
                 <div key={s.label} className="rounded-2xl border border-border bg-surface px-3 py-4 shadow-sm">
@@ -153,7 +153,7 @@ export function AboutPage() {
             <div className="relative">
               <img
                 src={imageFor('Studio', 'about-studio', { w: 1000, h: 1100 })}
-                alt="A shared studio space"
+                alt="A seller’s workshop"
                 className="aspect-[5/4] w-full rounded-3xl object-cover"
               />
               <div className="absolute bottom-4 left-4 flex items-center gap-3 rounded-2xl bg-surface p-3 pr-5 shadow-[0_18px_40px_rgba(40,20,80,0.18)]">
@@ -161,15 +161,15 @@ export function AboutPage() {
                   <LuBadgeCheck className="h-5 w-5" aria-hidden />
                 </span>
                 <span>
-                  <span className="block text-sm font-semibold text-ink">Every shop reviewed</span>
-                  <span className="block text-caption text-ink-mute">Four checks before joining</span>
+                  <span className="block text-sm font-semibold text-ink">Every shop is checked</span>
+                  <span className="block text-caption text-ink-mute">4 checks before it can sell</span>
                 </span>
               </div>
             </div>
 
             <div>
               <DisplayHeading
-                eyebrow="How we choose"
+                eyebrow="How we check shops"
                 title={
                   <>
                     Four things we check <em>before a shop joins</em>
@@ -210,10 +210,10 @@ export function AboutPage() {
                 eyebrow="Contact"
                 title={
                   <>
-                    Say hello, <em>we read everything.</em>
+                    Need help? <em>Talk to us.</em>
                   </>
                 }
-                description="Order questions, feedback, or a shop we should carry. For piece-specific help the maker is often faster — their contact is on every product page."
+                description="Questions about an order, a product or selling with us? Send us a message and we will reply soon."
               />
 
               <ul className="mt-8 space-y-2.5">
@@ -252,7 +252,7 @@ export function AboutPage() {
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
                 </span>
-                Replies within one business day
+                We reply within one working day
               </p>
             </div>
 
@@ -264,7 +264,7 @@ export function AboutPage() {
                   </span>
                   <p className="mt-5 font-display text-2xl font-bold text-ink">Message sent</p>
                   <p className="mt-2 max-w-xs text-sm text-ink-soft">
-                    Thanks for reaching out — we’ll be in touch shortly.
+                    Thank you! We got your message and will reply soon.
                   </p>
                   <Link
                     to="/shop"
