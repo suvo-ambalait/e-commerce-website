@@ -1,4 +1,5 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
+import { useCountUp } from '@/shared/hooks/useCountUp'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import type { IconType } from 'react-icons'
@@ -94,27 +95,6 @@ function BoxField({
       )}
     </label>
   )
-}
-
-/** Counts from 0 up to `to` once, with an ease-out curve. */
-function useCountUp(to: number, duration = 1100) {
-  const [value, setValue] = useState(0)
-  useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setValue(to)
-      return
-    }
-    let frame = 0
-    const start = performance.now()
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / duration)
-      setValue(Math.round(to * (1 - Math.pow(1 - t, 3))))
-      if (t < 1) frame = requestAnimationFrame(tick)
-    }
-    frame = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(frame)
-  }, [to, duration])
-  return value
 }
 
 type HeroStat = { icon: IconType; value: number; label: string; hint: string }

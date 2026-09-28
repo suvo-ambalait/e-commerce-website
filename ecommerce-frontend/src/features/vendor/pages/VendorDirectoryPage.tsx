@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'motion/react'
+import type { IconType } from 'react-icons'
 import { LuGlobe, LuPackage, LuStar, LuStore } from 'react-icons/lu'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
+import { useCountUp } from '@/shared/hooks/useCountUp'
 import { Container, PageHeader, Section } from '@/shared/ui'
 import { ArrowRightIcon } from '@/shared/ui/icons'
 import { fadeUp, stagger } from '@/shared/lib/motion'
@@ -9,6 +11,25 @@ import { useVendors } from '../context/VendorContext'
 import { useCatalog } from '@/features/catalog/context/CatalogContext'
 import { VendorCard } from '../components/VendorCard'
 import { SellCta } from '@/features/marketing/components/SellCta'
+
+type Stat = { icon: IconType; value: number; decimals?: number; label: string }
+
+/** Minimal stat: small outline icon + label, big number underneath. */
+function StatCell({ icon: Icon, value, decimals = 0, label }: Stat) {
+  const shown = useCountUp(value, { decimals })
+  return (
+    <div className="flex flex-col gap-2 py-5 lg:px-6 lg:first:pl-0 lg:[&:not(:first-child)]:border-l lg:[&:not(:first-child)]:border-border">
+      <dt className="flex items-center gap-2 text-caption text-ink-mute">
+        <Icon className="h-4 w-4 text-accent" aria-hidden />
+        {label}
+      </dt>
+      <dd className="font-display text-3xl font-bold leading-none tracking-[-0.03em] text-ink tabular-nums">
+        {shown.toFixed(decimals)}
+        {label === 'Average rating' && <span className="ml-1 text-base font-medium text-ink-mute">/ 5</span>}
+      </dd>
+    </div>
+  )
+}
 
 export function VendorDirectoryPage() {
   useDocumentTitle('Shops · AmbalaEshop')
@@ -21,11 +42,11 @@ export function VendorDirectoryPage() {
     ? activeVendors.reduce((n, v) => n + v.rating, 0) / activeVendors.length
     : 0
 
-  const stats = [
+  const stats: Stat[] = [
     { icon: LuStore, value: activeVendors.length, label: 'Shops' },
     { icon: LuPackage, value: pieces, label: 'Products' },
     { icon: LuGlobe, value: countries, label: 'Countries' },
-    { icon: LuStar, value: avgRating.toFixed(1), label: 'Average rating' },
+    { icon: LuStar, value: avgRating, decimals: 1, label: 'Average rating' },
   ]
 
   return (
@@ -54,20 +75,10 @@ export function VendorDirectoryPage() {
             }
           />
 
-          {/* stats */}
-          <dl className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
-            {stats.map(({ icon: Icon, value, label }) => (
-              <div key={label} className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
-                  <Icon className="h-5 w-5" aria-hidden />
-                </span>
-                <div>
-                  <dd className="font-display text-2xl font-extrabold leading-none tracking-[-0.03em] text-ink tabular-nums">
-                    {value}
-                  </dd>
-                  <dt className="mt-1 text-caption text-ink-mute">{label}</dt>
-                </div>
-              </div>
+          {/* stats: plain row with hairline dividers */}
+          <dl className="mt-8 grid grid-cols-2 gap-x-6 border-t border-border lg:grid-cols-4 lg:gap-x-0">
+            {stats.map((s) => (
+              <StatCell key={s.label} {...s} />
             ))}
           </dl>
         </Container>
