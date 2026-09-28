@@ -3,6 +3,7 @@ import {
   LuChartLine,
   LuExternalLink,
   LuGlobe,
+  LuKeyRound,
   LuLayoutTemplate,
   LuLogOut,
   LuRotateCcw,
@@ -10,6 +11,7 @@ import {
   LuShieldCheck,
   LuTruck,
   LuUser,
+  LuUsers,
   LuWallet,
 } from 'react-icons/lu'
 import { messagesStore, payoutRequestsStore, returnsStore } from '@/features/marketplace/stores'
@@ -84,7 +86,14 @@ export function AdminLayout() {
       items: [
         { label: 'Vendors', to: '/admin/vendors', icon: StorefrontIcon, badge: { count: pendingVendors } },
         { label: 'Customers', to: '/admin/customers', icon: UsersIcon },
-        { label: 'Staff', to: '/admin/staff', icon: LuShieldCheck },
+      ],
+    },
+    {
+      title: 'Access control',
+      items: [
+        { label: 'Users', to: '/admin/access/users', icon: LuUsers },
+        { label: 'Roles', to: '/admin/access/roles', icon: LuShieldCheck },
+        { label: 'Permissions', to: '/admin/access/permissions', icon: LuKeyRound },
       ],
     },
     {

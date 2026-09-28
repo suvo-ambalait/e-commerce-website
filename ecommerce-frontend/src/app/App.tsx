@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Navigate, Routes, Route } from 'react-router-dom'
 import { StorefrontLayout } from '@/shared/layout'
 import { RequireRole } from '@/features/auth/components/RequireRole'
 
@@ -81,7 +81,10 @@ import { AdminNotifications } from '@/features/admin/pages/AdminNotifications'
 import { AdminReturns } from '@/features/admin/pages/AdminReturns'
 import { AdminPayouts } from '@/features/admin/pages/AdminPayouts'
 import { AdminReports } from '@/features/admin/pages/AdminReports'
-import { AdminStaff } from '@/features/admin/pages/AdminStaff'
+import { AccessUsers } from '@/features/admin/pages/access/AccessUsers'
+import { AccessRoles } from '@/features/admin/pages/access/AccessRoles'
+import { AccessRoleEditor } from '@/features/admin/pages/access/AccessRoleEditor'
+import { AccessPermissions } from '@/features/admin/pages/access/AccessPermissions'
 import { AdminShipping } from '@/features/admin/pages/AdminShipping'
 import { AdminContent } from '@/features/admin/pages/AdminContent'
 
@@ -186,7 +189,14 @@ export function App() {
         <Route path="returns" element={<AdminReturns />} />
         <Route path="payouts" element={<AdminPayouts />} />
         <Route path="reports" element={<AdminReports />} />
-        <Route path="staff" element={<AdminStaff />} />
+        {/* old Staff page now lives under Access control */}
+        <Route path="staff" element={<Navigate to="/admin/access/users" replace />} />
+        <Route path="access" element={<Navigate to="/admin/access/users" replace />} />
+        <Route path="access/users" element={<AccessUsers />} />
+        <Route path="access/roles" element={<AccessRoles />} />
+        <Route path="access/roles/new" element={<AccessRoleEditor key="new" />} />
+        <Route path="access/roles/:id" element={<AccessRoleEditor />} />
+        <Route path="access/permissions" element={<AccessPermissions />} />
         <Route path="shipping" element={<AdminShipping />} />
         <Route path="content" element={<AdminContent />} />
         <Route path="account" element={<DashboardAccount />} />

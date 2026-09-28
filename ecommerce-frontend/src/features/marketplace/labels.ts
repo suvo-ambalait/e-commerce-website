@@ -1,5 +1,5 @@
 import type { PillTone } from '@/features/admin/components/TableKit'
-import type { PayoutStatus, ReturnStatus, StaffMember } from './stores'
+import type { PayoutStatus, ReturnStatus } from './stores'
 
 /** Badge / Pill tones shared by customer, vendor and admin screens. */
 export const returnTone: Record<ReturnStatus, 'warning' | 'accent' | 'danger' | 'success'> = {
@@ -15,8 +15,3 @@ export const payoutTone: Record<PayoutStatus, PillTone> = {
   Rejected: 'danger',
 }
 
-export const staffStatusTone: Record<StaffMember['status'], PillTone> = {
-  Active: 'success',
-  Invited: 'warning',
-  Suspended: 'danger',
-}

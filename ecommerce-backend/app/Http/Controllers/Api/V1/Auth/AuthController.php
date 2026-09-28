@@ -54,6 +54,8 @@ class AuthController extends Controller
             'status' => 'inactive', // Set the status to pending initially
         ]);
 
+        
+
         $otp = random_int(100000, 999999); // Generate a random 6-digit OTP
 
         OtpVerification::create([

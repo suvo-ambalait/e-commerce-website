@@ -151,32 +151,6 @@ export interface VendorDiscount {
 
 export const vendorDiscountsStore = createStore<VendorDiscount[]>('marketplace:vendor-discounts', [])
 
-/* ------------------------------- staff ------------------------------- */
-
-export type StaffRole = 'Owner' | 'Manager' | 'Support' | 'Content editor' | 'Finance'
-
-export const staffPermissions: Record<StaffRole, string[]> = {
-  Owner: ['Everything', 'Staff & roles', 'Settings'],
-  Manager: ['Products', 'Orders', 'Vendors', 'Customers', 'Returns', 'Reports'],
-  Support: ['Orders', 'Customers', 'Returns'],
-  'Content editor': ['Site content', 'Categories', 'Products'],
-  Finance: ['Payouts', 'Reports', 'Orders'],
-}
-
-export interface StaffMember {
-  id: string
-  name: string
-  email: string
-  role: StaffRole
-  status: 'Active' | 'Invited' | 'Suspended'
-  addedAt: string
-  lastActive?: string
-}
-
-export const staffStore = createStore<StaffMember[]>('marketplace:staff', () => [
-  { id: 'st-owner', name: 'Store owner', email: 'admin@ambalaeshop.test', role: 'Owner', status: 'Active', addedAt: '2024-01-10T09:00:00.000Z', lastActive: new Date().toISOString() },
-])
-
 /* --------------------------- delivery zones -------------------------- */
 
 export interface DeliveryZone {
