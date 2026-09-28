@@ -54,7 +54,9 @@ class AuthController extends Controller
             'status' => 'inactive', // Set the status to pending initially
         ]);
 
-        
+        $user->assignRole('customer'); // Assign the 'customer' role to the user
+
+
 
         $otp = random_int(100000, 999999); // Generate a random 6-digit OTP
 
@@ -256,7 +258,7 @@ class AuthController extends Controller
 
     // Get User Roles method
     #[OA\Get(
-        path: '/v1/auth/user/roles',
+        path: '/v1/auth/admin/user/roles',
         tags: ['Auth'],
         summary: 'Get the roles of the authenticated user',
         security: [['bearerAuth' => []]],
