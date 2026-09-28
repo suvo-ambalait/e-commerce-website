@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'motion/react'
+import { LuArrowRight, LuCheck, LuLayers, LuSparkles, LuStore, LuTruck, LuZap } from 'react-icons/lu'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
 import {
   Badge,
   Breadcrumbs,
-  Button,
   ButtonLink,
   Container,
   Price,
@@ -14,7 +14,7 @@ import {
   Section,
   Tabs,
 } from '@/shared/ui'
-import { HeartIcon, TruckIcon, LeafIcon } from '@/shared/ui/icons'
+import { BagIcon, HeartIcon, TruckIcon, LeafIcon } from '@/shared/ui/icons'
 import { cn } from '@/shared/lib/cn'
 import { discountFraction, formatPercent } from '@/shared/lib/format'
 import { useCatalog } from '../context/CatalogContext'
@@ -30,6 +30,12 @@ import { Avatar } from '@/shared/ui'
 
 const SIZES = ['One size']
 const COLORS = ['Natural', 'Charcoal', 'Clay']
+/** little colour dot shown in each finish option */
+const swatch: Record<string, string> = {
+  Natural: 'bg-[#e8dcc6]',
+  Charcoal: 'bg-[#3a3a3c]',
+  Clay: 'bg-[#b8674a]',
+}
 
 export function ProductDetailPage() {
   const { id } = useParams()
@@ -39,6 +45,7 @@ export function ProductDetailPage() {
   const { isWishlisted, toggle } = useWishlist()
   const { statusFor } = useInventory()
   const { notify } = useToast()
+  const navigate = useNavigate()
 
   const product = id ? getProduct(id) : undefined
   const [color, setColor] = useState(COLORS[0])
@@ -64,9 +71,17 @@ export function ProductDetailPage() {
   const related = products.filter((p) => p.category === product.category && p.id !== product.id)
   const fromVendor = products.filter((p) => p.vendorId === product.vendorId && p.id !== product.id)
 
+  const stock = statusFor(product)
+  const soldOut = product.stock <= 0
+
   const add = () => {
     addItem(product, { size, color, quantity: qty })
     notify(`${product.name} added to cart`, 'success')
+  }
+
+  const buyNow = () => {
+    addItem(product, { size, color, quantity: qty })
+    navigate('/checkout')
   }
 
   return (
@@ -108,43 +123,90 @@ export function ProductDetailPage() {
               <p className="mt-5 text-sm leading-relaxed text-ink-soft">{product.description}</p>
 
               <div className="mt-7">
-                <p className="text-caption font-medium uppercase tracking-wide text-ink-soft">Finish</p>
-                <div className="mt-2 flex gap-2">
-                  {COLORS.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => setColor(c)}
-                      className={cn(
-                        'rounded-full border px-4 py-1.5 text-caption transition-colors',
-                        color === c ? 'border-transparent bg-ink text-bg' : 'border-border-strong text-ink-soft hover:border-ink',
-                      )}
-                    >
-                      {c}
-                    </button>
-                  ))}
+                <p className="text-sm text-ink-soft">
+                  Finish: <span className="font-semibold text-ink">{color}</span>
+                </p>
+                <div className="mt-2.5 flex flex-wrap gap-2" role="radiogroup" aria-label="Finish">
+                  {COLORS.map((c) => {
+                    const selected = color === c
+                    return (
+                      <button
+                        key={c}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        onClick={() => setColor(c)}
+                        className={cn(
+                          'inline-flex h-10 items-center gap-2 rounded-full border px-4 text-sm font-medium transition-[border-color,background-color,box-shadow]',
+                          selected
+                            ? 'border-accent! bg-accent-soft text-ink ring-4 ring-accent/10'
+                            : 'border-border-strong text-ink-soft hover:border-accent/50! hover:text-ink',
+                        )}
+                      >
+                        <span className={cn('h-4 w-4 rounded-full ring-1 ring-black/10', swatch[c])} aria-hidden />
+                        {c}
+                        {selected && <LuCheck className="h-3.5 w-3.5 text-accent" />}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 
-              <div className="mt-6 flex flex-wrap items-center gap-3">
-                <QuantityStepper value={qty} onChange={setQty} max={Math.max(1, product.stock)} />
-                <Button onClick={add} size="lg" disabled={product.stock <= 0} className="flex-1 min-w-48">
-                  {product.stock <= 0 ? 'Sold out' : 'Add to cart'}
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  aria-label="Save for later"
-                  onClick={() => toggle(product.id)}
-                  className="px-4"
-                >
-                  <HeartIcon className={cn('h-5 w-5', wishlisted && 'fill-accent text-accent')} />
-                </Button>
+              {/* purchase actions */}
+              <div className="mt-6 space-y-3">
+                <div className="flex items-center gap-3">
+                  <QuantityStepper value={qty} onChange={setQty} max={Math.max(1, product.stock)} size="lg" className="shrink-0" />
+                  <button
+                    type="button"
+                    onClick={add}
+                    disabled={soldOut}
+                    className="group inline-flex h-13 min-w-0 flex-1 items-center justify-center gap-2.5 rounded-full bg-accent px-6 text-sm font-semibold text-on-accent shadow-[0_10px_28px_rgba(109,40,217,0.3)] transition-[background-color,transform] hover:bg-accent-hover active:translate-y-px disabled:cursor-not-allowed disabled:bg-border-strong disabled:text-ink-mute disabled:shadow-none"
+                  >
+                    <BagIcon className="h-4.5 w-4.5 shrink-0" />
+                    <span className="truncate">{soldOut ? 'Sold out' : 'Add to cart'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={wishlisted ? 'Remove from saved items' : 'Save for later'}
+                    aria-pressed={wishlisted}
+                    onClick={() => {
+                      toggle(product.id)
+                      notify(wishlisted ? 'Removed from saved items' : 'Saved for later', 'success')
+                    }}
+                    className={cn(
+                      'flex h-13 w-13 shrink-0 items-center justify-center rounded-full border transition-colors',
+                      wishlisted
+                        ? 'border-accent! bg-accent-soft text-accent'
+                        : 'border-border-strong bg-surface text-ink-soft hover:border-accent! hover:text-accent',
+                    )}
+                  >
+                    <HeartIcon className={cn('h-5 w-5', wishlisted && 'fill-current')} />
+                  </button>
+                </div>
+
+                {!soldOut && (
+                  <button
+                    type="button"
+                    onClick={buyNow}
+                    className="inline-flex h-13 w-full items-center justify-center gap-2 rounded-full border-2 border-ink bg-ink text-sm font-semibold text-bg transition-colors hover:bg-ink-soft hover:border-ink-soft"
+                  >
+                    <LuZap className="h-4 w-4" />
+                    Buy now
+                  </button>
+                )}
               </div>
-              <p className="mt-2 text-caption text-ink-mute">
-                {statusFor(product) === 'out'
+
+              <p className="mt-3 flex items-center gap-2 text-caption text-ink-mute">
+                <span
+                  className={cn(
+                    'h-2 w-2 rounded-full',
+                    stock === 'out' ? 'bg-danger' : stock === 'low' ? 'bg-warning' : 'bg-success',
+                  )}
+                  aria-hidden
+                />
+                {stock === 'out'
                   ? `Currently sold out · SKU ${product.sku}`
-                  : statusFor(product) === 'low'
+                  : stock === 'low'
                     ? `Only ${product.stock} left — made in small batches`
                     : `In stock · SKU ${product.sku}`}
               </p>
@@ -166,26 +228,106 @@ export function ProductDetailPage() {
                     {
                       id: 'materials',
                       label: 'Materials',
-                      content: <p>{product.materials}</p>,
+                      icon: LuLayers,
+                      content: (
+                        <div className="space-y-4">
+                          <p>{product.materials}</p>
+                          <dl className="grid grid-cols-2 gap-3 border-t border-border pt-4 text-caption">
+                            <div>
+                              <dt className="text-ink-mute">Category</dt>
+                              <dd className="mt-0.5 font-semibold text-ink">{product.category}</dd>
+                            </div>
+                            <div>
+                              <dt className="text-ink-mute">SKU</dt>
+                              <dd className="mt-0.5 font-mono font-semibold text-ink">{product.sku}</dd>
+                            </div>
+                          </dl>
+                        </div>
+                      ),
                     },
                     {
                       id: 'about-maker',
                       label: 'The maker',
-                      content: (
+                      icon: LuStore,
+                      content: vendor ? (
                         <div>
-                          <p>{vendor?.bio}</p>
-                          {vendor && (
-                            <Link to={`/vendor/${vendor.slug}`} className="mt-3 inline-block text-accent underline-offset-4 hover:underline">
-                              Visit {vendor.name}
+                          <div className="flex items-center gap-3">
+                            <Avatar src={vendor.logo} name={vendor.name} size={44} />
+                            <div className="min-w-0">
+                              <p className="truncate font-display text-base font-bold text-ink">{vendor.name}</p>
+                              <p className="flex flex-wrap items-center gap-x-2 text-caption text-ink-mute">
+                                <Rating value={vendor.rating} />
+                                <span>{vendor.location}</span>
+                              </p>
+                            </div>
+                          </div>
+                          <p className="mt-3 line-clamp-4">{vendor.bio}</p>
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            <Link
+                              to={`/vendor/${vendor.slug}`}
+                              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-accent px-4 text-caption font-semibold text-on-accent transition-colors hover:bg-accent-hover"
+                            >
+                              Visit the shop
+                              <LuArrowRight className="h-3.5 w-3.5" />
                             </Link>
-                          )}
+                            <Link
+                              to={`/reviews?shop=${vendor.slug}`}
+                              className="inline-flex h-9 items-center rounded-full border border-border-strong px-4 text-caption font-semibold text-ink transition-colors hover:border-accent hover:text-accent"
+                            >
+                              Shop reviews
+                            </Link>
+                          </div>
                         </div>
+                      ) : (
+                        <p>Shop details aren’t available.</p>
                       ),
                     },
                     {
                       id: 'care',
                       label: 'Care',
-                      content: <p>Dust with a dry cloth. Avoid direct sun and heat sources. Re-oil timber annually with a food-safe hardwax oil where applicable.</p>,
+                      icon: LuSparkles,
+                      content: (
+                        <ul className="space-y-2.5">
+                          {[
+                            'Dust with a soft, dry cloth.',
+                            'Keep out of direct sun and away from heat sources.',
+                            'Re-oil timber once a year with a food-safe hardwax oil, where it applies.',
+                            'Ask the shop before washing or cleaning with anything stronger.',
+                          ].map((tip) => (
+                            <li key={tip} className="flex items-start gap-2.5">
+                              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-success-soft text-success">
+                                <LuCheck className="h-3 w-3" />
+                              </span>
+                              {tip}
+                            </li>
+                          ))}
+                        </ul>
+                      ),
+                    },
+                    {
+                      id: 'delivery',
+                      label: 'Delivery',
+                      icon: LuTruck,
+                      content: (
+                        <div className="space-y-3">
+                          {vendor && (
+                            <>
+                              <p className="flex items-start gap-2.5">
+                                <TruckIcon className="mt-0.5 h-4 w-4 shrink-0 text-accent" /> {vendor.policies.shipping}
+                              </p>
+                              <p className="flex items-start gap-2.5">
+                                <LeafIcon className="mt-0.5 h-4 w-4 shrink-0 text-accent" /> {vendor.policies.returns}
+                              </p>
+                            </>
+                          )}
+                          <p className="border-t border-border pt-3 text-caption text-ink-mute">
+                            Cash on delivery, bKash, Nagad and card accepted.{' '}
+                            <Link to="/shipping-returns" className="font-semibold text-accent hover:underline">
+                              Delivery charges & returns
+                            </Link>
+                          </p>
+                        </div>
+                      ),
                     },
                   ]}
                 />
