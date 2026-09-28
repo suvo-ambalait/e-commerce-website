@@ -22,6 +22,10 @@ import { OrderConfirmationPage } from '@/features/checkout/pages/OrderConfirmati
 
 import { AccountPage } from '@/features/account/pages/AccountPage'
 import { WishlistPage } from '@/features/account/pages/WishlistPage'
+import { AccountLayout } from '@/features/account/components/AccountLayout'
+import { AccountOrdersPage } from '@/features/account/pages/AccountOrdersPage'
+import { AccountOrderDetailPage } from '@/features/account/pages/AccountOrderDetailPage'
+import { AccountProfilePage } from '@/features/account/pages/AccountProfilePage'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage'
 import { VerifyOtpPage } from '@/features/auth/pages/VerifyOtpPage'
@@ -78,8 +82,13 @@ export function App() {
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
-        <Route path="/account" element={<AccountPage />} />
-        <Route path="/wishlist" element={<WishlistPage />} />
+        <Route element={<AccountLayout />}>
+          <Route path="/account" element={<AccountPage />} />
+          <Route path="/account/orders" element={<AccountOrdersPage />} />
+          <Route path="/account/orders/:orderNumber" element={<AccountOrderDetailPage />} />
+          <Route path="/account/profile" element={<AccountProfilePage />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
+        </Route>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/verify-otp" element={<VerifyOtpPage />} />

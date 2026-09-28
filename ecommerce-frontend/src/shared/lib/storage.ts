@@ -13,4 +13,5 @@ export const storageKeys = {
   settings: 'settings',
   discounts: 'discounts',
   authToken: 'auth:token',
+  accountProfile: 'account:profile',
 } as const

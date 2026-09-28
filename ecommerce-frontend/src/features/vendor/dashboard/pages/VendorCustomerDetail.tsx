@@ -122,7 +122,7 @@ function ContactRow({ icon, value }: { icon: React.ReactNode; value: string }) {
   return (
     <li className="flex items-start gap-2.5">
       <span className="mt-0.5 shrink-0 text-accent">{icon}</span>
-      <span className="min-w-0 break-words">{value || '—'}</span>
+      <span className="min-w-0 wrap-break-word">{value || '—'}</span>
     </li>
   )
 }
