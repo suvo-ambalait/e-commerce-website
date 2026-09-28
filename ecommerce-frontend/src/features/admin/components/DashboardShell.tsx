@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ComponentType, type ReactNode, type SVGProps } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { LuPanelLeftClose, LuPanelLeftOpen, LuChevronsUpDown, LuCornerDownLeft } from 'react-icons/lu'
@@ -38,6 +39,100 @@ const badgeTone = {
   warning: 'bg-warning-soft text-warning',
 }
 const dotTone = { accent: 'bg-accent', warning: 'bg-warning' }
+
+/**
+ * Hover/focus tooltip for the collapsed rail. Rendered in a portal with fixed
+ * positioning because the rail's scroll area clips anything that overflows it.
+ * When `enabled` is false it renders the children untouched.
+ */
+function RailTip({
+  label,
+  hint,
+  badge,
+  enabled,
+  children,
+}: {
+  label: string
+  /** secondary text, e.g. a keyboard shortcut */
+  hint?: string
+  badge?: NavItem['badge']
+  enabled: boolean
+  children: ReactNode
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+
+  // hide if anything scrolls or the window resizes while it's open
+  useEffect(() => {
+    if (!pos) return
+    const hide = () => setPos(null)
+    window.addEventListener('scroll', hide, true)
+    window.addEventListener('resize', hide)
+    return () => {
+      window.removeEventListener('scroll', hide, true)
+      window.removeEventListener('resize', hide)
+    }
+  }, [pos])
+
+  if (!enabled) return <>{children}</>
+
+  const show = () => {
+    const r = ref.current?.getBoundingClientRect()
+    if (r) setPos({ top: r.top + r.height / 2, left: r.right + 14 })
+  }
+  const hide = () => setPos(null)
+
+  return (
+    <div
+      ref={ref}
+      className="flex justify-center"
+      onMouseEnter={show}
+      onMouseLeave={hide}
+      onFocus={show}
+      onBlur={hide}
+      onMouseDown={hide}
+    >
+      {children}
+      {createPortal(
+        <AnimatePresence>
+          {pos && (
+            <motion.div
+              role="tooltip"
+              initial={{ opacity: 0, x: -6, scale: 0.96 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: -4, scale: 0.98 }}
+              transition={{ duration: 0.14, ease: easeEditorial }}
+              style={{ top: pos.top, left: pos.left }}
+              className="pointer-events-none fixed z-100 -translate-y-1/2"
+            >
+              <div className="relative flex items-center gap-2 whitespace-nowrap rounded-xl bg-ink px-3 py-2 text-caption font-semibold text-bg shadow-[0_12px_28px_rgba(11,10,16,0.28)]">
+                {/* arrow pointing back at the icon */}
+                <span aria-hidden className="absolute -left-1 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rotate-45 rounded-xs bg-ink" />
+                <span className="relative">{label}</span>
+                {badge && badge.count > 0 && (
+                  <span
+                    className={cn(
+                      'relative flex h-4.5 min-w-4.5 items-center justify-center rounded-full px-1 text-[10px] font-bold tabular-nums',
+                      badge.tone === 'warning' ? 'bg-warning text-white' : 'bg-accent text-on-accent',
+                    )}
+                  >
+                    {badge.count}
+                  </span>
+                )}
+                {hint && (
+                  <kbd className="relative rounded-md bg-bg/15 px-1.5 py-px font-sans text-[10px] font-semibold text-bg/80">
+                    {hint}
+                  </kbd>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
+    </div>
+  )
+}
 
 export function DashboardShell({
   storageKey,
@@ -91,11 +186,11 @@ export function DashboardShell({
           {group.title && rail && gi > 0 && <div className="mx-auto mb-3 w-6 border-t border-border" />}
           <div className="space-y-0.5">
             {group.items.map((item) => (
+              <RailTip key={item.to} enabled={rail} label={item.label} badge={item.badge}>
               <NavLink
-                key={item.to}
                 to={item.to}
                 end={item.end}
-                title={rail ? item.label : undefined}
+                aria-label={rail ? item.label : undefined}
                 onClick={() => setMobileOpen(false)}
                 className={({ isActive }) =>
                   cn(
@@ -128,6 +223,7 @@ export function DashboardShell({
                     </span>
                   ))}
               </NavLink>
+              </RailTip>
             ))}
           </div>
         </div>
@@ -140,6 +236,7 @@ export function DashboardShell({
       side="top"
       align="left"
       trigger={({ toggle }) => (
+        <RailTip enabled={rail} label={user.name} hint={user.role}>
         <button
           type="button"
           onClick={toggle}
@@ -163,6 +260,7 @@ export function DashboardShell({
             </>
           )}
         </button>
+        </RailTip>
       )}
     >
       {(close) => (
@@ -194,6 +292,7 @@ export function DashboardShell({
         <div className="flex h-full flex-col rounded-3xl border border-border bg-surface shadow-sm">
           {/* brand */}
           <div className={cn('flex items-center gap-2 p-4', collapsed && 'flex-col px-0')}>
+            <RailTip enabled={collapsed} label="Storefront home">
             <Link to="/" className="min-w-0 flex-1" aria-label="Storefront home">
               {collapsed ? (
                 <Logo boxed className="h-10 w-10" />
@@ -204,6 +303,8 @@ export function DashboardShell({
                 </span>
               )}
             </Link>
+            </RailTip>
+            <RailTip enabled={collapsed} label="Expand sidebar">
             <button
               type="button"
               onClick={() => setCollapsed(!collapsed)}
@@ -212,10 +313,12 @@ export function DashboardShell({
             >
               {collapsed ? <LuPanelLeftOpen className="h-4 w-4" /> : <LuPanelLeftClose className="h-4 w-4" />}
             </button>
+            </RailTip>
           </div>
 
           {/* jump to */}
           <div className={cn('px-3 pb-3', collapsed && 'flex justify-center px-0')}>
+            <RailTip enabled={collapsed} label="Jump to…" hint="Ctrl K">
             <button
               type="button"
               onClick={() => setJumpOpen(true)}
@@ -235,6 +338,7 @@ export function DashboardShell({
                 </>
               )}
             </button>
+            </RailTip>
           </div>
 
           {/* rail: no side padding (the 40px icons fill the ~58px card) and a hidden
