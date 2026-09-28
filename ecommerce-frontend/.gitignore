@@ -13,6 +13,9 @@ dist-ssr
 *.local
 .env
 
+# personal notes and learning docs (not committed)
+backups/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
