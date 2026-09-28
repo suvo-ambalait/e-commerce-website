@@ -16,7 +16,19 @@ import { Pill } from '../components/TableKit'
 import { CoinIcon, PercentIcon, StorefrontIcon, AlertIcon } from '../components/icons'
 import { AreaChart, Avatar, BarChart } from '@/shared/ui'
 import { overallStatus, shipmentTone } from '@/features/orders/lib/status'
-import { ArrowRightIcon, CheckIcon, ChevronRightIcon } from '@/shared/ui/icons'
+import {
+  AllClear,
+  AttentionRow,
+  MetaChip,
+  OpenCountPill,
+  PanelLink,
+  QuickActions,
+  SectionButtonLink,
+  SectionHeader,
+  ThumbStack,
+  timeAgo,
+} from '../components/DashboardWidgets'
+import { ChevronRightIcon } from '@/shared/ui/icons'
 import { cn } from '@/shared/lib/cn'
 import { formatDate, formatPrice, formatPriceWhole } from '@/shared/lib/format'
 import { useOrders } from '@/features/orders/context/OrdersContext'
@@ -549,17 +561,7 @@ export function AdminDashboard() {
           title="Needs attention"
           subtitle={openTasks ? 'Things waiting on you today' : 'You’re all caught up'}
           className="flex flex-col lg:col-span-2 xl:col-span-1"
-          aside={
-            <span
-              className={cn(
-                'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold tabular-nums',
-                openTasks ? 'bg-warning-soft text-warning' : 'bg-success-soft text-success',
-              )}
-            >
-              <span className={cn('h-1.5 w-1.5 rounded-full', openTasks ? 'bg-warning' : 'bg-success')} />
-              {openTasks ? `${openTasks} open` : 'Clear'}
-            </span>
-          }
+          aside={<OpenCountPill open={openTasks} />}
         >
           <div className="space-y-2.5">
             {lowStock.length > 0 && (
@@ -572,7 +574,7 @@ export function AdminDashboard() {
                 text="Restock before they stop selling"
                 meta={
                   <>
-                    <Stack
+                    <ThumbStack
                       items={lowStock.map((p) => ({ key: p.id, src: p.images[0], name: p.name }))}
                       rounded="rounded-md"
                     />
@@ -601,199 +603,42 @@ export function AdminDashboard() {
                 title={`Vendor application${pending.length > 1 ? 's' : ''} pending`}
                 text="Review before they go live"
                 meta={
-                  <Stack
+                  <ThumbStack
                     items={pending.map((v) => ({ key: v.id, src: v.logo, name: v.name }))}
                     rounded="rounded-full"
                   />
                 }
               />
             )}
-            {!openTasks && (
-              <div className="flex flex-col items-center rounded-2xl border border-dashed border-success/40! bg-success-soft/50 px-4 py-6 text-center">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-success text-white shadow-[0_8px_20px_rgba(34,120,60,0.25)]">
-                  <CheckIcon className="h-5 w-5" />
-                </span>
-                <p className="mt-3 text-sm font-semibold text-ink">All clear</p>
-                <p className="mt-0.5 text-caption text-ink-mute">Nothing needs you right now.</p>
-              </div>
-            )}
+            {!openTasks && <AllClear />}
           </div>
 
-          {/* quick actions sit at the bottom so the panel never has a dead gap */}
-          <div className="mt-auto pt-6">
-            <p className="mb-2.5 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-mute">
-              Quick actions
-              <span className="h-px flex-1 bg-border" />
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { label: 'Add product', hint: 'New listing', to: '/admin/products/new', icon: LuPlus },
-                { label: 'New discount', hint: 'Code or sale', to: '/admin/discounts', icon: LuTicketPercent },
-                { label: 'Invite vendor', hint: 'Grow the shops', to: '/admin/vendors', icon: LuUserPlus },
-                { label: 'Inventory', hint: 'Stock levels', to: '/admin/inventory', icon: LuBoxes },
-              ].map(({ label, hint, to, icon: Icon }) => (
-                <Link
-                  key={label}
-                  to={to}
-                  className="group flex items-center gap-2.5 rounded-xl border border-border bg-surface p-2.5 transition-[border-color,box-shadow,transform] hover:-translate-y-px hover:border-accent/50! hover:shadow-[0_8px_20px_rgba(40,20,80,0.08)]"
-                >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent transition-colors group-hover:bg-accent group-hover:text-on-accent">
-                    <Icon className="h-4 w-4" aria-hidden />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block truncate text-caption font-semibold text-ink">{label}</span>
-                    <span className="block truncate text-[11px] text-ink-mute">{hint}</span>
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </div>
+          <QuickActions
+            actions={[
+              { label: 'Add product', hint: 'New listing', to: '/admin/products/new', icon: LuPlus },
+              { label: 'New discount', hint: 'Code or sale', to: '/admin/discounts', icon: LuTicketPercent },
+              { label: 'Invite vendor', hint: 'Grow the shops', to: '/admin/vendors', icon: LuUserPlus },
+              { label: 'Inventory', hint: 'Stock levels', to: '/admin/inventory', icon: LuBoxes },
+            ]}
+          />
         </Panel>
       </div>
 
       <div className="pt-2">
-        <div className="mb-3 flex items-end justify-between gap-4">
-          <div>
-            <h3 className="flex items-center gap-2 font-display! text-base font-bold! tracking-[-0.01em]! text-ink">
-              Recent orders
-              <span className="rounded-full bg-accent-soft px-2 py-0.5 font-sans text-[11px] font-semibold text-accent tabular-nums">
-                {orders.length}
-              </span>
-            </h3>
-            <p className="mt-0.5 text-caption text-ink-mute">Latest checkouts across all shops</p>
-          </div>
-          <Link
-            to="/admin/orders"
-            className="group inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-border bg-surface px-3 text-caption font-semibold text-ink transition-colors hover:border-accent/50! hover:text-accent"
-          >
-            All orders
-            <ArrowRightIcon className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-          </Link>
-        </div>
+        <SectionHeader
+          title="Recent orders"
+          count={orders.length}
+          subtitle="Latest checkouts across all shops"
+          action={<SectionButtonLink to="/admin/orders">All orders</SectionButtonLink>}
+        />
         <DataTable rows={orders} columns={columns} keyOf={(o) => o.orderNumber} empty="No orders yet." pageSize={6} />
       </div>
     </div>
   )
 }
 
-function timeAgo(iso: string) {
-  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000)
-  if (days <= 0) return 'Today'
-  if (days === 1) return 'Yesterday'
-  if (days < 7) return `${days} days ago`
-  const weeks = Math.floor(days / 7)
-  if (days < 30) return `${weeks} week${weeks === 1 ? '' : 's'} ago`
-  const months = Math.floor(days / 30)
-  return `${months} month${months === 1 ? '' : 's'} ago`
-}
-
 function formatShort(daysAgo: number) {
   const d = new Date()
   d.setDate(d.getDate() - daysAgo)
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
-
-function PanelLink({ to, children }: { to: string; children: React.ReactNode }) {
-  return (
-    <Link to={to} className="inline-flex shrink-0 items-center gap-1 text-caption font-semibold text-accent hover:underline">
-      {children}
-      <ArrowRightIcon className="h-3 w-3" />
-    </Link>
-  )
-}
-
-const attentionTone = {
-  warning: { card: 'hover:border-warning/50!', bar: 'bg-warning', icon: 'bg-warning-soft text-warning' },
-  accent: { card: 'hover:border-accent/50!', bar: 'bg-accent', icon: 'bg-accent-soft text-accent' },
-  info: { card: 'hover:border-ink-mute/50!', bar: 'bg-ink-soft', icon: 'bg-surface-sunken text-ink-soft' },
-}
-
-function AttentionRow({
-  to,
-  tone,
-  icon,
-  count,
-  title,
-  text,
-  meta,
-}: {
-  to: string
-  tone: keyof typeof attentionTone
-  icon: React.ReactNode
-  count: number
-  title: string
-  text: string
-  meta?: React.ReactNode
-}) {
-  const t = attentionTone[tone]
-  return (
-    <Link
-      to={to}
-      className={cn(
-        'group relative flex items-start gap-3 overflow-hidden rounded-2xl border border-border bg-surface p-3.5 pl-4 transition-[border-color,box-shadow] hover:shadow-[0_10px_24px_rgba(40,20,80,0.08)]',
-        t.card,
-      )}
-    >
-      {/* tone stripe */}
-      <span aria-hidden className={cn('absolute inset-y-0 left-0 w-1', t.bar)} />
-      <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', t.icon)}>{icon}</span>
-      <span className="min-w-0 flex-1">
-        <span className="flex items-baseline gap-1.5">
-          <span className="font-display text-lg font-extrabold leading-none tracking-[-0.02em] text-ink tabular-nums">
-            {count}
-          </span>
-          <span className="truncate text-sm font-semibold text-ink">{title}</span>
-        </span>
-        <span className="mt-1 block text-caption text-ink-mute">{text}</span>
-        {meta && <span className="mt-2.5 flex flex-wrap items-center gap-1.5">{meta}</span>}
-      </span>
-      <span className="mt-2.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-sunken text-ink-mute transition-colors group-hover:bg-ink group-hover:text-bg">
-        <ChevronRightIcon className="h-3.5 w-3.5 transition-transform group-hover:translate-x-px" />
-      </span>
-    </Link>
-  )
-}
-
-/** Overlapping thumbnails with a "+N" overflow chip. */
-function Stack({ items, rounded, max = 4 }: { items: { key: string; src?: string; name: string }[]; rounded: string; max?: number }) {
-  return (
-    <span className="mr-1 flex -space-x-1.5">
-      {items.slice(0, max).map((i) =>
-        i.src ? (
-          <img
-            key={i.key}
-            src={i.src}
-            alt={i.name}
-            title={i.name}
-            className={cn('h-6 w-6 object-cover ring-2 ring-surface', rounded)}
-          />
-        ) : (
-          <Avatar key={i.key} name={i.name} size={24} className="ring-2 ring-surface" />
-        ),
-      )}
-      {items.length > max && (
-        <span
-          className={cn(
-            'flex h-6 min-w-6 items-center justify-center bg-surface-sunken px-1 text-[10px] font-semibold text-ink-soft ring-2 ring-surface',
-            rounded,
-          )}
-        >
-          +{items.length - max}
-        </span>
-      )}
-    </span>
-  )
-}
-
-function MetaChip({ tone, children }: { tone: 'warning' | 'danger'; children: React.ReactNode }) {
-  return (
-    <span
-      className={cn(
-        'rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums',
-        tone === 'danger' ? 'bg-danger-soft text-danger' : 'bg-warning-soft text-warning',
-      )}
-    >
-      {children}
-    </span>
-  )
 }
