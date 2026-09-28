@@ -107,7 +107,7 @@ export function Footer() {
         </div>
 
         {/* brand + link columns */}
-        <div className="grid grid-cols-1 gap-12 py-14 lg:grid-cols-[1.3fr_2fr]">
+        <div className="relative z-10 grid grid-cols-1 gap-12 pb-6 pt-14 lg:grid-cols-[1.3fr_2fr]">
           <div>
             <Link to="/" className="inline-flex" aria-label={`${settings.storeName} home`}>
               <BrandLockup onDark className="text-2xl" />
@@ -151,8 +151,10 @@ export function Footer() {
       </div>
 
       {/* oversized watermark wordmark */}
-      <div aria-hidden className="pointer-events-none select-none overflow-hidden">
-        <p className="container-page -mb-[0.18em] whitespace-nowrap text-center font-display text-[clamp(4rem,17vw,15rem)] font-extrabold leading-none tracking-[-0.06em] text-white/[0.045]">
+      {/* tilted watermark; the top padding keeps the raised right end from being clipped,
+          and the negative margin pulls it up under the link columns so there's no dead gap */}
+      <div aria-hidden className="pointer-events-none -mt-16 select-none overflow-hidden pt-[6vw]">
+        <p className="container-page -mb-[0.04em] origin-center -translate-y-[0.1em] -rotate-6 whitespace-nowrap text-center font-display text-[clamp(4rem,17vw,15rem)] font-extrabold leading-none tracking-[-0.06em] text-white/[0.045]">
           {settings.storeName}
         </p>
       </div>
