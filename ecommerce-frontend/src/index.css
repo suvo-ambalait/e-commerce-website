@@ -319,6 +319,31 @@ input[type='range']:focus-visible::-moz-range-thumb {
   animation: rise 0.5s var(--ease-out) both;
 }
 
+/* spinner arc: dash length breathes while the svg rotates (see shared/ui/Spinner) */
+@keyframes spin-arc {
+  0% { stroke-dasharray: 8 100; stroke-dashoffset: 0; }
+  50% { stroke-dasharray: 60 100; stroke-dashoffset: -15; }
+  100% { stroke-dasharray: 8 100; stroke-dashoffset: -92; }
+}
+@utility spin-arc {
+  animation: spin-arc 1.4s ease-in-out infinite;
+}
+
+/* light band sweeping across a loading button (see shared/ui/Button) */
+@keyframes btn-shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+@utility btn-shimmer {
+  background: linear-gradient(
+    110deg,
+    transparent 25%,
+    color-mix(in srgb, currentColor 22%, transparent) 50%,
+    transparent 75%
+  );
+  animation: btn-shimmer 1.6s ease-in-out infinite;
+}
+
 /* utility: editorial page gutter */
 @utility container-page {
   margin-inline: auto;

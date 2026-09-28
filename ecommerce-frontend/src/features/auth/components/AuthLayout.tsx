@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import { LuEye, LuEyeOff } from 'react-icons/lu'
 import { cn } from '@/shared/lib/cn'
 import { ArrowRightIcon, StoreIcon } from '@/shared/ui/icons'
+import { Spinner } from '@/shared/ui/Spinner'
 
 /**
  * Presentational building blocks for the auth pages (sign in, forgot, verify,
@@ -95,16 +96,57 @@ export function AuthField({
 }
 
 /** Full-width purple pill with a white arrow circle. */
-export function AuthSubmit({ children, disabled }: { children: ReactNode; disabled?: boolean }) {
+export function AuthSubmit({
+  children,
+  disabled,
+  loading = false,
+  loadingText = 'Please wait…',
+}: {
+  children: ReactNode
+  disabled?: boolean
+  /** swaps the arrow for a spinner, shows loadingText, adds a shimmer, blocks double submit */
+  loading?: boolean
+  loadingText?: ReactNode
+}) {
   return (
     <button
       type="submit"
-      disabled={disabled}
-      className="group flex h-13 w-full items-center justify-between rounded-full bg-accent pl-6 pr-1.5 text-sm font-semibold text-on-accent shadow-[0_10px_28px_rgba(109,40,217,0.3)] transition-colors hover:bg-accent-hover disabled:opacity-50 disabled:shadow-none"
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
+      className={cn(
+        'group relative flex h-13 w-full items-center justify-between overflow-hidden rounded-full bg-accent pl-6 pr-1.5 text-sm font-semibold text-on-accent shadow-[0_10px_28px_rgba(109,40,217,0.3)] transition-colors hover:bg-accent-hover disabled:opacity-50 disabled:shadow-none',
+        loading && 'cursor-wait disabled:opacity-100! disabled:shadow-[0_10px_28px_rgba(109,40,217,0.3)]!',
+      )}
     >
-      {children}
-      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#6d28d9]">
-        <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+      {loading && <span aria-hidden className="btn-shimmer pointer-events-none absolute inset-0 text-white" />}
+
+      {/* label cross-fades to the loading text */}
+      <span className="relative grid">
+        <span
+          className={cn(
+            'col-start-1 row-start-1 text-left transition-[opacity,transform] duration-200',
+            loading && '-translate-y-2 opacity-0',
+          )}
+        >
+          {children}
+        </span>
+        <span
+          aria-hidden={!loading}
+          className={cn(
+            'col-start-1 row-start-1 text-left transition-[opacity,transform] duration-200',
+            loading ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0',
+          )}
+        >
+          {loadingText}
+        </span>
+      </span>
+
+      <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#6d28d9]">
+        {loading ? (
+          <Spinner size={18} />
+        ) : (
+          <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+        )}
       </span>
     </button>
   )

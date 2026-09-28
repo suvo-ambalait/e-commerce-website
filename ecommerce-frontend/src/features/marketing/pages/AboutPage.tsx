@@ -1,7 +1,19 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
-import { LuBadgeCheck, LuHandCoins, LuLeaf, LuMapPin, LuPhone, LuPlus, LuWrench } from 'react-icons/lu'
+import type { IconType } from 'react-icons'
+import {
+  LuBadgeCheck,
+  LuHandCoins,
+  LuLeaf,
+  LuMapPin,
+  LuPackage,
+  LuPhone,
+  LuPlus,
+  LuShoppingBag,
+  LuStore,
+  LuWrench,
+} from 'react-icons/lu'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
 import { Container, Section } from '@/shared/ui'
 import { CheckIcon, ArrowRightIcon, MailIcon } from '@/shared/ui/icons'
@@ -15,10 +27,10 @@ import { DisplayHeading } from '../components/DisplayHeading'
 import { SellCta } from '../components/SellCta'
 
 const standards = [
-  { icon: LuBadgeCheck, term: 'Real shops', desc: 'We check every shop’s owner, phone number and address before it can sell.' },
-  { icon: LuLeaf, term: 'Honest product details', desc: 'Photos and descriptions must show the real product, its material and its size.' },
-  { icon: LuWrench, term: 'Good quality', desc: 'We look at the product quality and remove shops that get many complaints.' },
-  { icon: LuHandCoins, term: 'Fair prices', desc: 'Shops set their own prices. There are no hidden charges at checkout.' },
+  { icon: LuBadgeCheck, term: 'Real shops', tag: 'Owner verified', desc: 'We check every shop’s owner, phone number and address before it can sell.' },
+  { icon: LuLeaf, term: 'Honest product details', tag: 'True to photo', desc: 'Photos and descriptions must show the real product, its material and its size.' },
+  { icon: LuWrench, term: 'Good quality', tag: 'Quality reviewed', desc: 'We look at the product quality and remove shops that get many complaints.' },
+  { icon: LuHandCoins, term: 'Fair prices', tag: 'No hidden fees', desc: 'Shops set their own prices. There are no hidden charges at checkout.' },
 ]
 
 const faqs = [
@@ -84,6 +96,65 @@ function BoxField({
   )
 }
 
+/** Counts from 0 up to `to` once, with an ease-out curve. */
+function useCountUp(to: number, duration = 1100) {
+  const [value, setValue] = useState(0)
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setValue(to)
+      return
+    }
+    let frame = 0
+    const start = performance.now()
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration)
+      setValue(Math.round(to * (1 - Math.pow(1 - t, 3))))
+      if (t < 1) frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [to, duration])
+  return value
+}
+
+type HeroStat = { icon: IconType; value: number; label: string; hint: string }
+
+function StatCell({ icon: Icon, value, label, hint }: HeroStat) {
+  const shown = useCountUp(value)
+  return (
+    <div className="group relative flex flex-col items-center px-2 py-5 transition-colors duration-300 hover:bg-accent-soft/40 sm:px-4 sm:py-6">
+      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-soft text-accent ring-1 ring-accent/15 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105 sm:h-11 sm:w-11">
+        <Icon className="h-5 w-5" aria-hidden />
+      </span>
+      <dd className="mt-3 font-display text-3xl font-extrabold leading-none tracking-[-0.04em] text-ink tabular-nums sm:text-4xl">
+        {shown}
+      </dd>
+      <dt className="mt-1.5 text-sm font-semibold text-ink">{label}</dt>
+      <p className="mt-0.5 hidden text-caption text-ink-mute sm:block">{hint}</p>
+    </div>
+  )
+}
+
+function HeroStats({ stats }: { stats: HeroStat[] }) {
+  return (
+    <motion.dl
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.25, ease: easeEditorial }}
+      className="relative mx-auto mt-10 grid max-w-xl grid-cols-3 divide-x divide-border overflow-hidden rounded-3xl border border-border bg-surface shadow-[0_18px_44px_rgba(40,20,80,0.10)]"
+    >
+      {/* thin accent line along the top edge */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-x-8 top-0 h-px bg-linear-to-r from-transparent via-accent/60 to-transparent"
+      />
+      {stats.map((s) => (
+        <StatCell key={s.label} {...s} />
+      ))}
+    </motion.dl>
+  )
+}
+
 export function AboutPage() {
   useDocumentTitle('About · AmbalaEshop')
   const { settings } = useSettings()
@@ -128,20 +199,13 @@ export function AboutPage() {
               checkout.
             </p>
 
-            <dl className="mx-auto mt-10 grid max-w-lg grid-cols-3 gap-3">
-              {[
-                { value: activeVendors.length, label: 'Shops' },
-                { value: products.length, label: 'Products' },
-                { value: 1, label: 'Checkout' },
-              ].map((s) => (
-                <div key={s.label} className="rounded-2xl border border-border bg-surface px-3 py-4 shadow-sm">
-                  <dd className="font-display text-3xl font-extrabold leading-none tracking-[-0.03em] text-ink tabular-nums">
-                    {s.value}
-                  </dd>
-                  <dt className="mt-1.5 text-caption text-ink-mute">{s.label}</dt>
-                </div>
-              ))}
-            </dl>
+            <HeroStats
+              stats={[
+                { icon: LuStore, value: activeVendors.length, label: 'Shops', hint: 'Checked sellers' },
+                { icon: LuPackage, value: products.length, label: 'Products', hint: 'Ready to order' },
+                { icon: LuShoppingBag, value: 1, label: 'Checkout', hint: 'For every shop' },
+              ]}
+            />
           </motion.div>
         </Container>
       </Section>
@@ -176,20 +240,47 @@ export function AboutPage() {
                   </>
                 }
               />
-              <dl className="mt-8 grid gap-3 sm:grid-cols-2">
-                {standards.map(({ icon: Icon, term, desc }, i) => (
-                  <div key={term} className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-soft text-accent">
+              <dl className="mt-8 grid gap-4 sm:grid-cols-2">
+                {standards.map(({ icon: Icon, term, desc, tag }, i) => (
+                  <motion.div
+                    key={term}
+                    initial={{ opacity: 0, y: 18 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-60px' }}
+                    transition={{ duration: 0.5, delay: i * 0.08, ease: easeEditorial }}
+                    className="group relative flex flex-col overflow-hidden rounded-3xl border border-border bg-surface p-6 shadow-sm transition-[border-color,box-shadow,translate] duration-300 hover:-translate-y-1 hover:border-accent/40! hover:shadow-[0_20px_44px_rgba(40,20,80,0.12)]"
+                  >
+                    {/* big ghost icon in the corner */}
+                    <Icon
+                      aria-hidden
+                      className="pointer-events-none absolute -bottom-6 -right-6 h-32 w-32 -rotate-12 text-accent/[0.06] transition-all duration-500 group-hover:rotate-0 group-hover:text-accent/[0.12]"
+                    />
+
+                    {/* accent bar that grows on hover */}
+                    <span
+                      aria-hidden
+                      className="absolute inset-y-6 left-0 w-1 origin-center scale-y-0 rounded-r-full bg-accent transition-transform duration-300 group-hover:scale-y-100"
+                    />
+
+                    {/* icon tile with a tilted halo behind it */}
+                    <span className="relative flex h-12 w-12">
+                      <span
+                        aria-hidden
+                        className="absolute inset-0 rotate-12 rounded-2xl bg-accent-soft transition-transform duration-300 group-hover:rotate-[24deg] group-hover:scale-110"
+                      />
+                      <span className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-linear-to-br from-accent to-accent-hover text-on-accent shadow-[0_8px_20px_rgba(109,40,217,0.35)]">
                         <Icon className="h-5 w-5" aria-hidden />
                       </span>
-                      <span className="font-display text-sm font-bold text-ink-mute tabular-nums">
-                        {String(i + 1).padStart(2, '0')}
-                      </span>
-                    </div>
-                    <dt className="mt-4 font-display text-base font-bold text-ink">{term}</dt>
-                    <dd className="mt-1 text-sm leading-relaxed text-ink-soft">{desc}</dd>
-                  </div>
+                    </span>
+
+                    <dt className="relative mt-5 font-display text-lg font-bold tracking-[-0.01em] text-ink">{term}</dt>
+                    <dd className="relative mt-1.5 text-sm leading-relaxed text-ink-soft">{desc}</dd>
+
+                    <span className="relative mt-5 inline-flex w-fit items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-caption font-semibold text-accent">
+                      <CheckIcon className="h-3.5 w-3.5" />
+                      {tag}
+                    </span>
+                  </motion.div>
                 ))}
               </dl>
             </div>

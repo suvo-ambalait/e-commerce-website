@@ -1,9 +1,21 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { LuDownload, LuPlus, LuStore } from 'react-icons/lu'
+import {
+  LuBoxes,
+  LuDownload,
+  LuMapPin,
+  LuPackageCheck,
+  LuPlus,
+  LuReceipt,
+  LuStore,
+  LuTicketPercent,
+  LuUserPlus,
+} from 'react-icons/lu'
 import { PageHeader, Panel, StatCard, StatGrid, FadeItem, DataTable, type Column } from '../components/primitives'
+import { Pill } from '../components/TableKit'
 import { CoinIcon, PercentIcon, StorefrontIcon, AlertIcon } from '../components/icons'
-import { AreaChart, Avatar, Badge, BarChart } from '@/shared/ui'
+import { AreaChart, Avatar, BarChart } from '@/shared/ui'
+import { overallStatus, shipmentTone } from '@/features/orders/lib/status'
 import { ArrowRightIcon, CheckIcon, ChevronRightIcon } from '@/shared/ui/icons'
 import { cn } from '@/shared/lib/cn'
 import { formatDate, formatPrice, formatPriceWhole } from '@/shared/lib/format'
@@ -33,12 +45,25 @@ export function AdminDashboard() {
   const gmv = sum(revenue)
   const priorGmv = sum(prior)
   const change = priorGmv ? (gmv - priorGmv) / priorGmv : 0
+  const latestRev = revenue[revenue.length - 1].value
+  const prevRev = revenue.length > 1 ? revenue[revenue.length - 2].value : 0
+  const dayChange = prevRev ? (latestRev - prevRev) / prevRev : null
 
   const dayBars = ordersByDay(orders)
-  const busiest = dayBars.reduce((a, b) => (b.value > a.value ? b : a), dayBars[0])
-  const busiestName = { Sun: 'Sunday', Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday' }[
-    busiest.label
-  ]
+  const dayName: Record<string, string> = { Sun: 'Sunday', Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday' }
+  const dayMax = Math.max(0, ...dayBars.map((d) => d.value))
+  const dayMin = Math.min(...dayBars.map((d) => d.value))
+  const busiestDays = dayBars.filter((d) => d.value === dayMax)
+  const quietestDays = dayBars.filter((d) => d.value === dayMin)
+  const weekdayTotal = sum(dayBars)
+  const joinDays = (ds: typeof dayBars, short = false) => {
+    const names = ds.map((d) => (short ? d.label : dayName[d.label]))
+    return names.length <= 2 ? names.join(' & ') : `${names.slice(0, -1).join(', ')} & ${names[names.length - 1]}`
+  }
+  const busiestText =
+    dayMax === 0
+      ? 'No orders yet'
+      : `${joinDays(busiestDays)} ${busiestDays.length > 1 ? 'are' : 'is'} busiest`
 
   const commission = orders.reduce(
     (s, o) => s + o.shipments.reduce((n, sh) => n + (sh.subtotal - sh.discount) * settings.commissionRate, 0),
@@ -47,25 +72,48 @@ export function AdminDashboard() {
   const active = vendors.filter((v) => v.status === 'active')
   const pending = vendors.filter((v) => v.status === 'pending')
   const lowStock = products.filter((p) => statusFor(p) !== 'in')
+  const outCount = lowStock.filter((p) => statusFor(p) === 'out').length
+  const lowCount = lowStock.length - outCount
+  const toFulfil = orders.filter((o) => overallStatus(o) === 'Processing').length
+  const openTasks = [lowStock.length, pending.length, toFulfil].filter(Boolean).length
   const rangeLabel = `${formatShort(days - 1)} – ${formatShort(0)}`
 
-  const catSales = categories
-    .map((c) => ({
-      label: c.name,
-      value: orders
-        .flatMap((o) => o.shipments)
-        .flatMap((s) => s.items)
-        .filter((i) => i.category === c.name)
-        .reduce((n, i) => n + i.price * i.quantity, 0),
-    }))
+  const soldItems = orders.flatMap((o) => o.shipments).flatMap((s) => s.items)
+  const catAll = categories
+    .map((c) => {
+      const items = soldItems.filter((i) => i.category === c.name)
+      return {
+        label: c.name,
+        image: c.image,
+        value: items.reduce((n, i) => n + i.price * i.quantity, 0),
+        units: items.reduce((n, i) => n + i.quantity, 0),
+      }
+    })
+    .filter((c) => c.value > 0)
     .sort((a, b) => b.value - a.value)
-    .slice(0, 4)
+  const catSales = catAll.slice(0, 5)
+  const catTotal = catAll.reduce((n, c) => n + c.value, 0)
+  const catUnits = catAll.reduce((n, c) => n + c.units, 0)
   const catMax = Math.max(1, ...catSales.map((c) => c.value))
+  const catRest = catAll.length - catSales.length
 
   const vendorRows = active
-    .map((v) => ({ vendor: v, pieces: products.filter((p) => p.vendorId === v.id).length }))
-    .sort((a, b) => b.pieces - a.pieces)
+    .map((v) => {
+      const own = products.filter((p) => p.vendorId === v.id)
+      return {
+        vendor: v,
+        pieces: own.length,
+        lowStock: own.filter((p) => statusFor(p) !== 'in').length,
+        sales: orders
+          .flatMap((o) => o.shipments)
+          .filter((s) => s.vendorId === v.id)
+          .reduce((n, s) => n + s.subtotal - s.discount, 0),
+      }
+    })
+    .sort((a, b) => b.pieces - a.pieces || b.sales - a.sales)
     .slice(0, 6)
+  const catalogueTotal = products.length
+  const topSales = Math.max(0, ...vendorRows.map((r) => r.sales))
 
   const exportCsv = () => {
     const csv = ['date,revenue', ...revenue.map((r) => `${r.label},${r.value}`)].join('\n')
@@ -80,28 +128,102 @@ export function AdminDashboard() {
   const columns: Column<Order>[] = [
     {
       header: 'Order',
-      cell: (o) => (
-        <Link to={`/admin/orders/${o.orderNumber}`} className="font-semibold text-ink hover:text-accent">
-          {o.orderNumber}
-        </Link>
-      ),
+      cell: (o) => {
+        const items = o.shipments.reduce((n, s) => n + s.items.reduce((m, i) => m + i.quantity, 0), 0)
+        return (
+          <Link to={`/admin/orders/${o.orderNumber}`} className="group/order flex items-center gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent ring-1 ring-accent/15 transition-colors group-hover/order:bg-accent group-hover/order:text-on-accent">
+              <LuReceipt className="h-4 w-4" aria-hidden />
+            </span>
+            <span className="min-w-0">
+              <span className="block font-semibold text-ink tabular-nums transition-colors group-hover/order:text-accent">
+                {o.orderNumber}
+              </span>
+              <span className="block text-caption text-ink-mute">
+                {items} item{items === 1 ? '' : 's'}
+              </span>
+            </span>
+          </Link>
+        )
+      },
     },
-    { header: 'Date', cell: (o) => formatDate(o.date), hideBelow: 'sm' },
-    { header: 'Customer', cell: (o) => o.email, hideBelow: 'md' },
     {
-      header: 'Makers',
+      header: 'Date',
+      hideBelow: 'sm',
       cell: (o) => (
-        <div className="flex flex-wrap gap-1">
-          {o.shipments.map((s) => (
-            <Badge key={s.vendorId} tone="accent">
-              {getVendor(s.vendorId)?.name.split(' ')[0]}
-            </Badge>
-          ))}
-        </div>
+        <span>
+          <span className="block text-ink">{formatDate(o.date)}</span>
+          <span className="block text-caption text-ink-mute">{timeAgo(o.date)}</span>
+        </span>
       ),
-      hideBelow: 'md',
     },
-    { header: 'Total', cell: (o) => <span className="font-semibold text-ink">{formatPrice(o.grandTotal)}</span> },
+    {
+      header: 'Customer',
+      hideBelow: 'md',
+      cell: (o) => (
+        <span className="flex items-center gap-2.5">
+          <Avatar name={o.shippingInfo.fullName || o.email} size={32} className="bg-accent-soft! text-accent!" />
+          <span className="min-w-0">
+            <span className="block truncate font-semibold text-ink">{o.shippingInfo.fullName || 'Guest'}</span>
+            <span className="block truncate text-caption text-ink-mute">{o.email}</span>
+          </span>
+        </span>
+      ),
+    },
+    {
+      header: 'Sellers',
+      hideBelow: 'lg',
+      cell: (o) => {
+        const sellers = o.shipments.map((s) => getVendor(s.vendorId)).filter((v) => v !== undefined)
+        return (
+          <span className="flex items-center gap-2.5">
+            <span className="flex -space-x-2">
+              {sellers.slice(0, 3).map((v) => (
+                <Avatar key={v.id} src={v.logo} name={v.name} size={28} className="ring-2 ring-surface" />
+              ))}
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-semibold text-ink">
+                {sellers.map((v) => v.name.split(' ')[0]).join(', ')}
+              </span>
+              <span className="block text-caption text-ink-mute">
+                {sellers.length} parcel{sellers.length === 1 ? '' : 's'}
+              </span>
+            </span>
+          </span>
+        )
+      },
+    },
+    {
+      header: 'Status',
+      hideBelow: 'sm',
+      cell: (o) => (
+        <Pill tone={shipmentTone[overallStatus(o)]} dot>
+          {overallStatus(o)}
+        </Pill>
+      ),
+    },
+    {
+      header: 'Total',
+      align: 'right',
+      cell: (o) => (
+        <span className="inline-flex flex-col items-end">
+          <span className="font-display text-[15px] font-bold tracking-[-0.01em] text-ink tabular-nums">
+            {formatPrice(o.grandTotal)}
+          </span>
+          {o.payment && (
+            <span
+              className={cn(
+                'text-caption font-medium',
+                o.payment.status === 'Paid' ? 'text-success' : 'text-ink-mute',
+              )}
+            >
+              {o.payment.status}
+            </span>
+          )}
+        </span>
+      ),
+    },
   ]
 
   return (
@@ -213,118 +335,356 @@ export function AdminDashboard() {
           aside={
             <div className="text-right">
               <p className="font-display text-2xl font-extrabold leading-none tracking-[-0.03em] text-ink tabular-nums">
-                {formatPrice(revenue[revenue.length - 1].value)}
+                {formatPrice(latestRev)}
               </p>
-              <p className="mt-1 text-caption text-ink-mute">{revenue[revenue.length - 1].label}</p>
+              <p className="mt-1.5 flex items-center justify-end gap-1.5 text-caption text-ink-mute">
+                {dayChange !== null && (
+                  <span
+                    className={cn(
+                      'rounded-full px-1.5 py-0.5 text-[11px] font-semibold tabular-nums',
+                      dayChange >= 0 ? 'bg-success-soft text-success' : 'bg-danger-soft text-danger',
+                    )}
+                  >
+                    {dayChange >= 0 ? '▲' : '▼'} {Math.abs(dayChange * 100).toFixed(0)}%
+                  </span>
+                )}
+                {revenue[revenue.length - 1].label}
+              </p>
             </div>
           }
         >
           <AreaChart
             data={revenue}
-            height={220}
+            height={260}
             valueFormat={(n) => formatPrice(n)}
             axisFormat={(n) => formatPriceWhole(n)}
             showLatest={false}
           />
         </Panel>
-        <Panel title="Orders by weekday" subtitle={`${busiestName} is busiest · hover a bar`}>
-          <BarChart data={dayBars} height={240} />
+        <Panel title="Orders by weekday" subtitle={busiestText} className="flex flex-col">
+          <BarChart
+            data={dayBars}
+            height={220}
+            className="flex-1"
+            valueFormat={(n) => `${n} order${n === 1 ? '' : 's'}`}
+          />
+          <dl className="mt-5 grid grid-cols-3 divide-x divide-border rounded-xl bg-surface-sunken/60 py-3 text-center">
+            {[
+              { label: 'Total', value: String(weekdayTotal) },
+              { label: 'Busiest', value: dayMax ? joinDays(busiestDays, true) : '—' },
+              { label: 'Quietest', value: dayMax ? joinDays(quietestDays, true) : '—' },
+            ].map((s) => (
+              <div key={s.label} className="min-w-0 px-2">
+                <dt className="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-mute">{s.label}</dt>
+                <dd className="mt-1 truncate font-display text-sm font-bold text-ink tabular-nums">{s.value}</dd>
+              </div>
+            ))}
+          </dl>
         </Panel>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
-        <Panel title="Sales by category" aside={<PanelLink to="/admin/categories">View all</PanelLink>}>
-          <div className="space-y-4">
-            {catSales.map((c) => (
-              <div key={c.label}>
-                <div className="mb-1.5 flex justify-between text-sm">
-                  <span className="text-ink-soft">{c.label}</span>
-                  <span className="font-bold text-ink tabular-nums">{formatPrice(c.value)}</span>
+        <Panel
+          title="Sales by category"
+          subtitle="All-time item sales"
+          className="flex flex-col"
+          aside={<PanelLink to="/admin/categories">View all</PanelLink>}
+        >
+          {catSales.length === 0 ? (
+            <p className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-border py-10 text-caption text-ink-mute">
+              No sales yet
+            </p>
+          ) : (
+            <>
+              {/* headline */}
+              <div className="flex items-end justify-between gap-3 rounded-xl bg-surface-sunken/60 px-4 py-3">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-mute">Total</p>
+                  <p className="mt-1 font-display text-2xl font-extrabold leading-none tracking-[-0.03em] text-ink tabular-nums">
+                    {formatPrice(catTotal)}
+                  </p>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-surface-sunken">
-                  <div className="h-full rounded-full bg-accent" style={{ width: `${(c.value / catMax) * 100}%` }} />
-                </div>
+                <p className="text-right text-caption text-ink-mute">
+                  <span className="font-semibold text-ink tabular-nums">{catUnits}</span> units
+                  <br />
+                  <span className="font-semibold text-ink tabular-nums">{catAll.length}</span> categories
+                </p>
               </div>
-            ))}
-          </div>
+
+              {/* rows */}
+              <ul className="mt-4 flex flex-1 flex-col justify-around gap-3">
+                {catSales.map((c, i) => {
+                  const share = catTotal ? c.value / catTotal : 0
+                  const top = i === 0
+                  return (
+                    <li key={c.label} className="group flex items-center gap-3">
+                      {c.image ? (
+                        <img
+                          src={c.image}
+                          alt=""
+                          className="h-9 w-9 shrink-0 rounded-lg object-cover ring-1 ring-border"
+                        />
+                      ) : (
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-caption font-bold text-accent">
+                          {c.label[0]}
+                        </span>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="flex min-w-0 items-center gap-1.5">
+                            <span className="truncate text-sm font-semibold text-ink">{c.label}</span>
+                            {top && (
+                              <span className="shrink-0 rounded-full bg-accent-soft px-1.5 py-px text-[10px] font-semibold text-accent">
+                                Top
+                              </span>
+                            )}
+                          </span>
+                          <span className="shrink-0 text-sm font-bold text-ink tabular-nums">{formatPrice(c.value)}</span>
+                        </div>
+                        <div className="mt-1.5 flex items-center gap-2.5">
+                          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-sunken">
+                            <div
+                              className={cn(
+                                'h-full rounded-full transition-[width,background-color] duration-500',
+                                top ? 'bg-accent' : 'bg-accent/45 group-hover:bg-accent/70',
+                              )}
+                              style={{ width: `${Math.max(3, (c.value / catMax) * 100)}%` }}
+                            />
+                          </div>
+                          <span className="w-9 shrink-0 text-right text-caption font-semibold text-ink-mute tabular-nums">
+                            {Math.round(share * 100)}%
+                          </span>
+                        </div>
+                        <p className="mt-0.5 text-[11px] text-ink-mute tabular-nums">
+                          {c.units} unit{c.units === 1 ? '' : 's'} sold
+                        </p>
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
+
+              {/* footer insight */}
+              <p className="mt-5 flex items-center gap-2 border-t border-border pt-3 text-caption text-ink-mute">
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                <span>
+                  <span className="font-semibold text-ink">{catSales[0].label}</span> brings in{' '}
+                  {Math.round((catSales[0].value / (catTotal || 1)) * 100)}% of sales
+                  {catRest > 0 && ` · ${catRest} more categor${catRest === 1 ? 'y' : 'ies'} in View all`}
+                </span>
+              </p>
+            </>
+          )}
         </Panel>
 
-        <Panel title="Catalogue by vendor" aside={<PanelLink to="/admin/vendors">Vendors</PanelLink>}>
-          <ul className="@container space-y-2.5">
-            {vendorRows.map(({ vendor, pieces }) => (
-              <li key={vendor.id} className="flex items-center gap-2.5">
-                <Avatar src={vendor.logo} name={vendor.name} size={26} />
-                <Link
-                  to={`/admin/vendors/${vendor.id}`}
-                  className="min-w-0 flex-1 truncate text-sm font-semibold text-ink hover:text-accent"
-                >
-                  {vendor.name}
-                </Link>
-                <span className="hidden text-caption text-ink-mute @[19rem]:inline">{vendor.location.split(',')[0]}</span>
-                <span className="rounded-md border border-border bg-surface-sunken/60 px-2 py-0.5 text-[11px] font-semibold text-ink-soft tabular-nums">
-                  {pieces} pieces
-                </span>
-              </li>
-            ))}
+        <Panel
+          title="Catalogue by vendor"
+          subtitle={`${catalogueTotal} products across ${active.length} active shops`}
+          aside={<PanelLink to="/admin/vendors">Vendors</PanelLink>}
+        >
+          <ul className="@container -mx-2 space-y-0.5">
+            {vendorRows.map(({ vendor, pieces, lowStock, sales }) => {
+              const share = catalogueTotal ? pieces / catalogueTotal : 0
+              const isTop = sales > 0 && sales === topSales
+              return (
+                <li key={vendor.id}>
+                  <Link
+                    to={`/admin/vendors/${vendor.id}`}
+                    className="group flex items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-surface-sunken/70"
+                  >
+                    <span className="relative shrink-0">
+                      <Avatar src={vendor.logo} name={vendor.name} size={36} className="ring-1 ring-border" />
+                      {lowStock > 0 && (
+                        <span
+                          title={`${lowStock} low or out of stock`}
+                          className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-warning ring-2 ring-surface"
+                        />
+                      )}
+                    </span>
+
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center gap-1.5">
+                        <span className="truncate text-sm font-semibold text-ink transition-colors group-hover:text-accent">
+                          {vendor.name}
+                        </span>
+                        {isTop && (
+                          <span className="shrink-0 rounded-full bg-accent-soft px-1.5 py-px text-[10px] font-semibold text-accent">
+                            Top seller
+                          </span>
+                        )}
+                      </span>
+                      <span className="mt-0.5 flex items-center gap-1 text-caption text-ink-mute">
+                        <LuMapPin className="h-3 w-3 shrink-0" aria-hidden />
+                        <span className="truncate">{vendor.location.split(',')[0]}</span>
+                        <span aria-hidden>·</span>
+                        <span className="shrink-0 tabular-nums">{formatPriceWhole(sales)} sold</span>
+                      </span>
+                      {/* share of the whole catalogue */}
+                      <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-surface-sunken">
+                        <span
+                          className="block h-full rounded-full bg-accent/70 transition-[width] duration-500 group-hover:bg-accent"
+                          style={{ width: `${Math.max(4, share * 100)}%` }}
+                        />
+                      </span>
+                    </span>
+
+                    <span className="shrink-0 text-right">
+                      <span className="block font-display text-base font-bold leading-none text-ink tabular-nums">
+                        {pieces}
+                      </span>
+                      <span className="mt-1 block text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-mute">
+                        {Math.round(share * 100)}% of all
+                      </span>
+                    </span>
+
+                    <ChevronRightIcon className="hidden h-4 w-4 shrink-0 text-ink-mute transition-transform group-hover:translate-x-0.5 group-hover:text-accent @[20rem]:block" />
+                  </Link>
+                </li>
+              )
+            })}
           </ul>
         </Panel>
 
-        <Panel title="Needs attention" className="lg:col-span-2 xl:col-span-1">
-          <div className="space-y-2">
+        <Panel
+          title="Needs attention"
+          subtitle={openTasks ? 'Things waiting on you today' : 'You’re all caught up'}
+          className="flex flex-col lg:col-span-2 xl:col-span-1"
+          aside={
+            <span
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold tabular-nums',
+                openTasks ? 'bg-warning-soft text-warning' : 'bg-success-soft text-success',
+              )}
+            >
+              <span className={cn('h-1.5 w-1.5 rounded-full', openTasks ? 'bg-warning' : 'bg-success')} />
+              {openTasks ? `${openTasks} open` : 'Clear'}
+            </span>
+          }
+        >
+          <div className="space-y-2.5">
             {lowStock.length > 0 && (
               <AttentionRow
                 to="/admin/inventory"
                 tone="warning"
-                icon={<AlertIcon className="h-4 w-4" />}
-                title={`${lowStock.length} product${lowStock.length > 1 ? 's' : ''} low or out of stock`}
-                text="Warning · review inventory"
+                icon={<AlertIcon className="h-4.5 w-4.5" />}
+                count={lowStock.length}
+                title={`Product${lowStock.length > 1 ? 's' : ''} low or out of stock`}
+                text="Restock before they stop selling"
+                meta={
+                  <>
+                    <Stack
+                      items={lowStock.map((p) => ({ key: p.id, src: p.images[0], name: p.name }))}
+                      rounded="rounded-md"
+                    />
+                    {outCount > 0 && <MetaChip tone="danger">{outCount} out</MetaChip>}
+                    {lowCount > 0 && <MetaChip tone="warning">{lowCount} low</MetaChip>}
+                  </>
+                }
+              />
+            )}
+            {toFulfil > 0 && (
+              <AttentionRow
+                to="/admin/orders"
+                tone="info"
+                icon={<LuPackageCheck className="h-4.5 w-4.5" />}
+                count={toFulfil}
+                title={`Order${toFulfil > 1 ? 's' : ''} to fulfil`}
+                text="Still processing with a shop"
               />
             )}
             {pending.length > 0 && (
               <AttentionRow
                 to="/admin/vendors"
                 tone="accent"
-                icon={<LuStore className="h-4 w-4" />}
-                title={`${pending.length} vendor application${pending.length > 1 ? 's' : ''} pending`}
+                icon={<LuStore className="h-4.5 w-4.5" />}
+                count={pending.length}
+                title={`Vendor application${pending.length > 1 ? 's' : ''} pending`}
                 text="Review before they go live"
+                meta={
+                  <Stack
+                    items={pending.map((v) => ({ key: v.id, src: v.logo, name: v.name }))}
+                    rounded="rounded-full"
+                  />
+                }
               />
             )}
-            {lowStock.length === 0 && pending.length === 0 && (
-              <div className="flex items-center gap-3 rounded-xl bg-success-soft p-3 text-sm font-semibold text-success">
-                <CheckIcon className="h-4 w-4" />
-                All clear — nothing needs you right now.
+            {!openTasks && (
+              <div className="flex flex-col items-center rounded-2xl border border-dashed border-success/40! bg-success-soft/50 px-4 py-6 text-center">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-success text-white shadow-[0_8px_20px_rgba(34,120,60,0.25)]">
+                  <CheckIcon className="h-5 w-5" />
+                </span>
+                <p className="mt-3 text-sm font-semibold text-ink">All clear</p>
+                <p className="mt-0.5 text-caption text-ink-mute">Nothing needs you right now.</p>
               </div>
             )}
           </div>
 
-          <p className="mb-2 mt-5 text-[10px] font-semibold uppercase tracking-[0.14em] text-accent">Quick actions</p>
-          <div className="flex flex-wrap gap-2">
-            {[
-              { label: 'Add product', to: '/admin/products/new' },
-              { label: 'New discount', to: '/admin/discounts' },
-              { label: 'Invite vendor', to: '/admin/vendors' },
-            ].map((a) => (
-              <Link
-                key={a.label}
-                to={a.to}
-                className="inline-flex h-9 items-center rounded-lg border border-border bg-surface px-3 text-caption font-semibold text-ink transition-colors hover:border-accent/50! hover:text-accent"
-              >
-                {a.label}
-              </Link>
-            ))}
+          {/* quick actions sit at the bottom so the panel never has a dead gap */}
+          <div className="mt-auto pt-6">
+            <p className="mb-2.5 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-mute">
+              Quick actions
+              <span className="h-px flex-1 bg-border" />
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { label: 'Add product', hint: 'New listing', to: '/admin/products/new', icon: LuPlus },
+                { label: 'New discount', hint: 'Code or sale', to: '/admin/discounts', icon: LuTicketPercent },
+                { label: 'Invite vendor', hint: 'Grow the shops', to: '/admin/vendors', icon: LuUserPlus },
+                { label: 'Inventory', hint: 'Stock levels', to: '/admin/inventory', icon: LuBoxes },
+              ].map(({ label, hint, to, icon: Icon }) => (
+                <Link
+                  key={label}
+                  to={to}
+                  className="group flex items-center gap-2.5 rounded-xl border border-border bg-surface p-2.5 transition-[border-color,box-shadow,transform] hover:-translate-y-px hover:border-accent/50! hover:shadow-[0_8px_20px_rgba(40,20,80,0.08)]"
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent transition-colors group-hover:bg-accent group-hover:text-on-accent">
+                    <Icon className="h-4 w-4" aria-hidden />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-caption font-semibold text-ink">{label}</span>
+                    <span className="block truncate text-[11px] text-ink-mute">{hint}</span>
+                  </span>
+                </Link>
+              ))}
+            </div>
           </div>
         </Panel>
       </div>
 
       <div className="pt-2">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-display! text-base font-bold! tracking-[-0.01em]! text-ink">Recent orders</h3>
-          <PanelLink to="/admin/orders">All orders</PanelLink>
+        <div className="mb-3 flex items-end justify-between gap-4">
+          <div>
+            <h3 className="flex items-center gap-2 font-display! text-base font-bold! tracking-[-0.01em]! text-ink">
+              Recent orders
+              <span className="rounded-full bg-accent-soft px-2 py-0.5 font-sans text-[11px] font-semibold text-accent tabular-nums">
+                {orders.length}
+              </span>
+            </h3>
+            <p className="mt-0.5 text-caption text-ink-mute">Latest checkouts across all shops</p>
+          </div>
+          <Link
+            to="/admin/orders"
+            className="group inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-border bg-surface px-3 text-caption font-semibold text-ink transition-colors hover:border-accent/50! hover:text-accent"
+          >
+            All orders
+            <ArrowRightIcon className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+          </Link>
         </div>
         <DataTable rows={orders} columns={columns} keyOf={(o) => o.orderNumber} empty="No orders yet." pageSize={6} />
       </div>
     </div>
   )
+}
+
+function timeAgo(iso: string) {
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000)
+  if (days <= 0) return 'Today'
+  if (days === 1) return 'Yesterday'
+  if (days < 7) return `${days} days ago`
+  const weeks = Math.floor(days / 7)
+  if (days < 30) return `${weeks} week${weeks === 1 ? '' : 's'} ago`
+  const months = Math.floor(days / 30)
+  return `${months} month${months === 1 ? '' : 's'} ago`
 }
 
 function formatShort(daysAgo: number) {
@@ -342,42 +702,98 @@ function PanelLink({ to, children }: { to: string; children: React.ReactNode }) 
   )
 }
 
+const attentionTone = {
+  warning: { card: 'hover:border-warning/50!', bar: 'bg-warning', icon: 'bg-warning-soft text-warning' },
+  accent: { card: 'hover:border-accent/50!', bar: 'bg-accent', icon: 'bg-accent-soft text-accent' },
+  info: { card: 'hover:border-ink-mute/50!', bar: 'bg-ink-soft', icon: 'bg-surface-sunken text-ink-soft' },
+}
+
 function AttentionRow({
   to,
   tone,
   icon,
+  count,
   title,
   text,
+  meta,
 }: {
   to: string
-  tone: 'warning' | 'accent'
+  tone: keyof typeof attentionTone
   icon: React.ReactNode
+  count: number
   title: string
   text: string
+  meta?: React.ReactNode
 }) {
+  const t = attentionTone[tone]
   return (
     <Link
       to={to}
       className={cn(
-        'group flex items-center gap-3 rounded-xl border p-3 transition-colors',
-        tone === 'warning'
-          ? 'border-warning/30! bg-warning-soft/60 hover:border-warning/60!'
-          : 'border-accent/20! bg-accent-soft/60 hover:border-accent/50!',
+        'group relative flex items-start gap-3 overflow-hidden rounded-2xl border border-border bg-surface p-3.5 pl-4 transition-[border-color,box-shadow] hover:shadow-[0_10px_24px_rgba(40,20,80,0.08)]',
+        t.card,
       )}
     >
-      <span
-        className={cn(
-          'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
-          tone === 'warning' ? 'bg-warning/15 text-warning' : 'bg-accent/15 text-accent',
-        )}
-      >
-        {icon}
-      </span>
+      {/* tone stripe */}
+      <span aria-hidden className={cn('absolute inset-y-0 left-0 w-1', t.bar)} />
+      <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', t.icon)}>{icon}</span>
       <span className="min-w-0 flex-1">
-        <span className="block text-sm font-semibold text-ink">{title}</span>
-        <span className="block text-caption text-ink-mute">{text}</span>
+        <span className="flex items-baseline gap-1.5">
+          <span className="font-display text-lg font-extrabold leading-none tracking-[-0.02em] text-ink tabular-nums">
+            {count}
+          </span>
+          <span className="truncate text-sm font-semibold text-ink">{title}</span>
+        </span>
+        <span className="mt-1 block text-caption text-ink-mute">{text}</span>
+        {meta && <span className="mt-2.5 flex flex-wrap items-center gap-1.5">{meta}</span>}
       </span>
-      <ChevronRightIcon className="h-4 w-4 text-ink-mute transition-transform group-hover:translate-x-0.5" />
+      <span className="mt-2.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-sunken text-ink-mute transition-colors group-hover:bg-ink group-hover:text-bg">
+        <ChevronRightIcon className="h-3.5 w-3.5 transition-transform group-hover:translate-x-px" />
+      </span>
     </Link>
+  )
+}
+
+/** Overlapping thumbnails with a "+N" overflow chip. */
+function Stack({ items, rounded, max = 4 }: { items: { key: string; src?: string; name: string }[]; rounded: string; max?: number }) {
+  return (
+    <span className="mr-1 flex -space-x-1.5">
+      {items.slice(0, max).map((i) =>
+        i.src ? (
+          <img
+            key={i.key}
+            src={i.src}
+            alt={i.name}
+            title={i.name}
+            className={cn('h-6 w-6 object-cover ring-2 ring-surface', rounded)}
+          />
+        ) : (
+          <Avatar key={i.key} name={i.name} size={24} className="ring-2 ring-surface" />
+        ),
+      )}
+      {items.length > max && (
+        <span
+          className={cn(
+            'flex h-6 min-w-6 items-center justify-center bg-surface-sunken px-1 text-[10px] font-semibold text-ink-soft ring-2 ring-surface',
+            rounded,
+          )}
+        >
+          +{items.length - max}
+        </span>
+      )}
+    </span>
+  )
+}
+
+function MetaChip({ tone, children }: { tone: 'warning' | 'danger'; children: React.ReactNode }) {
+  return (
+    <span
+      className={cn(
+        'rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums',
+        tone === 'danger' ? 'bg-danger-soft text-danger' : 'bg-warning-soft text-warning',
+      )}
+    >
+      {children}
+    </span>
   )
 }

@@ -19,12 +19,15 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   // UI only for now — not yet used by submit
   const [remember, setRemember] = useState(true)
-
+  const [submitting, setSubmitting] = useState(false)
 
   const submit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     const data = { name, email, password };
-    console.log('Form submitted:', data);
+    console.log('Form submitted:', mode, data);
+    // demo only: replace the timeout with the real API call, then setSubmitting(false) in finally
+    setSubmitting(true)
+    setTimeout(() => setSubmitting(false), 1500)
   }
 
   return (
@@ -119,7 +122,12 @@ export function LoginPage() {
             <AuthCheckbox label="Keep me signed in" checked={remember} onChange={setRemember} />
           )}
 
-          <AuthSubmit>{mode === 'signin' ? 'Sign in' : 'Create account'}</AuthSubmit>
+          <AuthSubmit
+            loading={submitting}
+            loadingText={mode === 'signin' ? 'Signing in…' : 'Creating account…'}
+          >
+            {mode === 'signin' ? 'Sign in' : 'Create account'}
+          </AuthSubmit>
         </motion.form>
       </AnimatePresence>
     </AuthShell>

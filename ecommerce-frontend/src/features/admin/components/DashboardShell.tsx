@@ -237,7 +237,14 @@ export function DashboardShell({
             </button>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-3">
+          {/* rail: no side padding (the 40px icons fill the ~58px card) and a hidden
+              scrollbar, so nothing overflows sideways; still scrolls with wheel/touch */}
+          <div
+            className={cn(
+              'min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-3',
+              collapsed ? 'px-0 [scrollbar-width:none]! [&::-webkit-scrollbar]:hidden' : 'px-3',
+            )}
+          >
             <NavTree rail={collapsed} />
           </div>
 
