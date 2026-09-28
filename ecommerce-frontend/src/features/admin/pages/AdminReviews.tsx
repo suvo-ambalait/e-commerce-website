@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { LuExternalLink, LuFlag, LuMessageSquareQuote, LuStar, LuThumbsDown } from 'react-icons/lu'
 import { PageHeader, DataTable, StatCard, StatGrid, FadeItem, type Column } from '../components/primitives'
+import { ReviewPhotoStrip } from '@/features/catalog/components/ReviewPhotos'
 import {
   ColumnsMenu,
   DensityToggle,
@@ -84,6 +85,11 @@ export function AdminReviews() {
         <div className="max-w-sm">
           <p className="truncate font-semibold text-ink">{r.title}</p>
           <p className="line-clamp-2 text-caption text-ink-mute">{r.comment}</p>
+          {r.images && r.images.length > 0 && (
+            <div className="mt-2">
+              <ReviewPhotoStrip size="sm" images={r.images} caption={<>{r.author} · {r.title}</>} />
+            </div>
+          )}
         </div>
       ),
     },

@@ -15,6 +15,7 @@ const columns: { title: string; links: FooterLink[] }[] = [
       { label: 'New this week', to: '/shop?sort=new' },
       { label: 'On sale', to: '/deals', badge: 'Sale' },
       { label: 'Gift ideas', to: '/shop' },
+      { label: 'Customer reviews', to: '/reviews' },
     ],
   },
   {

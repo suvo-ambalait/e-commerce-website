@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
 import { useIsDesktop } from '@/shared/hooks/useMediaQuery'
 import {
@@ -72,7 +72,12 @@ export function VendorStorefrontPage() {
           <h1 className="mt-1 font-serif text-3xl text-ink">{vendor.name}</h1>
           <p className="mt-0.5 text-sm text-ink-soft">{vendor.tagline}</p>
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-caption text-ink-mute">
-            <Rating value={vendor.rating} count={vendor.reviewCount} />
+            <Link to={`/reviews?shop=${vendor.slug}`} className="transition-opacity hover:opacity-75" title="Read this shop’s reviews">
+              <Rating value={vendor.rating} count={vendor.reviewCount} />
+            </Link>
+            <Link to={`/reviews?shop=${vendor.slug}`} className="font-semibold text-accent hover:underline">
+              Read reviews
+            </Link>
             <span>{vendor.location}</span>
             <span>Joined {formatDateLong(vendor.joinedAt)}</span>
           </div>

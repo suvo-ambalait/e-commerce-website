@@ -110,6 +110,8 @@ export interface Review {
   date: string
   title: string
   comment: string
+  /** customer photos (compressed data URLs until uploads go to the backend) */
+  images?: string[]
 }
 
 /* ------------------------------- cart ------------------------------ */

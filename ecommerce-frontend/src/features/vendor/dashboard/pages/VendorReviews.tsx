@@ -8,6 +8,7 @@ import { formatDate } from '@/shared/lib/format'
 import { useCurrentVendor } from '../../lib/useCurrentVendor'
 import { useCatalog } from '@/features/catalog/context/CatalogContext'
 import type { Review } from '@/shared/types'
+import { ReviewPhotoStrip } from '@/features/catalog/components/ReviewPhotos'
 
 type Tab = 'all' | '5' | '4' | 'low'
 
@@ -61,6 +62,11 @@ export function VendorReviews() {
         <div className="max-w-sm">
           <p className="truncate font-semibold text-ink">{r.title}</p>
           <p className="line-clamp-2 text-caption text-ink-mute">{r.comment}</p>
+          {r.images && r.images.length > 0 && (
+            <div className="mt-2">
+              <ReviewPhotoStrip size="sm" images={r.images} caption={<>{r.author} · {r.title}</>} />
+            </div>
+          )}
         </div>
       ),
     },

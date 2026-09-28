@@ -29,6 +29,7 @@ import { AccountProfilePage } from '@/features/account/pages/AccountProfilePage'
 import { AccountReturnsPage } from '@/features/account/pages/AccountReturnsPage'
 import { AccountAddressesPage } from '@/features/account/pages/AccountAddressesPage'
 import { TrackOrderPage } from '@/features/orders/pages/TrackOrderPage'
+import { ReviewsPage } from '@/features/catalog/pages/ReviewsPage'
 import { ContactPage } from '@/features/marketing/pages/ContactPage'
 import { PolicyPage } from '@/features/marketing/pages/PolicyPage'
 import { AccessDeniedPage } from '@/features/marketing/pages/AccessDeniedPage'
@@ -110,6 +111,7 @@ export function App() {
           <Route path="/wishlist" element={<WishlistPage />} />
         </Route>
         <Route path="/track-order" element={<TrackOrderPage />} />
+        <Route path="/reviews" element={<ReviewsPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/shipping-returns" element={<PolicyPage slug="shipping-returns" />} />
         <Route path="/faq" element={<PolicyPage slug="faq" />} />

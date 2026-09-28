@@ -10,11 +10,14 @@ export function Modal({
   onClose,
   title,
   children,
+  size = 'md',
 }: {
   open: boolean
   onClose: () => void
   title?: ReactNode
   children: ReactNode
+  /** md = max-w-lg (default), lg = max-w-2xl */
+  size?: 'md' | 'lg'
 }) {
   useScrollLock(open)
 
@@ -37,7 +40,7 @@ export function Modal({
             transition={{ duration: 0.24, ease: easeEditorial }}
             role="dialog"
             aria-modal="true"
-            className="relative w-full max-w-lg rounded-lg border border-border bg-surface p-6 shadow-lg"
+            className={`relative max-h-[92dvh] w-full overflow-y-auto rounded-2xl border border-border bg-surface p-6 shadow-lg ${size === 'lg' ? 'max-w-2xl' : 'max-w-lg'}`}
           >
             <div className="mb-4 flex items-start justify-between gap-4">
               {title && <h2 className="text-xl text-ink">{title}</h2>}

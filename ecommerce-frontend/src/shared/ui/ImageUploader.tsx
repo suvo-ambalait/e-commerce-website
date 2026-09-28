@@ -33,11 +33,17 @@ export function ImageUploader({
   onChange,
   max = 6,
   aspect = 'aspect-square',
+  maxEdge = 1000,
+  quality = 0.72,
 }: {
   value: string[]
   onChange: (next: string[]) => void
   max?: number
   aspect?: string
+  /** longest side in px after downscaling (smaller = less storage) */
+  maxEdge?: number
+  /** JPEG quality 0–1 */
+  quality?: number
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
@@ -53,7 +59,7 @@ export function ImageUploader({
     if (!list.length) return
     setBusy(true)
     try {
-      const urls = await Promise.all(list.map((f) => fileToDataUrl(f)))
+      const urls = await Promise.all(list.map((f) => fileToDataUrl(f, maxEdge, quality)))
       onChange([...value, ...urls])
     } finally {
       setBusy(false)
