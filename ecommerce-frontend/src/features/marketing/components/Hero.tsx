@@ -1,7 +1,9 @@
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'motion/react'
-import { ArrowRightIcon, PlusIcon } from '@/shared/ui/icons'
-import { LuBanknote, LuRotateCcw, LuShirt, LuSmartphone } from 'react-icons/lu'
+import { AnimatePresence, motion } from 'motion/react'
+import { ArrowRightIcon, CheckIcon, PlusIcon } from '@/shared/ui/icons'
+import { LuBanknote, LuRotateCcw, LuShirt, LuSmartphone, LuStar, LuTrophy } from 'react-icons/lu'
+import { cn } from '@/shared/lib/cn'
 import { easeEditorial } from '@/shared/lib/motion'
 import { imageFor } from '@/shared/lib/image'
 import { discountFraction, formatPrice } from '@/shared/lib/format'
@@ -30,10 +32,18 @@ export function Hero() {
     Math.max(0, ...products.map((p) => discountFraction(p.price, p.originalPrice))) * 100,
   )
 
+  const bestsellerOff = bestseller ? Math.round(discountFraction(bestseller.price, bestseller.originalPrice) * 100) : 0
+  const [added, setAdded] = useState(false)
+  const addedTimer = useRef<number | undefined>(undefined)
+  useEffect(() => () => window.clearTimeout(addedTimer.current), [])
+
   const addBestseller = () => {
     if (!bestseller) return
     addItem(bestseller)
     notify(`${bestseller.name} added to cart`, 'success')
+    setAdded(true)
+    window.clearTimeout(addedTimer.current)
+    addedTimer.current = window.setTimeout(() => setAdded(false), 1600)
   }
 
   const perks = [
@@ -60,9 +70,14 @@ export function Hero() {
             // `!` beats the global unlayered `h1` font rule in index.css
             className="m-0 font-display! text-[clamp(3.25rem,2rem+5vw,6.5rem)] font-extrabold! leading-[0.92] tracking-[-0.045em]! text-ink"
           >
-            Shop from
+            Shop{' '}
+            {/* pivots on its bottom-left corner so the right end tips up */}
+            <span className="inline-block origin-bottom-left -rotate-6">from</span>
             <br />
-            <span className="font-medium italic text-accent">local sellers.</span>
+            <span className="font-medium italic text-accent">
+              {/* pivots on its bottom-right corner so the left end dips down */}
+              <span className="inline-block origin-bottom-right -rotate-6">local</span> sellers.
+            </span>
           </motion.h1>
 
           <motion.p {...rise(0.16)} className="m-0 max-w-[500px] text-lg leading-relaxed text-ink-soft md:text-[19px]">
@@ -143,33 +158,81 @@ export function Hero() {
                 x: { duration: 0.6, ease: easeEditorial, delay: 0.6 },
                 y: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1.2 },
               }}
-              className="absolute bottom-6 left-3 flex w-[calc(100%-1.5rem)] max-w-[300px] items-center gap-3.5 rounded-[20px] bg-[#0b0a10] p-4 text-white ring-1 ring-transparent dark:ring-white/10 shadow-[0_24px_48px_rgba(40,20,80,0.25)] sm:bottom-12 sm:left-0"
+              className="absolute bottom-6 left-3 w-[calc(100%-1.5rem)] max-w-85 rounded-3xl bg-surface/85 p-3 ring-1 ring-white/60 shadow-[0_24px_60px_rgba(40,20,80,0.28)] backdrop-blur-xl dark:ring-white/10 sm:bottom-12 sm:left-0"
             >
-              <Link
-                to={`/product/${bestseller.id}`}
-                className="flex h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#ede9fe]"
-              >
-                {bestseller.images[0] ? (
-                  <img src={bestseller.images[0]} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <LuShirt className="h-7 w-7 text-accent" aria-hidden />
-                )}
-              </Link>
-              <div className="flex min-w-0 grow flex-col gap-1">
-                <span className="text-xs font-semibold tracking-[0.04em] text-[#c4b5fd]">BEST SELLER</span>
-                <Link to={`/product/${bestseller.id}`} className="truncate text-base font-semibold hover:underline">
-                  {bestseller.name}
+              <div className="flex items-center gap-3">
+                <Link
+                  to={`/product/${bestseller.id}`}
+                  className="group relative flex h-19 w-19 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-accent-soft"
+                >
+                  {bestseller.images[0] ? (
+                    <img
+                      src={bestseller.images[0]}
+                      alt=""
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                  ) : (
+                    <LuShirt className="h-7 w-7 text-accent" aria-hidden />
+                  )}
+                  {bestsellerOff > 0 && (
+                    <span className="absolute left-1.5 top-1.5 rounded-full bg-ink px-1.5 py-px text-[10px] font-bold text-bg">
+                      −{bestsellerOff}%
+                    </span>
+                  )}
                 </Link>
-                <span className="text-sm text-[#b8b3c7]">{formatPrice(bestseller.price)}</span>
+
+                <div className="flex min-w-0 grow flex-col">
+                  <span className="inline-flex w-fit items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-accent">
+                    <LuTrophy className="h-3 w-3" aria-hidden />
+                    Best seller
+                  </span>
+                  <Link
+                    to={`/product/${bestseller.id}`}
+                    className="mt-1 line-clamp-2 text-[15px] font-semibold leading-snug text-ink transition-colors hover:text-accent"
+                    title={bestseller.name}
+                  >
+                    {bestseller.name}
+                  </Link>
+                  <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-caption">
+                    <span className="font-display text-base font-bold text-ink tabular-nums">
+                      {formatPrice(bestseller.price)}
+                    </span>
+                    {bestsellerOff > 0 && bestseller.originalPrice && (
+                      <span className="text-ink-mute line-through tabular-nums">{formatPrice(bestseller.originalPrice)}</span>
+                    )}
+                    {bestseller.reviewCount > 0 && (
+                      <span className="inline-flex items-center gap-0.5 text-ink-mute">
+                        <LuStar className="h-3 w-3 fill-warning text-warning" aria-hidden />
+                        <span className="font-semibold text-ink-soft tabular-nums">{bestseller.rating.toFixed(1)}</span>
+                        <span className="tabular-nums">({bestseller.reviewCount})</span>
+                      </span>
+                    )}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={addBestseller}
+                  aria-label={added ? `${bestseller.name} added to cart` : `Add ${bestseller.name} to cart`}
+                  className={cn(
+                    'relative flex h-11 w-11 shrink-0 items-center justify-center self-center rounded-full text-on-accent shadow-[0_8px_18px_rgba(109,40,217,0.35)] transition-[background-color,transform] active:scale-90',
+                    added ? 'bg-success' : 'bg-accent hover:scale-105 hover:bg-accent-hover',
+                  )}
+                >
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.span
+                      key={added ? 'done' : 'add'}
+                      initial={{ scale: 0.4, opacity: 0, rotate: -90 }}
+                      animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                      exit={{ scale: 0.4, opacity: 0, rotate: 90 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex"
+                    >
+                      {added ? <CheckIcon className="h-4.5 w-4.5" /> : <PlusIcon className="h-4.5 w-4.5" />}
+                    </motion.span>
+                  </AnimatePresence>
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={addBestseller}
-                aria-label={`Add ${bestseller.name} to cart`}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent text-on-accent transition-colors hover:bg-accent-hover"
-              >
-                <PlusIcon className="h-[18px] w-[18px]" />
-              </button>
             </motion.div>
           )}
         </motion.div>
