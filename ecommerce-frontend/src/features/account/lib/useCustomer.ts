@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react'
 import { usePersistedState } from '@/shared/hooks/usePersistedState'
 import { storageKeys } from '@/shared/lib/storage'
 import { useOrders } from '@/features/orders/context/OrdersContext'
+import { addressesStore } from '@/features/marketplace/stores'
 import type { Order, ShipmentStatus, ShippingInfo } from '@/shared/types'
 
 /**
@@ -42,7 +43,12 @@ export function useCustomer() {
     [setSaved],
   )
 
-  const address: ShippingInfo | undefined = latest
+  // the default saved address wins; otherwise fall back to the latest order's
+  const [savedAddresses] = addressesStore.useStore()
+  const def = savedAddresses.find((a) => a.isDefault)
+  const address: ShippingInfo | undefined = def
+    ? { fullName: def.fullName, address: def.address, city: def.city, state: def.area, zip: def.zip, country: def.country, phone: def.phone }
+    : latest
   const spent = orders.reduce((n, o) => n + o.grandTotal, 0)
 
   return { profile, updateProfile, orders, address, spent }

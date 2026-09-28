@@ -1,4 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { LuLock, LuMail, LuMapPin, LuMonitor, LuMoon, LuPhone, LuSun, LuUser } from 'react-icons/lu'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
 import { useTheme } from '@/shared/hooks/useTheme'
@@ -77,7 +78,15 @@ export function AccountProfilePage() {
         </AccountCard>
       </form>
 
-      <AccountCard title="Delivery address" subtitle="We use the address from your most recent order. You can change it at checkout.">
+      <AccountCard
+        title="Default delivery address"
+        subtitle="Filled in for you at checkout."
+        aside={
+          <Link to="/account/addresses" className="text-caption font-semibold text-accent hover:underline">
+            Manage addresses
+          </Link>
+        }
+      >
         {address ? (
           <div className="flex items-start gap-3 rounded-xl border border-border bg-surface-sunken/50 p-4">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">

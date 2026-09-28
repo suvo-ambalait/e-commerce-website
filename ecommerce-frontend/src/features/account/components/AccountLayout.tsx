@@ -1,6 +1,7 @@
 import type { ComponentType, ReactNode, SVGProps } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
-import { LuHeart, LuLayoutGrid, LuPackage, LuUserCog } from 'react-icons/lu'
+import { LuHeart, LuLayoutGrid, LuLogOut, LuMapPin, LuPackage, LuRotateCcw, LuUserCog } from 'react-icons/lu'
+import { returnsStore } from '@/features/marketplace/stores'
 import { Avatar, Container, Section } from '@/shared/ui'
 import { cn } from '@/shared/lib/cn'
 import { useWishlist } from '../context/WishlistContext'
@@ -18,11 +19,17 @@ interface NavItem {
 export function AccountLayout() {
   const { profile, orders } = useCustomer()
   const { count: savedCount } = useWishlist()
+  const [returns] = returnsStore.useStore()
+  const openReturns = returns.filter(
+    (r) => r.email.toLowerCase() === profile.email.toLowerCase() && (r.status === 'Requested' || r.status === 'Approved'),
+  ).length
 
   const nav: NavItem[] = [
     { label: 'Overview', to: '/account', end: true, icon: LuLayoutGrid },
     { label: 'Orders', to: '/account/orders', icon: LuPackage, count: orders.length },
+    { label: 'Returns', to: '/account/returns', icon: LuRotateCcw, count: openReturns },
     { label: 'Saved items', to: '/wishlist', icon: LuHeart, count: savedCount },
+    { label: 'Addresses', to: '/account/addresses', icon: LuMapPin },
     { label: 'Profile & settings', to: '/account/profile', icon: LuUserCog },
   ]
 
@@ -73,6 +80,15 @@ export function AccountLayout() {
                   </NavLink>
                 </li>
               ))}
+              <li className="shrink-0 lg:mt-1 lg:border-t lg:border-border lg:pt-1">
+                <NavLink
+                  to="/logout"
+                  className="flex items-center gap-3 whitespace-nowrap rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm font-medium text-ink-soft transition-colors hover:text-danger lg:border-0 lg:bg-transparent lg:hover:bg-danger-soft"
+                >
+                  <LuLogOut className="h-4.5 w-4.5 shrink-0" />
+                  Sign out
+                </NavLink>
+              </li>
             </ul>
           </nav>
 

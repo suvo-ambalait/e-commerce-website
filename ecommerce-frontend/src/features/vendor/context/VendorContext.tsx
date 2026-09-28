@@ -18,6 +18,7 @@ interface VendorContextValue {
     location: string
     ownerEmail: string,
     ownerPhone: string
+    ownerName?: string
   }) => Vendor
   updateVendor: (id: string, patch: Partial<Vendor>) => void
   setStatus: (id: string, status: VendorStatus) => void
@@ -49,6 +50,7 @@ export function VendorProvider({ children }: { children: ReactNode }) {
         status: 'pending',
         ownerEmail: input.ownerEmail,
         ownerPhone: input.ownerPhone,
+        ownerName: input.ownerName,
         policies: {
           shipping: 'Standard shipping, 3–5 business days.',
           returns: '30-day returns on unused items.',

@@ -1,20 +1,23 @@
-const currency = new Intl.NumberFormat('en-US', {
+// Bangladeshi taka with lakh grouping, e.g. ৳1,23,456.50
+const currency = new Intl.NumberFormat('en-IN', {
   style: 'currency',
-  currency: 'USD',
+  currency: 'BDT',
+  currencyDisplay: 'narrowSymbol',
 })
 
-const currencyWhole = new Intl.NumberFormat('en-US', {
+const currencyWhole = new Intl.NumberFormat('en-IN', {
   style: 'currency',
-  currency: 'USD',
+  currency: 'BDT',
+  currencyDisplay: 'narrowSymbol',
   maximumFractionDigits: 0,
 })
 
-/** `$79.99` — the canonical money format across the app. */
+/** `৳79.99` — the canonical money format across the app. */
 export function formatPrice(value: number): string {
   return currency.format(value)
 }
 
-/** `$1,240` — used where cents add noise (dashboards, big totals). */
+/** `৳1,240` — used where paisa add noise (dashboards, big totals). */
 export function formatPriceWhole(value: number): string {
   return currencyWhole.format(value)
 }

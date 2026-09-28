@@ -18,6 +18,8 @@ import {
 import { TruckIcon, LeafIcon } from '@/shared/ui/icons'
 import { formatDateLong } from '@/shared/lib/format'
 import { useVendors } from '../context/VendorContext'
+import { LuTreePalm } from 'react-icons/lu'
+import { shopSettingsStore } from '@/features/marketplace/stores'
 import { useCatalog } from '@/features/catalog/context/CatalogContext'
 import { FilterPanel } from '@/features/catalog/components/FilterPanel'
 import { ProductGrid } from '@/features/catalog/components/ProductGrid'
@@ -33,6 +35,8 @@ export function VendorStorefrontPage() {
   const vendor = slug ? getVendorBySlug(slug) : undefined
   const products = vendor ? productsByVendor(vendor.id) : []
   const query = useProductQuery(products, undefined, 9)
+  const [shopSettings] = shopSettingsStore.useStore()
+  const holiday = vendor ? shopSettings[vendor.id]?.holiday : undefined
 
   useDocumentTitle(vendor ? `${vendor.name} · AmbalaEshop` : 'Maker · AmbalaEshop')
 
@@ -73,6 +77,19 @@ export function VendorStorefrontPage() {
             <span>Joined {formatDateLong(vendor.joinedAt)}</span>
           </div>
         </div>
+
+        {holiday?.on && (
+          <div className="mt-6 flex items-start gap-3 rounded-2xl border border-warning/40! bg-warning-soft px-4 py-3.5 text-sm">
+            <LuTreePalm className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
+            <div>
+              <p className="font-semibold text-warning">
+                {vendor.name} is on a break
+                {holiday.returnsOn && ` until ${formatDateLong(holiday.returnsOn)}`}
+              </p>
+              <p className="mt-0.5 text-ink-soft">{holiday.message}</p>
+            </div>
+          </div>
+        )}
 
         <div className="mt-6 grid grid-cols-1 gap-4 rounded-lg border border-border bg-surface-sunken/50 p-5 sm:grid-cols-[2fr_1fr]">
           <p className="text-sm leading-relaxed text-ink-soft">{vendor.bio}</p>

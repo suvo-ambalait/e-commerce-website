@@ -24,9 +24,22 @@ function writePromo(code: string | null) {
   }
 }
 
-export function useCartPricing() {
+/**
+ * Cart totals. Checkout passes the chosen delivery zone's rate and
+ * free-delivery amount; the cart page uses the store-wide defaults.
+ */
+export function useCartPricing(shippingOverride?: { shippingFlatRate: number; freeShippingThreshold: number }) {
   const { groups } = useCart()
-  const { settings } = useSettings()
+  const { settings: storeSettings } = useSettings()
+  const overrideRate = shippingOverride?.shippingFlatRate
+  const overrideFree = shippingOverride?.freeShippingThreshold
+  const settings = useMemo(
+    () =>
+      overrideRate === undefined || overrideFree === undefined
+        ? storeSettings
+        : { ...storeSettings, shippingFlatRate: overrideRate, freeShippingThreshold: overrideFree },
+    [storeSettings, overrideRate, overrideFree],
+  )
   const { findActiveDiscount } = useDiscounts()
 
   const [code, setCode] = useState('')

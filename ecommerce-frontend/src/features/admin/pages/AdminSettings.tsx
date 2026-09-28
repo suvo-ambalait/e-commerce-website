@@ -139,14 +139,14 @@ export function AdminSettings() {
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Flat shipping rate" hint="Charged per shop basket">
                 {(id) => (
-                  <Affix prefix="$">
+                  <Affix prefix="৳">
                     <Input id={id} type="number" step="0.01" min="0" value={form.shippingFlatRate} onChange={set('shippingFlatRate')} className="pl-8!" />
                   </Affix>
                 )}
               </Field>
               <Field label="Free shipping threshold" hint="A shop basket at or above this ships free">
                 {(id) => (
-                  <Affix prefix="$">
+                  <Affix prefix="৳">
                     <Input id={id} type="number" step="1" min="0" value={form.freeShippingThreshold} onChange={set('freeShippingThreshold')} className="pl-8!" />
                   </Affix>
                 )}

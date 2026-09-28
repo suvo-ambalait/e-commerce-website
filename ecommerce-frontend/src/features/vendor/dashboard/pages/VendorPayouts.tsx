@@ -9,6 +9,9 @@ import { useOrders } from '@/features/orders/context/OrdersContext'
 import { useSettings } from '@/features/admin/context/SettingsContext'
 import { summariseVendorSales, vendorShipments } from '@/features/orders/lib/analytics'
 import type { Order, Shipment } from '@/shared/types'
+import { payoutRequestsStore } from '@/features/marketplace/stores'
+import { vendorBalance } from '@/features/marketplace/payouts'
+import { PayoutPanels } from '../components/PayoutPanels'
 
 type Row = { order: Order; shipment: Shipment }
 type Tab = 'all' | 'released' | 'pending' | 'void'
@@ -22,6 +25,7 @@ export function VendorPayouts() {
   const { settings } = useSettings()
   const [search, setSearch] = useState('')
   const [tab, setTab] = useState<Tab>('all')
+  const [payoutRequests] = payoutRequestsStore.useStore()
 
   const all = useMemo(() => (vendor ? vendorShipments(orders, vendor.id) : []), [vendor, orders])
   const rows = all.filter(
@@ -32,6 +36,7 @@ export function VendorPayouts() {
 
   const rate = settings.commissionRate
   const sales = summariseVendorSales(orders, vendor.id, rate)
+  const balance = vendorBalance(orders, vendor.id, rate, payoutRequests)
   const gross = (r: Row) => r.shipment.subtotal - r.shipment.discount
   const n = (t: Exclude<Tab, 'all'>) => all.filter((r) => state(r) === t).length
 
@@ -118,9 +123,16 @@ export function VendorPayouts() {
           <StatCard label="Net earnings" value={formatPriceWhole(sales.net)} icon={LuWallet} hint="after commission" />
         </FadeItem>
         <FadeItem>
-          <StatCard label="Available to withdraw" value={formatPriceWhole(sales.pendingPayout)} icon={LuWallet} hint="released funds" />
+          <StatCard
+            label="Available to withdraw"
+            value={formatPriceWhole(balance.available)}
+            icon={LuWallet}
+            hint={balance.pending > 0 ? `${formatPriceWhole(balance.pending)} on its way to you` : 'released funds'}
+          />
         </FadeItem>
       </StatGrid>
+
+      <PayoutPanels vendorId={vendor.id} balance={balance} />
 
       <DataTable
         rows={rows}

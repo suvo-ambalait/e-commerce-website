@@ -6,12 +6,14 @@ import { FeaturedRail } from '../components/FeaturedRail'
 import { MakersRail } from '../components/MakersRail'
 import { EditorialPromo } from '../components/EditorialPromo'
 import { Newsletter } from '../components/Newsletter'
+import { PromoBanners } from '../components/PromoBanners'
 
 export function HomePage() {
   useDocumentTitle('AmbalaEshop — Considered design, many makers')
   return (
     <>
       <Hero />
+      <PromoBanners />
       <ValueProps />
       <CategoryStrip />
       <FeaturedRail />

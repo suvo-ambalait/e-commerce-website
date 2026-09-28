@@ -28,10 +28,10 @@ const columns: { title: string; links: FooterLink[] }[] = [
   {
     title: 'Support',
     links: [
-      { label: 'Contact', to: '/about' },
-      { label: 'Shipping & returns', to: '/about' },
-      { label: 'FAQ', to: '/about' },
-      { label: 'Track an order', to: '/account' },
+      { label: 'Contact', to: '/contact' },
+      { label: 'Shipping & returns', to: '/shipping-returns' },
+      { label: 'FAQ', to: '/faq' },
+      { label: 'Track an order', to: '/track-order' },
     ],
   },
 ]
@@ -108,7 +108,7 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-12 py-14 lg:grid-cols-[1.3fr_2fr]">
           <div>
             <Link to="/" className="inline-flex" aria-label={`${settings.storeName} home`}>
-              <BrandLockup className="text-2xl" nameClassName="text-white" />
+              <BrandLockup onDark className="text-2xl" />
             </Link>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-[#b8b3c7]">
               {settings.tagline}. One cart across many independent shops — we settle up with each maker so you
@@ -161,15 +161,15 @@ export function Footer() {
             © {new Date().getFullYear()} {settings.storeName}. A demonstration marketplace.
           </p>
           <div className="flex gap-5">
-            <a href="#" className="transition-colors hover:text-white">
+            <Link to="/privacy" className="transition-colors hover:text-white">
               Privacy
-            </a>
-            <a href="#" className="transition-colors hover:text-white">
+            </Link>
+            <Link to="/terms" className="transition-colors hover:text-white">
               Terms
-            </a>
-            <a href="#" className="transition-colors hover:text-white">
-              Accessibility
-            </a>
+            </Link>
+            <Link to="/contact" className="transition-colors hover:text-white">
+              Contact
+            </Link>
           </div>
         </div>
       </div>

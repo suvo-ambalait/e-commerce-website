@@ -1,5 +1,18 @@
 import { Link } from 'react-router-dom'
-import { LuExternalLink, LuGlobe, LuLogOut, LuSettings, LuUser } from 'react-icons/lu'
+import {
+  LuChartLine,
+  LuExternalLink,
+  LuGlobe,
+  LuLayoutTemplate,
+  LuLogOut,
+  LuRotateCcw,
+  LuSettings,
+  LuShieldCheck,
+  LuTruck,
+  LuUser,
+  LuWallet,
+} from 'react-icons/lu'
+import { messagesStore, payoutRequestsStore, returnsStore } from '@/features/marketplace/stores'
 import { DashboardShell, type NavGroup } from './DashboardShell'
 import { NotificationsMenu } from './NotificationsMenu'
 import {
@@ -28,6 +41,12 @@ export function AdminLayout() {
   const lowStock = products.filter((p) => statusFor(p) !== 'in').length
   const pendingVendors = vendors.filter((v) => v.status === 'pending').length
   const { unreadCount } = useNotificationFeed()
+  const [returns] = returnsStore.useStore()
+  const [payoutRequests] = payoutRequestsStore.useStore()
+  const [messages] = messagesStore.useStore()
+  const openReturns = returns.filter((r) => r.status === 'Requested').length
+  const pendingPayouts = payoutRequests.filter((r) => r.status === 'Pending').length
+  const unreadMessages = messages.filter((m) => !m.read).length
 
   const groups: NavGroup[] = [
     {
@@ -48,8 +67,16 @@ export function AdminLayout() {
       title: 'Sales',
       items: [
         { label: 'Orders', to: '/admin/orders', icon: ReceiptIcon },
+        { label: 'Returns', to: '/admin/returns', icon: LuRotateCcw, badge: { count: openReturns, tone: 'warning' } },
         { label: 'Reviews', to: '/admin/reviews', icon: StarIcon },
         { label: 'Discounts', to: '/admin/discounts', icon: PercentIcon },
+      ],
+    },
+    {
+      title: 'Finance',
+      items: [
+        { label: 'Payouts', to: '/admin/payouts', icon: LuWallet, badge: { count: pendingPayouts } },
+        { label: 'Reports', to: '/admin/reports', icon: LuChartLine },
       ],
     },
     {
@@ -57,9 +84,17 @@ export function AdminLayout() {
       items: [
         { label: 'Vendors', to: '/admin/vendors', icon: StorefrontIcon, badge: { count: pendingVendors } },
         { label: 'Customers', to: '/admin/customers', icon: UsersIcon },
+        { label: 'Staff', to: '/admin/staff', icon: LuShieldCheck },
       ],
     },
-    { title: 'Configure', items: [{ label: 'Settings', to: '/admin/settings', icon: CogIcon }] },
+    {
+      title: 'Configure',
+      items: [
+        { label: 'Settings', to: '/admin/settings', icon: CogIcon },
+        { label: 'Delivery zones', to: '/admin/shipping', icon: LuTruck },
+        { label: 'Site content', to: '/admin/content', icon: LuLayoutTemplate, badge: { count: unreadMessages } },
+      ],
+    },
   ]
 
   return (

@@ -3,6 +3,7 @@ import { Badge, Select } from '@/shared/ui'
 import { formatDateLong, formatPrice } from '@/shared/lib/format'
 import { useVendors } from '@/features/vendor/context/VendorContext'
 import type { Order, ShipmentStatus } from '@/shared/types'
+import { paymentLabel } from '@/features/checkout/components/checkoutForms'
 
 const statuses: ShipmentStatus[] = ['Processing', 'Shipped', 'Delivered', 'Cancelled']
 
@@ -42,6 +43,14 @@ export function OrderDetailView({
           <p className="mt-1 text-sm text-ink-mute">
             Placed {formatDateLong(order.date)} · {order.email}
           </p>
+          {order.payment && (
+            <p className="mt-2 flex flex-wrap items-center gap-2 text-caption text-ink-soft">
+              <span className="font-semibold text-ink">{paymentLabel[order.payment.method]}</span>
+              {order.payment.reference && <span>Ref. {order.payment.reference}</span>}
+              <Badge tone={order.payment.status === 'Paid' ? 'success' : 'warning'}>{order.payment.status}</Badge>
+              {order.zoneName && <span>· {order.zoneName}</span>}
+            </p>
+          )}
         </div>
         <div className="text-right">
           <p className="font-serif text-2xl text-ink">{formatPrice(order.grandTotal)}</p>

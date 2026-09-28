@@ -1,12 +1,13 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { LuMail, LuMapPin, LuPenLine, LuPhone, LuStore, LuUser } from 'react-icons/lu'
+import { Link, useNavigate } from 'react-router-dom'
+import { LuLock, LuMail, LuMapPin, LuPhone, LuStore, LuUser } from 'react-icons/lu'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
 import { Container, PageHeader, Section } from '@/shared/ui'
-import { ArrowRightIcon, CheckIcon, MailIcon, StarIcon } from '@/shared/ui/icons'
+import { ArrowRightIcon, CheckIcon, StarIcon } from '@/shared/ui/icons'
 import { useSettings } from '@/features/admin/context/SettingsContext'
 import { useVendors } from '../context/VendorContext'
 import { useToast } from '@/shared/ui/Toast'
+import { rememberApplication } from '../lib/application'
 
 const BIO_MAX = 600
 
@@ -24,23 +25,35 @@ export function VendorSignupPage() {
     location: '',
     tagline: '',
     bio: '',
+    ownerName: '',
+    password: '',
+    confirm: '',
   })
+  const [agreed, setAgreed] = useState(false)
+  const mismatch = form.confirm.length > 0 && form.confirm !== form.password
 
   const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((prev) => ({ ...prev, [key]: e.target.value }))
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
-    registerVendor({
+    if (form.password !== form.confirm) {
+      notify('Passwords don’t match')
+      return
+    }
+    // TODO: send the password to the backend registration endpoint — never store it in the browser
+    const vendor = registerVendor({
       name: form.name,
       tagline: form.tagline,
       bio: form.bio,
       location: form.location,
       ownerEmail: form.shopEmail,
       ownerPhone: form.shopPhone,
+      ownerName: form.ownerName,
     })
-    notify('Application received — you can set up your storefront now', 'success')
-    navigate('/vendor/dashboard')
+    rememberApplication(vendor.id)
+    notify('Application received', 'success')
+    navigate('/vendor/application')
   }
 
   const steps = [
@@ -133,31 +146,62 @@ export function VendorSignupPage() {
               </div>
             </Panel>
 
-
-
-            {/* <Panel icon={<LuUser className="h-4 w-4" />} title="About you">
-              <div className="grid gap-4 sm:grid-cols-2">
+            <Panel icon={<LuLock className="h-4 w-4" />} title="Your sign-in details">
+              <p className="-mt-2 mb-4 text-caption text-ink-mute">
+                You’ll sign in with the shop email above and this password to manage your shop.
+              </p>
+              <div className="grid gap-4">
                 <BoxInput
-                  label="Your name"
+                  label="Your full name"
                   icon={<LuUser className="h-4 w-4" />}
                   required
                   autoComplete="name"
                   value={form.ownerName}
                   onChange={set('ownerName')}
-                  placeholder="Full name"
+                  placeholder="e.g. Abdur Rahman"
                 />
-                <BoxInput
-                  label="Email"
-                  icon={<MailIcon className="h-4 w-4" />}
-                  type="email"
-                  required
-                  autoComplete="email"
-                  value={form.ownerEmail}
-                  onChange={set('ownerEmail')}
-                  placeholder="you@shop.com"
-                />
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <BoxInput
+                    label="Password"
+                    hint="At least 8 characters"
+                    icon={<LuLock className="h-4 w-4" />}
+                    type="password"
+                    required
+                    minLength={8}
+                    autoComplete="new-password"
+                    value={form.password}
+                    onChange={set('password')}
+                  />
+                  <BoxInput
+                    label="Confirm password"
+                    hint={mismatch ? 'Passwords don’t match' : undefined}
+                    icon={<LuLock className="h-4 w-4" />}
+                    type="password"
+                    required
+                    autoComplete="new-password"
+                    value={form.confirm}
+                    onChange={set('confirm')}
+                    aria-invalid={mismatch || undefined}
+                  />
+                </div>
+                <label className="flex items-start gap-2.5 text-sm text-ink-soft">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={agreed}
+                    onChange={(e) => setAgreed(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-[#6d28d9]"
+                  />
+                  <span>
+                    I agree to the{' '}
+                    <Link to="/terms" target="_blank" className="font-semibold text-accent hover:underline">
+                      seller terms
+                    </Link>{' '}
+                    and the {Math.round(settings.commissionRate * 100)}% commission on each sale.
+                  </span>
+                </label>
               </div>
-            </Panel> */}
+            </Panel>
 
             <button
               type="submit"

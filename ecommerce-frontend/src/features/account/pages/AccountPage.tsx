@@ -67,7 +67,14 @@ export function AccountPage() {
           </ul>
         </AccountCard>
 
-        <AccountCard title="Delivery address" subtitle="From your most recent order">
+        <AccountCard
+          title="Delivery address"
+          aside={
+            <Link to="/account/addresses" className="text-caption font-semibold text-accent hover:underline">
+              Manage
+            </Link>
+          }
+        >
           {address ? (
             <ul className="space-y-2.5 text-sm text-ink-soft">
               <Detail icon={<LuMapPin className="h-4 w-4" />}>

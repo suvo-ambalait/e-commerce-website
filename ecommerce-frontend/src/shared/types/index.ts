@@ -142,11 +142,24 @@ export interface Shipment {
   status: ShipmentStatus
 }
 
+export type PaymentMethod = 'cod' | 'bkash' | 'nagad' | 'card'
+
+export interface OrderPayment {
+  method: PaymentMethod
+  status: 'Paid' | 'Due on delivery'
+  /** wallet transaction id or card last four */
+  reference?: string
+}
+
 export interface Order {
   orderNumber: string
   email: string
   date: string
   shippingInfo: ShippingInfo
+  /** optional — orders placed before payment options existed don't have it */
+  payment?: OrderPayment
+  /** delivery zone chosen at checkout */
+  zoneName?: string
   discountCode?: string
   subtotal: number
   discount: number

@@ -7,6 +7,7 @@ import { formatPrice } from '@/shared/lib/format'
 import { easeEditorial } from '@/shared/lib/motion'
 import { useOrders } from '@/features/orders/context/OrdersContext'
 import { useVendors } from '@/features/vendor/context/VendorContext'
+import { paymentLabel } from '../components/checkoutForms'
 
 export function OrderConfirmationPage() {
   useDocumentTitle('Order confirmed · AmbalaEshop')
@@ -47,6 +48,12 @@ export function OrderConfirmationPage() {
           their own parcel, so expect {order.shipments.length}{' '}
           {order.shipments.length === 1 ? 'delivery' : 'separate deliveries'}.
         </p>
+        {order.payment && (
+          <p className="mx-auto mt-4 w-fit rounded-full bg-surface-sunken px-4 py-1.5 text-center text-caption font-semibold text-ink-soft">
+            {paymentLabel[order.payment.method]} ·{' '}
+            {order.payment.status === 'Paid' ? 'Paid' : `Pay ${formatPrice(order.grandTotal)} to the courier on delivery`}
+          </p>
+        )}
 
         <div className="mt-8 space-y-4">
           {order.shipments.map((shipment) => {
@@ -87,7 +94,9 @@ export function OrderConfirmationPage() {
         </div>
 
         <div className="mt-8 flex justify-center gap-3">
-          <ButtonLink to="/account">View orders</ButtonLink>
+          <ButtonLink to={`/track-order?order=${encodeURIComponent(order.orderNumber)}&email=${encodeURIComponent(order.email)}`}>
+            Track this order
+          </ButtonLink>
           <ButtonLink to="/shop" variant="secondary">
             Keep shopping
           </ButtonLink>

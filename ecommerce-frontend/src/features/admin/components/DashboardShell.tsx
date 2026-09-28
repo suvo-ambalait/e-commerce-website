@@ -196,13 +196,11 @@ export function DashboardShell({
           <div className={cn('flex items-center gap-2 p-4', collapsed && 'flex-col px-0')}>
             <Link to="/" className="min-w-0 flex-1" aria-label="Storefront home">
               {collapsed ? (
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#6d28d9]">
-                  <Logo markOnly className="text-[1.2rem] text-white" />
-                </span>
+                <Logo boxed className="h-10 w-10" />
               ) : (
                 <span className="block">
-                  <BrandLockup className="text-[1.15rem]" nameClassName="text-ink" />
-                  <span className="mt-0.5 block pl-[2.3rem] text-caption text-ink-mute">{subtitle}</span>
+                  <BrandLockup className="text-[1.05rem]" />
+                  <span className="mt-1 block text-caption text-ink-mute">{subtitle}</span>
                 </span>
               )}
             </Link>

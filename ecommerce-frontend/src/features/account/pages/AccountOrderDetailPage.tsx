@@ -1,18 +1,29 @@
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { LuArrowLeft, LuCheck, LuMapPin, LuPhone, LuStore, LuX } from 'react-icons/lu'
+import { LuArrowLeft, LuBan, LuMapPin, LuPhone, LuRotateCcw, LuTruck, LuWallet } from 'react-icons/lu'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
-import { Badge, ButtonLink } from '@/shared/ui'
+import { Badge, Button, ButtonLink } from '@/shared/ui'
 import { cn } from '@/shared/lib/cn'
-import { formatDateLong, formatPrice } from '@/shared/lib/format'
-import { useVendors } from '@/features/vendor/context/VendorContext'
+import { formatDate, formatDateLong, formatPrice } from '@/shared/lib/format'
 import type { Shipment } from '@/shared/types'
+import { returnsStore, type ReturnKind } from '@/features/marketplace/stores'
+import { returnTone } from '@/features/marketplace/labels'
+import { paymentLabel } from '@/features/checkout/components/checkoutForms'
 import { AccountCard } from '../components/AccountLayout'
-import { formatAddress, orderProgress, progressTone, shipmentSteps, useCustomer } from '../lib/useCustomer'
+import { ParcelCard } from '../components/ParcelCard'
+import { ReturnRequestModal } from '../components/ReturnRequestModal'
+import { formatAddress, orderProgress, progressTone, useCustomer } from '../lib/useCustomer'
+
+/** days after delivery a customer can still ask for a return */
+const RETURN_WINDOW_DAYS = 7
 
 export function AccountOrderDetailPage() {
   const { orderNumber = '' } = useParams()
   useDocumentTitle(`Order ${orderNumber} · AmbalaEshop`)
-  const { orders } = useCustomer()
+  const { orders, profile } = useCustomer()
+  const [returns] = returnsStore.useStore()
+  const [request, setRequest] = useState<{ kind: ReturnKind; shipment: Shipment } | null>(null)
+
   // only the customer's own orders can be opened here
   const order = orders.find((o) => o.orderNumber === orderNumber)
 
@@ -29,6 +40,46 @@ export function AccountOrderDetailPage() {
 
   const progress = orderProgress(order)
   const ship = order.shippingInfo
+  // no delivery date is stored yet, so allow the return window plus a week for delivery
+  const withinWindow =(Date.now() - new Date(order.date).getTime()) / 86_400_000 <= RETURN_WINDOW_DAYS + 7
+
+  const parcelFooter = (s: Shipment) => {
+    const existing = returns.find((r) => r.orderNumber === order.orderNumber && r.vendorId === s.vendorId && r.status !== 'Rejected')
+    if (existing) {
+      return (
+        <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+          <span className="text-ink-soft">
+            {existing.kind === 'cancel' ? 'Cancellation' : 'Return'} requested {formatDate(existing.createdAt)}
+            {existing.note && <span className="block text-caption text-ink-mute">“{existing.note}”</span>}
+          </span>
+          <Badge tone={returnTone[existing.status]}>{existing.status}</Badge>
+        </div>
+      )
+    }
+    if (s.status === 'Processing') {
+      return (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-caption text-ink-mute">Not shipped yet — you can still cancel.</span>
+          <Button variant="ghost" size="sm" onClick={() => setRequest({ kind: 'cancel', shipment: s })}>
+            <LuBan className="h-3.5 w-3.5" />
+            Cancel parcel
+          </Button>
+        </div>
+      )
+    }
+    if (s.status === 'Delivered' && withinWindow) {
+      return (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-caption text-ink-mute">Returns accepted within {RETURN_WINDOW_DAYS} days of delivery.</span>
+          <Button variant="secondary" size="sm" onClick={() => setRequest({ kind: 'return', shipment: s })}>
+            <LuRotateCcw className="h-3.5 w-3.5" />
+            Request a return
+          </Button>
+        </div>
+      )
+    }
+    return undefined
+  }
 
   return (
     <div className="space-y-5">
@@ -56,7 +107,7 @@ export function AccountOrderDetailPage() {
       <div className="grid gap-5 xl:grid-cols-[1fr_20rem] xl:items-start">
         <div className="space-y-4">
           {order.shipments.map((s) => (
-            <ParcelCard key={s.vendorId} shipment={s} />
+            <ParcelCard key={s.vendorId} shipment={s} footer={parcelFooter(s)} />
           ))}
         </div>
 
@@ -67,12 +118,27 @@ export function AccountOrderDetailPage() {
               {order.discount > 0 && (
                 <Line label={order.discountCode ? `Discount (${order.discountCode})` : 'Discount'} value={`−${formatPrice(order.discount)}`} accent />
               )}
-              <Line label="Shipping" value={order.shipping === 0 ? 'Free' : formatPrice(order.shipping)} />
+              <Line label="Delivery" value={order.shipping === 0 ? 'Free' : formatPrice(order.shipping)} />
               <Line label="Tax" value={formatPrice(order.tax)} />
               <div className="mt-2 border-t border-border pt-2">
                 <Line label="Total" value={formatPrice(order.grandTotal)} strong />
               </div>
             </dl>
+          </AccountCard>
+
+          <AccountCard title="Payment">
+            {order.payment ? (
+              <div className="flex items-start gap-2.5 text-sm">
+                <LuWallet className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-ink">{paymentLabel[order.payment.method]}</p>
+                  {order.payment.reference && <p className="text-caption text-ink-mute">Ref. {order.payment.reference}</p>}
+                </div>
+                <Badge tone={order.payment.status === 'Paid' ? 'success' : 'warning'}>{order.payment.status}</Badge>
+              </div>
+            ) : (
+              <p className="text-sm text-ink-mute">Paid by card.</p>
+            )}
           </AccountCard>
 
           <AccountCard title="Delivery">
@@ -90,92 +156,28 @@ export function AccountOrderDetailPage() {
                   {ship.phone}
                 </li>
               )}
+              {order.zoneName && (
+                <li className="flex items-center gap-2.5">
+                  <LuTruck className="h-4 w-4 shrink-0 text-accent" />
+                  {order.zoneName}
+                </li>
+              )}
             </ul>
           </AccountCard>
         </div>
       </div>
-    </div>
-  )
-}
 
-/** One shop's parcel: who sent it, a progress tracker, and the items inside. */
-function ParcelCard({ shipment }: { shipment: Shipment }) {
-  const { getVendor } = useVendors()
-  const vendor = getVendor(shipment.vendorId)
-  const cancelled = shipment.status === 'Cancelled'
-  const reached = shipmentSteps.indexOf(shipment.status)
-
-  return (
-    <AccountCard
-      title={
-        <span className="flex items-center gap-2">
-          <LuStore className="h-4.5 w-4.5 text-accent" />
-          {vendor ? (
-            <Link to={`/vendor/${vendor.slug}`} className="hover:text-accent">
-              {vendor.name}
-            </Link>
-          ) : (
-            'Shop'
-          )}
-        </span>
-      }
-      subtitle={vendor?.policies.shipping}
-      aside={<span className="font-display font-bold text-ink tabular-nums">{formatPrice(shipment.total)}</span>}
-    >
-      {/* tracker */}
-      {cancelled ? (
-        <p className="flex items-center gap-2 rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm font-medium text-danger">
-          <LuX className="h-4 w-4" />
-          This parcel was cancelled. You won’t be charged for it.
-        </p>
-      ) : (
-        <ol className="grid grid-cols-3">
-          {shipmentSteps.map((step, i) => {
-            const done = i <= reached
-            return (
-              <li key={step} className="relative flex flex-col items-center text-center">
-                {i > 0 && (
-                  <span
-                    className={cn('absolute right-1/2 top-3.5 h-0.5 w-full -translate-y-1/2', i <= reached ? 'bg-accent' : 'bg-border')}
-                    aria-hidden
-                  />
-                )}
-                <span
-                  className={cn(
-                    'relative flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ring-4 ring-surface',
-                    done ? 'bg-accent text-on-accent' : 'bg-surface-sunken text-ink-mute',
-                  )}
-                >
-                  {done ? <LuCheck className="h-3.5 w-3.5" /> : i + 1}
-                </span>
-                <span className={cn('mt-1.5 text-caption font-semibold', done ? 'text-ink' : 'text-ink-mute')}>{step}</span>
-              </li>
-            )
-          })}
-        </ol>
+      {request && (
+        <ReturnRequestModal
+          open
+          onClose={() => setRequest(null)}
+          kind={request.kind}
+          order={order}
+          shipment={request.shipment}
+          customerName={profile.name}
+        />
       )}
-
-      {/* items */}
-      <ul className="mt-5 divide-y divide-border border-t border-border">
-        {shipment.items.map((item) => (
-          <li key={item.key} className="flex items-center gap-3 py-3">
-            <Link to={`/product/${item.productId}`} className="shrink-0">
-              <img src={item.image} alt="" className="h-16 w-16 rounded-xl object-cover" />
-            </Link>
-            <div className="min-w-0 flex-1">
-              <Link to={`/product/${item.productId}`} className="line-clamp-1 text-sm font-semibold text-ink hover:text-accent">
-                {item.name}
-              </Link>
-              <p className="text-caption text-ink-mute">
-                {[item.color, item.size].filter(Boolean).join(' · ')}
-                {(item.color || item.size) && ' · '}Qty {item.quantity}
-              </p>
-            </div>
-            <p className="text-sm font-semibold text-ink tabular-nums">{formatPrice(item.price * item.quantity)}</p>
-          </li>
-        ))}
-      </ul>
-    </AccountCard>
+    </div>
   )
 }
 

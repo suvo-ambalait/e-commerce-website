@@ -5,8 +5,8 @@ import { LuPackage, LuMapPin } from 'react-icons/lu'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
 import { Container, Section } from '@/shared/ui'
 import { ArrowRightIcon, BagIcon } from '@/shared/ui/icons'
-import { formatPrice } from '@/shared/lib/format'
-import type { Order, PaymentInfo, Shipment, ShippingInfo } from '@/shared/types'
+import type { Order, PaymentInfo, PaymentMethod, Shipment, ShippingInfo } from '@/shared/types'
+import { addressesStore, zonesStore } from '@/features/marketplace/stores'
 import { useCart } from '@/features/cart/context/CartContext'
 import { useCartPricing } from '@/features/cart/lib/useCartPricing'
 import { OrderSummary } from '@/features/cart/components/OrderSummary'
@@ -20,6 +20,8 @@ import {
   ShippingForm,
   emptyPayment,
   emptyShipping,
+  emptyWallet,
+  type WalletInfo,
 } from '../components/checkoutForms'
 
 type Step = Exclude<CheckoutStep, 'cart'>
@@ -28,13 +30,40 @@ export function CheckoutPage() {
   useDocumentTitle('Checkout · AmbalaEshop')
   const navigate = useNavigate()
   const { items, groups, clearCart } = useCart()
-  const pricing = useCartPricing()
   const { addOrder } = useOrders()
   const { applyOrderSale } = useInventory()
+  const [allZones] = zonesStore.useStore()
+  const [savedAddresses] = addressesStore.useStore()
+  const zones = allZones.filter((z) => z.active)
 
+  const defaultAddress = savedAddresses.find((a) => a.isDefault)
   const [step, setStep] = useState<Step>('details')
-  const [shipping, setShipping] = useState<ShippingInfo>(emptyShipping)
+  const [shipping, setShipping] = useState<ShippingInfo>(() =>
+    defaultAddress
+      ? {
+          fullName: defaultAddress.fullName,
+          address: defaultAddress.address,
+          city: defaultAddress.city,
+          state: defaultAddress.area,
+          zip: defaultAddress.zip,
+          country: defaultAddress.country,
+          phone: defaultAddress.phone,
+        }
+      : emptyShipping,
+  )
+  const [email, setEmail] = useState('')
+  const [zoneId, setZoneId] = useState(() => zones[0]?.id ?? '')
+  const [method, setMethod] = useState<PaymentMethod>('cod')
   const [payment, setPayment] = useState<PaymentInfo>(emptyPayment)
+  const [wallet, setWallet] = useState<WalletInfo>(emptyWallet)
+
+  const zone = zones.find((z) => z.id === zoneId) ?? zones[0]
+  // a zone with no free-delivery amount never ships free
+  const pricing = useCartPricing(
+    zone ? { shippingFlatRate: zone.rate, freeShippingThreshold: zone.freeOver > 0 ? zone.freeOver : Number.POSITIVE_INFINITY } : undefined,
+  )
+  const codAvailable = zone?.codAvailable ?? true
+  const effectiveMethod: PaymentMethod = method === 'cod' && !codAvailable ? 'bkash' : method
 
   const goTo = (s: CheckoutStep) => {
     if (s === 'cart') navigate('/cart')
@@ -83,13 +112,22 @@ export function CheckoutPage() {
       }
     })
 
-    const email = (shipping.fullName.split(' ')[0] + '@guest.example').toLowerCase()
-
     const order: Order = {
       orderNumber,
-      email,
+      email: email.trim().toLowerCase(),
       date: new Date().toISOString(),
       shippingInfo: shipping,
+      zoneName: zone?.name,
+      payment: {
+        method: effectiveMethod,
+        status: effectiveMethod === 'cod' ? 'Due on delivery' : 'Paid',
+        reference:
+          effectiveMethod === 'card'
+            ? `•••• ${payment.cardNumber.replace(/\D/g, '').slice(-4)}`
+            : effectiveMethod === 'cod'
+              ? undefined
+              : wallet.transactionId.trim(),
+      },
       discountCode: pricing.appliedCode ?? undefined,
       subtotal: totals.subtotal,
       discount: totals.discount,
@@ -142,17 +180,28 @@ export function CheckoutPage() {
                 <ShippingForm
                   value={shipping}
                   onChange={setShipping}
+                  email={email}
+                  onEmailChange={setEmail}
+                  zones={zones}
+                  zoneId={zone?.id ?? ''}
+                  onZoneChange={setZoneId}
+                  savedAddresses={savedAddresses}
                   onSubmit={() => goTo('payment')}
                   onBack={() => goTo('cart')}
                 />
               )}
               {step === 'payment' && (
                 <PaymentForm
-                  value={payment}
-                  onChange={setPayment}
+                  method={effectiveMethod}
+                  onMethodChange={setMethod}
+                  card={payment}
+                  onCardChange={setPayment}
+                  wallet={wallet}
+                  onWalletChange={setWallet}
+                  codAvailable={codAvailable}
+                  total={pricing.totals.grandTotal}
                   onSubmit={placeOrder}
                   onBack={() => goTo('details')}
-                  submitLabel={`Pay ${formatPrice(pricing.totals.grandTotal)}`}
                   before={
                     <>
                       <CheckoutPanel
@@ -170,9 +219,12 @@ export function CheckoutPage() {
                       >
                         <p className="text-sm text-ink">{shipping.fullName}</p>
                         <p className="mt-0.5 text-sm text-ink-soft">
-                          {shipping.address}, {shipping.city}, {shipping.state} {shipping.zip}, {shipping.country}
+                          {[shipping.address, shipping.state, shipping.city, shipping.zip, shipping.country].filter(Boolean).join(', ')}
                         </p>
-                        <p className="mt-0.5 text-caption text-ink-mute">{shipping.phone}</p>
+                        <p className="mt-0.5 text-caption text-ink-mute">
+                          {shipping.phone} · {email}
+                          {zone && ` · ${zone.name}, ${zone.minDays}–${zone.maxDays} days`}
+                        </p>
                       </CheckoutPanel>
 
                       <CheckoutPanel

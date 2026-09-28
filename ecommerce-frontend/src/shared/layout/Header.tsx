@@ -10,6 +10,7 @@ import { ThemeToggle } from '@/features/account/components/ThemeToggle'
 import { SearchDialog, useSearchHotkey } from '@/features/catalog/components/SearchDialog'
 import { CartDrawer } from '@/features/cart/components/CartDrawer'
 import { formatPriceWhole } from '@/shared/lib/format'
+import { contentStore } from '@/features/marketplace/stores'
 import { MobileNav } from './MobileNav'
 import { MegaMenu } from './MegaMenu'
 import { BrandLockup } from './Logo'
@@ -24,6 +25,7 @@ export function Header() {
   const { count: wishCount } = useWishlist()
   const { categories } = useCatalog()
   const { settings } = useSettings()
+  const [content] = contentStore.useStore()
 
   const openSearch = useCallback(() => setSearchOpen(true), [])
   useSearchHotkey(openSearch)
@@ -37,15 +39,25 @@ export function Header() {
             <StoreIcon className="h-3.5 w-3.5" aria-hidden />
             Ships from the shop
           </span>
-          <p className="truncate text-center font-semibold uppercase tracking-[0.14em]">
-            Free shipping over {formatPriceWhole(settings.freeShippingThreshold)}
-            <span className="hidden text-[#a78bfa] sm:inline"> · Independent makers, one checkout</span>
-          </p>
+          {/* admins edit this text on the Site content page; falls back to the free-shipping line */}
+          {content.announcement.on && content.announcement.text ? (
+            <Link
+              to={content.announcement.link || '/'}
+              className="truncate text-center font-semibold uppercase tracking-[0.14em] transition-colors hover:text-[#c4b5fd]"
+            >
+              {content.announcement.text}
+            </Link>
+          ) : (
+            <p className="truncate text-center font-semibold uppercase tracking-[0.14em]">
+              Free shipping over {formatPriceWhole(settings.freeShippingThreshold)}
+              <span className="hidden text-[#a78bfa] sm:inline"> · Independent makers, one checkout</span>
+            </p>
+          )}
           <span className="hidden items-center justify-end gap-5 text-[#b8b3c7] md:flex">
-            <Link to="/account" className="transition-colors hover:text-white">
+            <Link to="/track-order" className="transition-colors hover:text-white">
               Track an order
             </Link>
-            <Link to="/about" className="transition-colors hover:text-white">
+            <Link to="/faq" className="transition-colors hover:text-white">
               Help
             </Link>
           </span>
@@ -64,7 +76,7 @@ export function Header() {
           </button>
 
           <Link to="/" className="shrink-0" aria-label={`${settings.storeName} home`}>
-            <BrandLockup className="text-[1.1rem] sm:text-[1.25rem]" nameClassName="text-ink max-[379px]:hidden" />
+            <BrandLockup compact className="text-[1.05rem] sm:text-[1.2rem]" />
           </Link>
 
           {/* nav pill */}
