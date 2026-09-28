@@ -1,6 +1,7 @@
 <?php
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Auth\EmailController;
+use App\Http\Controllers\Api\V1\Auth\RoleController;
 
 
 Route::prefix('auth')->group(function () {
@@ -10,7 +11,7 @@ Route::prefix('auth')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
     Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum');
-    Route::get('/admin/user/roles', [AuthController::class, 'getUserRoles'])->middleware(['auth:sanctum', 'role:super-admin|admin', 'throttle:10,1',]);
+    Route::get('/admin/user/roles', [RoleController::class, 'getUserRoles'])->middleware(['auth:sanctum', 'role:super-admin|admin', 'throttle:10,1',]);
     Route::post('/email/send', [EmailController::class, 'sendVerificationEmail'])->middleware('throttle:5,1');
     Route::post('/email/verify', [EmailController::class, 'verifyEmail'])->middleware('throttle:10,1');
     Route::post('/email/resend', [EmailController::class, 'resendVerificationEmail'])->middleware('throttle:5,1');

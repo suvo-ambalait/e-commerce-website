@@ -10,7 +10,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use OpenApi\Attributes as OA;
-use Spatie\Permission\Models\Role;
 
 #[OA\Tag(name: 'Auth', description: 'Authentication endpoints')]
 class AuthController extends Controller
@@ -256,28 +255,4 @@ class AuthController extends Controller
         return response()->json($request->user());
     }
 
-    // Get User Roles method
-    #[OA\Get(
-        path: '/v1/auth/admin/user/roles',
-        tags: ['Auth'],
-        summary: 'Get the roles of the authenticated user',
-        security: [['bearerAuth' => []]],
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: 'User roles',
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: 'roles', type: 'array', items: new OA\Items(type: 'string'))
-                    ]
-                )
-            ),
-            new OA\Response(response: 401, description: 'Unauthenticated'),
-        ]
-    )]
-    public function getUserRoles(Request $request) {
-      
-        $roles = Role::all (); // Fetch all roles from the database
-        return response()->json(['roles' => $roles]);
-    }
 }
