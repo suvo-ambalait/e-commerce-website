@@ -78,5 +78,44 @@ class RoleController extends Controller
 
         return response()->json(['message' => 'Role created successfully!', 'role' => $role], 201);
     }
+
+
+    /***
+     * Delete a role
+     */
+    #[OA\Delete(
+        path: '/v1/admin/roles/{id}',
+        tags: ['Auth'],
+        summary: 'Delete a role',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                description: 'The ID of the role to delete',
+                required: true,
+                schema: new OA\Schema(type: 'string')
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Role deleted successfully',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'message', type: 'string')
+                    ]
+                )
+            ),
+            new OA\Response(response: 404, description: 'Role not found'),
+        ]
+    )]
+    public function destroy($id)
+    {
+        $role = Role::findOrFail($id);
+        $role->delete();
+
+        return response()->json(['message' => 'Role deleted successfully!']);
+    }
      
 }

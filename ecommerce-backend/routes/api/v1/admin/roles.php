@@ -10,3 +10,4 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/roles', [RoleController::class, 'index']);
 Route::post('/roles', [RoleController::class, 'store']);
+Route::delete('/roles/{id}', [RoleController::class, 'destroy']);
