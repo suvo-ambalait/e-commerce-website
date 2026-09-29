@@ -49,7 +49,7 @@ class RoleController extends Controller
     }
     // Get User Roles method
     #[OA\Get(
-        path: '/v1/auth/admin/user/roles',
+        path: '/v1/admin/roles',
         tags: ['Auth'],
         summary: 'Get the roles of the authenticated user',
         security: [['bearerAuth' => []]],
