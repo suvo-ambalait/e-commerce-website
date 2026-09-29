@@ -66,9 +66,11 @@ class RoleController extends Controller
             new OA\Response(response: 401, description: 'Unauthenticated'),
         ]
     )]
-    public function getUserRoles(Request $request)
+    public function getAllRoles(Request $request)
     {
         $roles = Role::all(); // Fetch all roles from the database
         return response()->json(['roles' => $roles]);
     }
+
+     
 }
