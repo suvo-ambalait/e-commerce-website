@@ -8,4 +8,5 @@ use Illuminate\Support\Facades\Route;
 | auth:sanctum + role:super-admin|admin is applied in routes/api/v1.php.
 */
 
-Route::get('/roles', [RoleController::class, 'getAllRoles'])->middleware('throttle:10,1');
+Route::get('/roles', [RoleController::class, 'index']);
+Route::post('/roles', [RoleController::class, 'store']);

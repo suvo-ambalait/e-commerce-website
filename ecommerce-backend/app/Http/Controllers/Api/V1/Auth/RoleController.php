@@ -9,6 +9,37 @@ use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
+    /***
+     * Get all roles
+     */
+    #[OA\Get(
+        path: '/v1/admin/roles',
+        tags: ['Auth'],
+        summary: 'Get all roles',
+        security: [['bearerAuth' => []]],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'User roles',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'roles', type: 'array', items: new OA\Items(type: 'string'))
+                    ]
+                )
+            ),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
+        ]
+    )]
+    public function index(Request $request)
+    {
+        $roles = Role::all(); // Fetch all roles from the database
+        return response()->json(['roles' => $roles]);
+    }
+
+    /***
+     * Create a new role
+     */
+
     #[OA\Post(
         path: '/v1/auth/admin/roles',
         tags: ['Auth'],
@@ -47,30 +78,5 @@ class RoleController extends Controller
 
         return response()->json(['message' => 'Role created successfully!', 'role' => $role], 201);
     }
-    // Get User Roles method
-    #[OA\Get(
-        path: '/v1/admin/roles',
-        tags: ['Auth'],
-        summary: 'Get the roles of the authenticated user',
-        security: [['bearerAuth' => []]],
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: 'User roles',
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: 'roles', type: 'array', items: new OA\Items(type: 'string'))
-                    ]
-                )
-            ),
-            new OA\Response(response: 401, description: 'Unauthenticated'),
-        ]
-    )]
-    public function getAllRoles(Request $request)
-    {
-        $roles = Role::all(); // Fetch all roles from the database
-        return response()->json(['roles' => $roles]);
-    }
-
      
 }
