@@ -17,6 +17,17 @@ export function formatPrice(value: number): string {
   return currency.format(value)
 }
 
+/** `formatPrice` split into the currency sign and the rest, for styling the sign separately. */
+export function formatPriceParts(value: number): { symbol: string; amount: string } {
+  let symbol = ''
+  let amount = ''
+  for (const part of currency.formatToParts(value)) {
+    if (part.type === 'currency') symbol += part.value
+    else amount += part.value
+  }
+  return { symbol, amount: amount.trim() }
+}
+
 /** `৳1,240` — used where paisa add noise (dashboards, big totals). */
 export function formatPriceWhole(value: number): string {
   return currencyWhole.format(value)

@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom'
-import { LuArrowRight, LuHeart, LuMapPin, LuPackage, LuPhone, LuMail, LuWallet } from 'react-icons/lu'
+import { LuArrowRight, LuChevronRight, LuHeart, LuMapPin, LuPackage, LuPhone, LuMail, LuWallet } from 'react-icons/lu'
 import type { ReactNode } from 'react'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle'
-import { ButtonLink, EmptyState } from '@/shared/ui'
-import { formatPrice } from '@/shared/lib/format'
+import { ButtonLink, EmptyState, Money } from '@/shared/ui'
 import { useWishlist } from '../context/WishlistContext'
 import { AccountCard } from '../components/AccountLayout'
 import { OrderCard } from '../components/OrderCard'
@@ -20,9 +19,27 @@ export function AccountPage() {
   return (
     <div className="space-y-5">
       <div className="grid gap-4 sm:grid-cols-3">
-        <Stat icon={<LuPackage className="h-4.5 w-4.5" />} label="Orders" value={String(orders.length)} hint={active ? `${active} on the way` : 'None in progress'} />
-        <Stat icon={<LuWallet className="h-4.5 w-4.5" />} label="Total spent" value={formatPrice(spent)} hint="Across every shop" />
-        <Stat icon={<LuHeart className="h-4.5 w-4.5" />} label="Saved items" value={String(savedCount)} hint="In your wishlist" to="/wishlist" />
+        <Stat
+          icon={<LuPackage className="h-5 w-5" />}
+          label="Orders"
+          value={orders.length}
+          hint={active ? `${active} in progress` : 'None in progress'}
+          to="/account/orders"
+        />
+        <Stat
+          icon={<LuWallet className="h-5 w-5" />}
+          label="Total spent"
+          value={<Money value={spent} />}
+          hint="Across every shop"
+          to="/account/orders"
+        />
+        <Stat
+          icon={<LuHeart className="h-5 w-5" />}
+          label="Saved items"
+          value={savedCount}
+          hint={savedCount ? 'In your wishlist' : 'Nothing saved yet'}
+          to="/wishlist"
+        />
       </div>
 
       <AccountCard
@@ -44,9 +61,9 @@ export function AccountPage() {
             action={<ButtonLink to="/shop">Start shopping</ButtonLink>}
           />
         ) : (
-          <div className="space-y-3">
+          <div className="-my-1 divide-y divide-border">
             {orders.slice(0, 3).map((o) => (
-              <OrderCard key={o.orderNumber} order={o} />
+              <OrderCard key={o.orderNumber} order={o} flat />
             ))}
           </div>
         )}
@@ -91,22 +108,22 @@ export function AccountPage() {
   )
 }
 
-function Stat({ icon, label, value, hint, to }: { icon: ReactNode; label: string; value: string; hint: string; to?: string }) {
-  const body = (
-    <>
-      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent">{icon}</span>
-      <p className="mt-3 text-caption text-ink-mute">{label}</p>
-      <p className="font-display text-2xl font-extrabold tracking-[-0.02em] text-ink tabular-nums">{value}</p>
-      <p className="mt-0.5 text-caption text-ink-mute">{hint}</p>
-    </>
-  )
-  const cls = 'block rounded-2xl border border-border bg-surface p-5 shadow-sm'
-  return to ? (
-    <Link to={to} className={`${cls} transition-colors hover:border-accent/40!`}>
-      {body}
+function Stat({ icon, label, value, hint, to }: { icon: ReactNode; label: string; value: ReactNode; hint: string; to: string }) {
+  return (
+    <Link
+      to={to}
+      className="group flex items-center gap-4 rounded-2xl border border-border bg-surface p-4 shadow-sm transition-[border-color,box-shadow] hover:border-accent/40! hover:shadow-md sm:p-5"
+    >
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">{icon}</span>
+      <div className="min-w-0 flex-1">
+        <p className="text-caption font-medium text-ink-mute">{label}</p>
+        <p className="truncate font-display text-2xl leading-tight font-extrabold tracking-[-0.02em] text-ink tabular-nums">
+          {value}
+        </p>
+        <p className="truncate text-caption text-ink-mute">{hint}</p>
+      </div>
+      <LuChevronRight className="h-4 w-4 shrink-0 text-ink-mute transition-transform group-hover:translate-x-0.5 group-hover:text-accent" />
     </Link>
-  ) : (
-    <div className={cls}>{body}</div>
   )
 }
 

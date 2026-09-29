@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom'
 import { Header } from './Header'
 import { Footer } from './Footer'
 import { ScrollToTop } from './ScrollToTop'
+import { BackToTop } from './BackToTop'
 
 export function StorefrontLayout() {
   return (
@@ -14,10 +15,11 @@ export function StorefrontLayout() {
         Skip to content
       </a>
       <Header />
-      <main id="main" className="flex-1">
+      <main id="main" tabIndex={-1} className="flex-1 outline-none">
         <Outlet />
       </main>
       <Footer />
+      <BackToTop />
     </div>
   )
 }

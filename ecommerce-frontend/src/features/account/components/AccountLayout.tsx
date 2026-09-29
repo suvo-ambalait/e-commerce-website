@@ -1,11 +1,21 @@
 import type { ComponentType, ReactNode, SVGProps } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
-import { LuHeart, LuLayoutGrid, LuLogOut, LuMapPin, LuPackage, LuRotateCcw, LuUserCog } from 'react-icons/lu'
+import { Link, NavLink, Outlet } from 'react-router-dom'
+import {
+  LuHeart,
+  LuLayoutGrid,
+  LuLogOut,
+  LuMapPin,
+  LuPackage,
+  LuRotateCcw,
+  LuShoppingBag,
+  LuTruck,
+  LuUserCog,
+} from 'react-icons/lu'
 import { returnsStore } from '@/features/marketplace/stores'
 import { Avatar, Container, Section } from '@/shared/ui'
 import { cn } from '@/shared/lib/cn'
 import { useWishlist } from '../context/WishlistContext'
-import { useCustomer } from '../lib/useCustomer'
+import { orderProgress, useCustomer } from '../lib/useCustomer'
 
 interface NavItem {
   label: string
@@ -23,6 +33,8 @@ export function AccountLayout() {
   const openReturns = returns.filter(
     (r) => r.email.toLowerCase() === profile.email.toLowerCase() && (r.status === 'Requested' || r.status === 'Approved'),
   ).length
+  // newest order still in progress, for the header's "Track order" shortcut
+  const activeOrder = orders.find((o) => ['Processing', 'On the way'].includes(orderProgress(o)))
 
   const nav: NavItem[] = [
     { label: 'Overview', to: '/account', end: true, icon: LuLayoutGrid },
@@ -37,17 +49,47 @@ export function AccountLayout() {
     <Section size="sm" className="bg-surface-sunken/50">
       <Container>
         {/* profile header */}
-        <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-[#6d28d9] to-[#a78bfa] px-5 py-6 text-white sm:px-8 sm:py-8">
-          <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full border border-white/20!" />
-          <div className="pointer-events-none absolute -bottom-24 right-24 h-48 w-48 rounded-full border border-white/10!" />
-          <div className="relative flex items-center gap-4">
-            <Avatar name={profile.name} size={60} className="ring-4 ring-white/30" />
-            <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/70">My account</p>
-              <h1 className="truncate font-display! text-2xl font-extrabold! tracking-[-0.03em]! sm:text-3xl">
-                Hello, {profile.name.split(' ')[0]}
-              </h1>
-              <p className="truncate text-sm text-white/80">{profile.email}</p>
+        <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-[#5b21b6] via-[#6d28d9] to-[#8b5cf6] px-5 py-5 text-white shadow-sm sm:px-7 sm:py-6">
+          {/* soft light + dot texture */}
+          <div className="pointer-events-none absolute -right-20 -top-28 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 w-1/2 opacity-[0.12] mask-[linear-gradient(to_left,black,transparent)]"
+            style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '16px 16px' }}
+          />
+
+          <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-4">
+              <Avatar
+                name={profile.name}
+                size={56}
+                className="bg-white! text-base! font-bold! text-[#5b21b6]! ring-4 ring-white/20"
+              />
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/65">My account</p>
+                <h1 className="truncate font-display! text-2xl font-extrabold! tracking-[-0.03em]! sm:text-[1.75rem]">
+                  Hello, {profile.name.split(' ')[0]}
+                </h1>
+                <p className="truncate text-sm text-white/75">{profile.email}</p>
+              </div>
+            </div>
+
+            <div className="flex shrink-0 flex-wrap gap-2">
+              {activeOrder && (
+                <Link
+                  to={`/account/orders/${activeOrder.orderNumber}`}
+                  className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#5b21b6] shadow-sm transition-colors hover:bg-white/90"
+                >
+                  <LuTruck className="h-4 w-4" />
+                  Track order
+                </Link>
+              )}
+              <Link
+                to="/shop"
+                className="inline-flex items-center gap-2 rounded-full border border-white/30! bg-white/10 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/20"
+              >
+                <LuShoppingBag className="h-4 w-4" />
+                Continue shopping
+              </Link>
             </div>
           </div>
         </div>

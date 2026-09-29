@@ -6,6 +6,10 @@ import '@/index.css'
 import { store } from './store'
 import { AppProviders } from './providers'
 import { App } from './App'
+import { loadDemoAccountData } from '@/features/account/data/demoAccountData'
+
+// Sample data for the customer account pages. Remove once they use the API.
+loadDemoAccountData()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
