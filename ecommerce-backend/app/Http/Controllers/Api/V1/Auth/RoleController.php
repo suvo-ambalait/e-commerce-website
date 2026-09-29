@@ -9,7 +9,36 @@ use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
-    public function store(Request $request) {
+    #[OA\Post(
+        path: '/v1/auth/admin/roles',
+        tags: ['Auth'],
+        summary: 'Create a new role',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['name'],
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', description: 'The name of the role', example: 'admin')
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Role created successfully',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'message', type: 'string'),
+                        new OA\Property(property: 'role', ref: '#/components/schemas/Role')
+                    ]
+                )
+            ),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ]
+    )]
+    public function store(Request $request)
+    {
         $request->validate([
             'name' => 'required|string|max:50|unique:roles,name',
         ]);
@@ -18,7 +47,7 @@ class RoleController extends Controller
 
         return response()->json(['message' => 'Role created successfully!', 'role' => $role], 201);
     }
-     // Get User Roles method
+    // Get User Roles method
     #[OA\Get(
         path: '/v1/auth/admin/user/roles',
         tags: ['Auth'],
@@ -37,7 +66,8 @@ class RoleController extends Controller
             new OA\Response(response: 401, description: 'Unauthenticated'),
         ]
     )]
-    public function getUserRoles(Request $request) {
+    public function getUserRoles(Request $request)
+    {
         $roles = Role::all(); // Fetch all roles from the database
         return response()->json(['roles' => $roles]);
     }
